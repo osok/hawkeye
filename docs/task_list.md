@@ -79,18 +79,18 @@ Development of a security reconnaissance tool to identify and assess MCP (Model 
 ### Phase 5: Reporting Engine
 | Task ID | Description | Dependencies | Status | Reference |
 |---------|-------------|--------------|--------|-----------|
-| P1 | Create reporting base classes and data models | C4 | Pending | src/mcp_recon/reporting/ |
-| P2 | Implement JSON output format | P1 | Pending | src/mcp_recon/reporting/json_reporter.py |
-| P3 | Implement CSV output format | P1 | Pending | src/mcp_recon/reporting/csv_reporter.py |
-| P4 | Implement XML output format | P1 | Pending | src/mcp_recon/reporting/xml_reporter.py |
-| P5 | Create HTML report generation with templates | P1 | Pending | src/mcp_recon/reporting/html_reporter.py |
-| P6 | Implement executive summary generation | P1 | Pending | src/mcp_recon/reporting/summary.py |
-| P7 | Create data aggregation and statistics | P1 | Pending | src/mcp_recon/reporting/aggregation.py |
-| P8 | Implement report template system | P5 | Pending | src/mcp_recon/reporting/templates/ |
-| T15 | Unit tests for JSON reporting | P2 | Pending | tests/test_reporting/test_json_reporter.py |
+| P1 | Create reporting base classes and data models | C4 | Complete | src/hawkeye/reporting/ |
+| P2 | Implement JSON output format | P1 | Complete | src/hawkeye/reporting/json_reporter.py |
+| P3 | Implement CSV output format | P1 | Complete | src/hawkeye/reporting/csv_reporter.py |
+| P4 | Implement XML output format | P1 | Complete | src/hawkeye/reporting/xml_reporter.py |
+| P5 | Create HTML report generation with templates | P1 | Complete | src/hawkeye/reporting/html_reporter.py |
+| P6 | Implement executive summary generation | P1 | Complete | src/hawkeye/reporting/executive_summary.py |
+| P7 | Create data aggregation and statistics | P1 | Complete | src/hawkeye/reporting/aggregation.py |
+| P8 | Implement report template system | P5 | Complete | src/hawkeye/reporting/templates/ |
+| T15 | Unit tests for JSON reporting | P2 | Complete | tests/test_reporting/test_json_reporter.py |
 | T16 | Unit tests for CSV reporting | P3 | Pending | tests/test_reporting/test_csv_reporter.py |
 | T17 | Unit tests for XML reporting | P4 | Pending | tests/test_reporting/test_xml_reporter.py |
-| T18 | Unit tests for HTML reporting | P5,P8 | Pending | tests/test_reporting/test_html_reporter.py |
+| T18 | Unit tests for HTML reporting | P5,P8 | Complete | tests/test_reporting/test_html_reporter.py |
 | T19 | Integration tests for complete reporting pipeline | P6,P7 | Pending | tests/integration/test_reporting.py |
 | C5 | **Checkpoint 5**: Reporting engine complete | P1,P2,P3,P4,P5,P6,P7,P8,T15,T16,T17,T18,T19 | Pending | Full reporting capability |
 
