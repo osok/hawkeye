@@ -109,7 +109,7 @@ class ComplianceChecker(RiskAssessor):
             RiskLevel.HIGH: 15,
             RiskLevel.MEDIUM: 10,
             RiskLevel.LOW: 5,
-            RiskLevel.INFO: 1
+            RiskLevel.NONE: 1
         }
     
     def get_assessment_type(self) -> str:
@@ -612,7 +612,7 @@ class ComplianceChecker(RiskAssessor):
                 description="Ensure proper access controls are implemented",
                 requirement_category=ComplianceRequirement.ACCESS_CONTROL,
                 severity=RiskLevel.HIGH,
-                applicable_categories=[VulnerabilityCategory.ACCESS_CONTROL, VulnerabilityCategory.AUTHENTICATION],
+                applicable_categories=[VulnerabilityCategory.AUTHORIZATION, VulnerabilityCategory.AUTHENTICATION],
                 keywords=["access", "authorization", "privilege", "permission"],
                 remediation_guidance="Implement proper access controls and authorization mechanisms"
             ),
@@ -672,7 +672,7 @@ class ComplianceChecker(RiskAssessor):
                 description="Identities and credentials are issued, managed, verified, revoked, and audited",
                 requirement_category=ComplianceRequirement.ACCESS_CONTROL,
                 severity=RiskLevel.HIGH,
-                applicable_categories=[VulnerabilityCategory.ACCESS_CONTROL, VulnerabilityCategory.AUTHENTICATION],
+                applicable_categories=[VulnerabilityCategory.AUTHORIZATION, VulnerabilityCategory.AUTHENTICATION],
                 keywords=["access", "identity", "credential", "authentication"],
                 remediation_guidance="Implement comprehensive access control policies and procedures"
             ),
@@ -737,7 +737,7 @@ class ComplianceChecker(RiskAssessor):
                 description="Implement appropriate technical and organizational measures to ensure security",
                 requirement_category=ComplianceRequirement.DATA_PROTECTION,
                 severity=RiskLevel.HIGH,
-                applicable_categories=[VulnerabilityCategory.ENCRYPTION, VulnerabilityCategory.ACCESS_CONTROL],
+                applicable_categories=[VulnerabilityCategory.ENCRYPTION, VulnerabilityCategory.AUTHORIZATION],
                 keywords=["security", "processing", "encryption", "access"],
                 remediation_guidance="Implement appropriate security measures for personal data processing"
             ),
@@ -753,7 +753,7 @@ class ComplianceChecker(RiskAssessor):
                 description="Implement logical and physical access controls",
                 requirement_category=ComplianceRequirement.ACCESS_CONTROL,
                 severity=RiskLevel.HIGH,
-                applicable_categories=[VulnerabilityCategory.ACCESS_CONTROL],
+                applicable_categories=[VulnerabilityCategory.AUTHORIZATION],
                 keywords=["access", "control", "logical", "physical"],
                 remediation_guidance="Implement comprehensive access control mechanisms"
             ),
@@ -769,7 +769,7 @@ class ComplianceChecker(RiskAssessor):
                 description="An access control policy shall be established, documented and reviewed",
                 requirement_category=ComplianceRequirement.ACCESS_CONTROL,
                 severity=RiskLevel.MEDIUM,
-                applicable_categories=[VulnerabilityCategory.ACCESS_CONTROL],
+                applicable_categories=[VulnerabilityCategory.AUTHORIZATION],
                 keywords=["access", "policy", "control"],
                 remediation_guidance="Establish and maintain formal access control policies"
             ),

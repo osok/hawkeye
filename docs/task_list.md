@@ -69,12 +69,12 @@ Development of a security reconnaissance tool to identify and assess MCP (Model 
 | R5 | Create weak authentication mechanism detection | R1 | Complete | src/hawkeye/assessment/auth_analysis.py |
 | R6 | Implement transport security assessment | R1 | Complete | src/hawkeye/assessment/transport_security.py |
 | R7 | Create compliance checking framework | R1 | Complete | src/hawkeye/assessment/compliance.py |
-| R8 | Implement remediation recommendation engine | R2,R3,R4,R5,R6 | Pending | src/mcp_recon/assessment/remediation.py |
-| T11 | Unit tests for CVSS scoring | R2 | Pending | tests/test_assessment/test_cvss_scoring.py |
+| R8 | Implement remediation recommendation engine | R2,R3,R4,R5,R6 | Complete | src/hawkeye/assessment/remediation.py |
+| T11 | Unit tests for CVSS scoring | R2 | Complete | tests/test_assessment/test_cvss_scoring.py |
 | T12 | Unit tests for configuration analysis | R3,R4 | Complete | tests/test_assessment/test_config_analysis.py |
-| T13 | Unit tests for security assessments | R5,R6 | Pending | tests/test_assessment/test_security.py |
-| T14 | Integration tests for risk assessment pipeline | R7,R8 | Pending | tests/integration/test_assessment.py |
-| C4 | **Checkpoint 4**: Risk assessment module complete | R1,R2,R3,R4,R5,R6,R7,R8,T11,T12,T13,T14 | Pending | Full risk assessment capability |
+| T13 | Unit tests for security assessments | R5,R6 | Complete | tests/test_assessment/test_security.py |
+| T14 | Integration tests for risk assessment pipeline | R7,R8 | Complete | tests/integration/test_assessment.py |
+| C4 | **Checkpoint 4**: Risk assessment module complete | R1,R2,R3,R4,R5,R6,R7,R8,T11,T12,T13,T14 | Complete | Full risk assessment capability |
 
 ### Phase 5: Reporting Engine
 | Task ID | Description | Dependencies | Status | Reference |

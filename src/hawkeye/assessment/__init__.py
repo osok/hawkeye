@@ -22,6 +22,14 @@ from .base import (
     ComplianceFramework,
 )
 
+from .exceptions import (
+    RemediationError,
+    InvalidFindingError,
+    RemediationTemplateError,
+    PrioritizationError,
+    RiskCalculationError,
+)
+
 from .cvss_scoring import (
     CVSSScores,
     CVSSCalculator,
@@ -53,6 +61,18 @@ from .auth_analysis import (
     analyze_authentication,
     check_password_strength,
     validate_jwt_token,
+)
+
+from .remediation import (
+    RemediationPriority,
+    RemediationComplexity,
+    RemediationCategory,
+    RemediationAction,
+    RemediationPlan,
+    RemediationEngine,
+    generate_remediation_plan,
+    get_quick_wins,
+    estimate_implementation_time,
 )
 
 __all__ = [
@@ -96,9 +116,25 @@ __all__ = [
     'check_password_strength',
     'validate_jwt_token',
     
+    # Remediation
+    'RemediationPriority',
+    'RemediationComplexity',
+    'RemediationCategory',
+    'RemediationAction',
+    'RemediationPlan',
+    'RemediationEngine',
+    'generate_remediation_plan',
+    'get_quick_wins',
+    'estimate_implementation_time',
+    
     # Exceptions
     'AssessmentError',
     'CVSSError',
     'ConfigurationError',
     'ComplianceError',
+    'RemediationError',
+    'InvalidFindingError',
+    'RemediationTemplateError',
+    'PrioritizationError',
+    'RiskCalculationError',
 ] 
