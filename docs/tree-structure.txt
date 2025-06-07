@@ -1,0 +1,101 @@
+mcp-hunt
+├── docs
+│   ├── conventions
+│   │   ├── docker.md
+│   │   ├── flask.md
+│   │   ├── langchain.md
+│   │   ├── python.md
+│   │   └── sqlAlchemy.md
+│   ├── Design.md
+│   ├── module-functions.txt
+│   ├── notes.md
+│   ├── task_list.md
+│   ├── tree-structure.txt
+│   └── uml.txt
+├── logos
+│   ├── hacker.png
+│   ├── logo.png
+│   └── mcp-detected.png
+├── src
+│   └── hawkeye
+│       ├── assessment
+│       │   ├── __init__.py
+│       │   ├── auth_analysis.py
+│       │   ├── base.py
+│       │   ├── compliance.py
+│       │   ├── config_analysis.py
+│       │   ├── cvss_scoring.py
+│       │   ├── default_detect.py
+│       │   └── transport_security.py
+│       ├── cli
+│       │   ├── __init__.py
+│       │   └── main.py
+│       ├── config
+│       │   ├── __init__.py
+│       │   └── settings.py
+│       ├── detection
+│       │   ├── __init__.py
+│       │   ├── base.py
+│       │   ├── config_discovery.py
+│       │   ├── docker_inspect.py
+│       │   ├── env_analysis.py
+│       │   ├── npx_detect.py
+│       │   ├── process_enum.py
+│       │   ├── protocol_verify.py
+│       │   └── transport_detect.py
+│       ├── models
+│       │   └── __init__.py
+│       ├── scanner
+│       │   ├── __init__.py
+│       │   ├── base.py
+│       │   ├── connection_pool.py
+│       │   ├── fingerprint.py
+│       │   ├── rate_limiter.py
+│       │   ├── target_enum.py
+│       │   ├── tcp_scanner.py
+│       │   └── udp_scanner.py
+│       ├── services
+│       │   └── __init__.py
+│       ├── utils
+│       │   ├── __init__.py
+│       │   └── logging.py
+│       ├── __init__.py
+│       └── exceptions.py
+├── tests
+│   ├── test_assessment
+│   │   ├── __init__.py
+│   │   ├── test_auth_analysis.py
+│   │   ├── test_base.py
+│   │   ├── test_config_analysis.py
+│   │   ├── test_cvss_scoring.py
+│   │   ├── test_default_detect.py
+│   │   └── test_transport_security.py
+│   ├── test_config
+│   │   ├── __init__.py
+│   │   └── test_settings.py
+│   ├── test_detection
+│   │   ├── __init__.py
+│   │   ├── test_config_discovery.py
+│   │   ├── test_docker_inspect.py
+│   │   ├── test_env_analysis.py
+│   │   ├── test_npx_detect.py
+│   │   ├── test_process_enum.py
+│   │   ├── test_protocol_verify.py
+│   │   └── test_transport_detect.py
+│   ├── test_scanner
+│   │   ├── __init__.py
+│   │   └── test_tcp_scanner.py
+│   ├── test_utils
+│   │   ├── __init__.py
+│   │   └── test_logging.py
+│   └── __init__.py
+├── .env
+├── .env-example
+├── application.py
+├── README.md
+└── requirements.txt
+
+Statistics:
+- Files: 76
+- Directories: 19
+- Total items: 95

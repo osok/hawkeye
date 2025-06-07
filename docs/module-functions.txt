@@ -1,0 +1,598 @@
+# Module Functions Documentation
+
+## Module: src.hawkeye.assessment.auth_analysis
+**File:** `src/hawkeye/assessment/auth_analysis.py`
+
+**Imports:**
+- base.AssessmentResult
+- base.ComplianceFramework
+- base.ConfigurationError
+- base.RiskAssessor
+- base.RiskLevel
+- base.SecurityFinding
+- base.VulnerabilityCategory
+- base.VulnerabilityInfo
+- base64
+- dataclasses.dataclass
+- dataclasses.field
+- datetime.datetime
+- datetime.timedelta
+- detection.base.DetectionResult
+- detection.base.MCPServerInfo
+- detection.base.TransportType
+- hashlib
+- json
+- pathlib.Path
+- re
+- typing.Any
+- typing.Dict
+- typing.List
+- typing.Optional
+- typing.Set
+- typing.Tuple
+- typing.Union
+- urllib.parse.urlparse
+- utils.logging.get_logger
+
+**Functions:**
+
+### `def analyze_authentication(detection_result: DetectionResult, settings = None) -> AuthenticationConfiguration`
+
+**Description:**
+Analyze authentication configuration in a detected MCP server.
+
+Args:
+detection_result: Detection result to analyze
+settings: Optional settings
+
+Returns:
+AuthenticationConfiguration: Analysis results
+
+**Line:** 960
+
+---
+
+### `def check_password_strength(password: str) -> Tuple[(bool, List[str])]`
+
+**Description:**
+Check password strength and return issues.
+
+Args:
+password: Password to check
+
+Returns:
+Tuple of (is_strong, list_of_issues)
+
+**Line:** 1005
+
+---
+
+### `def validate_jwt_token(token: str) -> Tuple[(bool, Dict[str, Any])]`
+
+**Description:**
+Validate JWT token structure and extract claims.
+
+Args:
+token: JWT token to validate
+
+Returns:
+Tuple of (is_valid, claims_dict)
+
+**Line:** 1045
+
+---
+
+
+## Module: src.hawkeye.assessment.config_analysis
+**File:** `src/hawkeye/assessment/config_analysis.py`
+
+**Imports:**
+- base.AssessmentResult
+- base.ComplianceFramework
+- base.ConfigurationError
+- base.RiskAssessor
+- base.RiskLevel
+- base.SecurityFinding
+- base.VulnerabilityCategory
+- base.VulnerabilityInfo
+- dataclasses.dataclass
+- dataclasses.field
+- detection.base.DetectionResult
+- detection.base.MCPServerInfo
+- detection.base.TransportType
+- json
+- pathlib.Path
+- re
+- typing.Any
+- typing.Dict
+- typing.List
+- typing.Optional
+- typing.Set
+- typing.Tuple
+- urllib.parse.urlparse
+- utils.logging.get_logger
+- yaml
+
+**Functions:**
+
+### `def analyze_configuration(detection_result: DetectionResult, settings = None) -> SecurityConfiguration`
+
+**Description:**
+Analyze security configuration of a detected MCP server.
+
+Args:
+detection_result: Detection result to analyze
+settings: Optional settings
+
+Returns:
+SecurityConfiguration: Analysis results
+
+**Line:** 819
+
+---
+
+
+## Module: src.hawkeye.assessment.cvss_scoring
+**File:** `src/hawkeye/assessment/cvss_scoring.py`
+
+**Imports:**
+- base.CVSSError
+- base.CVSSVector
+- base.RiskLevel
+- base.VulnerabilityCategory
+- base.VulnerabilityInfo
+- dataclasses.dataclass
+- math
+- re
+- typing.Any
+- typing.Dict
+- typing.Optional
+- typing.Tuple
+- utils.logging.get_logger
+
+**Functions:**
+
+### `def calculate_cvss_score(vector_string: str) -> float`
+
+**Description:**
+Calculate CVSS score from vector string.
+
+Args:
+vector_string: CVSS vector string
+
+Returns:
+float: CVSS score
+
+**Line:** 659
+
+---
+
+### `def get_risk_level_from_score(score: float) -> RiskLevel`
+
+**Description:**
+Get risk level from CVSS score.
+
+Args:
+score: CVSS score (0.0-10.0)
+
+Returns:
+RiskLevel: Corresponding risk level
+
+**Line:** 674
+
+---
+
+
+## Module: src.hawkeye.assessment.default_detect
+**File:** `src/hawkeye/assessment/default_detect.py`
+
+**Imports:**
+- base.AssessmentResult
+- base.ComplianceFramework
+- base.ConfigurationError
+- base.RiskAssessor
+- base.RiskLevel
+- base.SecurityFinding
+- base.VulnerabilityCategory
+- base.VulnerabilityInfo
+- config_analysis.ConfigurationIssue
+- config_analysis.SecurityConfiguration
+- dataclasses.dataclass
+- dataclasses.field
+- detection.base.DetectionResult
+- detection.base.MCPServerInfo
+- detection.base.TransportType
+- json
+- pathlib.Path
+- re
+- typing.Any
+- typing.Dict
+- typing.List
+- typing.Optional
+- typing.Set
+- typing.Tuple
+- urllib.parse.urlparse
+- utils.logging.get_logger
+
+**Functions:**
+
+### `def detect_default_configurations(detection_result: DetectionResult, settings = None) -> DefaultDetectionResult`
+
+**Description:**
+Detect default configurations in a detected MCP server.
+
+Args:
+detection_result: Detection result to analyze
+settings: Optional settings
+
+Returns:
+DefaultDetectionResult: Detection results
+
+**Line:** 661
+
+---
+
+### `def get_default_patterns() -> List[DefaultPattern]`
+
+**Description:**
+Get the list of all default configuration patterns.
+
+Returns:
+List[DefaultPattern]: List of default patterns
+
+**Line:** 706
+
+---
+
+### `def check_for_pattern(content: str, pattern_id: str) -> bool`
+
+**Description:**
+Check if content matches a specific default pattern.
+
+Args:
+content: Content to check
+pattern_id: ID of the pattern to check
+
+Returns:
+bool: True if pattern matches
+
+**Line:** 717
+
+---
+
+
+## Module: src.hawkeye.cli.main
+**File:** `src/hawkeye/cli/main.py`
+
+**Imports:**
+- click
+- config.get_settings
+- exceptions.HawkEyeError
+- pathlib.Path
+- rich.console.Console
+- rich.table.Table
+- sys
+- typing.Optional
+- utils.configure_logging
+- utils.get_logger
+
+**Functions:**
+
+### `def cli(ctx, verbose: bool, quiet: bool, log_file: Optional[str], config_file: Optional[str])`
+
+**Decorators:**
+- `@click.group(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.version_option(...)`
+- `@click.pass_context`
+
+**Description:**
+🦅 HawkEye - MCP Security Reconnaissance Tool
+
+Identify and assess Model Context Protocol (MCP) server deployments
+within network infrastructure for security vulnerabilities.
+
+Use 'hawkeye COMMAND --help' for command-specific help.
+
+**Line:** 106
+
+---
+
+### `def show_banner()`
+
+**Description:**
+Display HawkEye banner.
+
+**Line:** 131
+
+---
+
+### `def scan(ctx)`
+
+**Decorators:**
+- `@cli.group(...)`
+- `@click.pass_context`
+
+**Description:**
+Network scanning operations for MCP server discovery.
+
+**Line:** 145
+
+---
+
+### `def detect(ctx)`
+
+**Decorators:**
+- `@cli.group(...)`
+- `@click.pass_context`
+
+**Description:**
+MCP-specific detection and analysis operations.
+
+**Line:** 152
+
+---
+
+### `def assess(ctx)`
+
+**Decorators:**
+- `@cli.group(...)`
+- `@click.pass_context`
+
+**Description:**
+Security assessment and risk analysis operations.
+
+**Line:** 159
+
+---
+
+### `def report(ctx)`
+
+**Decorators:**
+- `@cli.group(...)`
+- `@click.pass_context`
+
+**Description:**
+Report generation and output formatting operations.
+
+**Line:** 166
+
+---
+
+### `def info(ctx)`
+
+**Decorators:**
+- `@cli.command(...)`
+- `@click.pass_context`
+
+**Description:**
+Display system information and configuration.
+
+**Line:** 173
+
+---
+
+### `def quick_scan(ctx, target: str, ports: Optional[str], threads: Optional[int], timeout: Optional[int], output: Optional[str], format: str)`
+
+**Decorators:**
+- `@cli.command(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.pass_context`
+
+**Description:**
+Perform a quick scan of the target for MCP services.
+
+This command combines network scanning, MCP detection, and basic
+risk assessment in a single operation.
+
+**Line:** 237
+
+---
+
+
+## Module: src.hawkeye.config.settings
+**File:** `src/hawkeye/config/settings.py`
+
+**Imports:**
+- functools.lru_cache
+- logging
+- pathlib.Path
+- pydantic.Field
+- pydantic.validator
+- pydantic_settings.BaseSettings
+- typing.List
+- typing.Optional
+
+**Functions:**
+
+### `def get_settings() -> HawkEyeSettings`
+
+**Decorators:**
+- `@lru_cache(...)`
+
+**Description:**
+Get application settings with caching.
+
+Returns:
+HawkEyeSettings: Cached application settings instance
+
+**Line:** 152
+
+---
+
+
+## Module: src.hawkeye.detection.docker_inspect
+**File:** `src/hawkeye/detection/docker_inspect.py`
+
+**Imports:**
+- base.ConfigFileInfo
+- base.DetectionMethod
+- base.DetectionResult
+- base.MCPDetectionError
+- base.MCPDetector
+- base.MCPServerInfo
+- base.MCPServerType
+- base.ProcessInfo
+- base.TransportType
+- json
+- os
+- re
+- subprocess
+- time
+- typing.Any
+- typing.Dict
+- typing.List
+- typing.Optional
+- utils.logging.get_logger
+- yaml
+
+**Functions:**
+
+### `def create_docker_inspector(settings = None) -> DockerInspector`
+
+**Description:**
+Factory function to create a Docker inspector instance.
+
+**Line:** 808
+
+---
+
+
+## Module: src.hawkeye.detection.env_analysis
+**File:** `src/hawkeye/detection/env_analysis.py`
+
+**Imports:**
+- base.ConfigFileInfo
+- base.DetectionMethod
+- base.DetectionResult
+- base.MCPDetectionError
+- base.MCPDetector
+- base.MCPServerInfo
+- base.MCPServerType
+- base.ProcessInfo
+- base.TransportType
+- os
+- psutil
+- re
+- time
+- typing.Any
+- typing.Dict
+- typing.List
+- typing.Optional
+- typing.Set
+- typing.Tuple
+- utils.logging.get_logger
+
+**Functions:**
+
+### `def create_environment_analyzer(settings = None) -> EnvironmentAnalyzer`
+
+**Description:**
+Factory function to create an environment analyzer instance.
+
+**Line:** 682
+
+---
+
+
+## Module: src.hawkeye.detection.npx_detect
+**File:** `src/hawkeye/detection/npx_detect.py`
+
+**Imports:**
+- base.ConfigFileInfo
+- base.DetectionMethod
+- base.DetectionResult
+- base.MCPDetectionError
+- base.MCPDetector
+- base.MCPServerInfo
+- base.MCPServerType
+- base.ProcessInfo
+- base.TransportType
+- json
+- pathlib.Path
+- psutil
+- re
+- subprocess
+- time
+- typing.Any
+- typing.Dict
+- typing.List
+- typing.Optional
+- typing.Set
+- utils.logging.get_logger
+
+**Functions:**
+
+### `def create_npx_detector(settings = None) -> NPXDetector`
+
+**Description:**
+Factory function to create an NPX detector instance.
+
+**Line:** 501
+
+---
+
+
+## Module: src.hawkeye.utils.logging
+**File:** `src/hawkeye/utils/logging.py`
+
+**Imports:**
+- colorlog
+- config.get_settings
+- exceptions.ConfigurationError
+- logging
+- logging.handlers
+- pathlib.Path
+- structlog
+- sys
+- typing.Optional
+
+**Functions:**
+
+### `def get_logger(name: Optional[str] = None) -> logging.Logger`
+
+**Description:**
+Get a configured logger instance.
+
+Args:
+name: Logger name (defaults to calling module)
+
+Returns:
+logging.Logger: Configured logger instance
+
+**Line:** 258
+
+---
+
+### `def get_audit_logger() -> AuditLogger`
+
+**Description:**
+Get the audit logger instance.
+
+Returns:
+AuditLogger: Audit logger instance
+
+**Line:** 271
+
+---
+
+### `def configure_logging() -> logging.Logger`
+
+**Description:**
+Configure the main application logging.
+
+Returns:
+logging.Logger: Main application logger
+
+**Line:** 281
+
+---
+
