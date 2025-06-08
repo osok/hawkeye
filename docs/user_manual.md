@@ -150,8 +150,8 @@ python application.py scan [OPTIONS]
 - `--ports <range>`: Port range to scan (default: 3000,8000,8080,9000)
 - `--threads <count>`: Number of concurrent threads (default: 50)
 - `--timeout <seconds>`: Connection timeout (default: 5)
-- `--rate-limit <requests>`: Requests per second limit (default: 100)
-- `--protocol <tcp|udp|both>`: Protocol to scan (default: tcp)
+- `--tcp/--no-tcp`: Enable/disable TCP scanning (default: enabled)
+- `--udp/--no-udp`: Enable/disable UDP scanning (default: disabled)
 - `--output <path>`: Output file path
 - `--format <json|csv|xml>`: Output format (default: json)
 
@@ -163,34 +163,116 @@ python application.py scan --target 192.168.1.100
 # Scan CIDR range with custom ports
 python application.py scan --target 192.168.1.0/24 --ports 3000-9000
 
-# Scan with rate limiting
-python application.py scan --target 10.0.0.0/16 --rate-limit 50 --threads 25
+# Scan with UDP enabled and custom threading
+python application.py scan --target 10.0.0.0/16 --udp --threads 25
 ```
 
 #### `detect` - MCP Detection
 
-Performs detailed MCP service analysis on specific targets.
+Performs detailed MCP service analysis. This is a command group with multiple subcommands.
+
+**Subcommands:**
+- `detect target`: Detect MCP servers on specified target
+- `detect local`: Detect MCP servers on local system  
+- `detect process`: Analyze specific process for MCP indicators
+- `detect config`: Discover MCP configuration files
+
+##### `detect target` - Target Detection
 
 ```bash
-python application.py detect [OPTIONS]
+python application.py detect target [OPTIONS]
 ```
 
 **Required Options:**
-- `--target <IP>`: Target IP address
+- `--target <IP>`: Target IP address or hostname
 
 **Optional Parameters:**
-- `--port <number>`: Specific port to analyze
-- `--deep`: Enable deep inspection mode
-- `--timeout <seconds>`: Analysis timeout (default: 30)
+- `--ports <ports>`: Port range or comma-separated ports (default: 3000,8000,8080,9000)
+- `--timeout <seconds>`: Connection timeout (default: 10)
+- `--verify-protocol/--no-verify-protocol`: Verify MCP protocol handshake (default: enabled)
+- `--detect-transport/--no-detect-transport`: Detect transport layer (default: enabled)
 - `--output <path>`: Output file path
+- `--format <json|csv|xml>`: Output format (default: json)
 
 **Examples:**
 ```bash
-# Basic detection
-python application.py detect --target 192.168.1.100
+# Basic target detection
+python application.py detect target --target 192.168.1.100
 
-# Deep analysis of specific port
-python application.py detect --target 192.168.1.100 --port 3000 --deep
+# Detection with custom ports
+python application.py detect target --target example.com --ports 3000-3010
+```
+
+##### `detect local` - Local Detection
+
+```bash
+python application.py detect local [OPTIONS]
+```
+
+**Optional Parameters:**
+- `--interface <interface>`: Network interface to scan (default: auto-detect)
+- `--include-processes/--no-include-processes`: Include process enumeration (default: enabled)
+- `--include-configs/--no-include-configs`: Include config discovery (default: enabled)
+- `--include-docker/--no-include-docker`: Include Docker inspection (default: enabled)
+- `--include-env/--no-include-env`: Include environment analysis (default: enabled)
+- `--output <path>`: Output file path
+- `--format <json|csv|xml>`: Output format (default: json)
+
+**Examples:**
+```bash
+# Full local detection
+python application.py detect local
+
+# Local detection without environment analysis
+python application.py detect local --no-include-env
+```
+
+##### `detect process` - Process Analysis
+
+```bash
+python application.py detect process [OPTIONS]
+```
+
+**Required Options:**
+- `--pid <PID>`: Process ID to analyze
+
+**Optional Parameters:**
+- `--deep-analysis/--no-deep-analysis`: Perform deep process analysis (default: enabled)
+- `--check-children/--no-check-children`: Check child processes (default: enabled)
+- `--analyze-env/--no-analyze-env`: Analyze environment variables (default: enabled)
+- `--output <path>`: Output file path
+- `--format <json|csv|xml>`: Output format (default: json)
+
+**Examples:**
+```bash
+# Analyze specific process
+python application.py detect process --pid 1234
+
+# Basic process analysis without children
+python application.py detect process --pid 5678 --no-check-children
+```
+
+##### `detect config` - Configuration Discovery
+
+```bash
+python application.py detect config [OPTIONS]
+```
+
+**Optional Parameters:**
+- `--path <path>`: Path to search (default: current directory)
+- `--recursive/--no-recursive`: Search recursively (default: enabled)
+- `--include-hidden/--no-include-hidden`: Include hidden files (default: disabled)
+- `--max-depth <depth>`: Maximum directory depth (default: 5)
+- `--output <path>`: Output file path
+- `--format <json|csv|xml>`: Output format (default: json)
+
+**Examples:**
+```bash
+# Discover configs in current directory
+python application.py detect config
+
+# Deep config search with hidden files
+python application.py detect config --path /opt/mcp --include-hidden --max-depth 10
 ```
 
 #### `report` - Report Generation

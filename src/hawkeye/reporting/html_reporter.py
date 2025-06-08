@@ -66,7 +66,7 @@ class HTMLReporter(BaseReporter):
             self.logger.info(f"Generating HTML report using template: {template_name}")
             
             # Validate data
-            self._validate_data(data)
+            self.validate_data(data)
             
             # Generate HTML content
             html_content = self.template_engine.render_template(
@@ -80,11 +80,7 @@ class HTMLReporter(BaseReporter):
             
             # Update statistics
             generation_time = time.time() - start_time
-            self._update_statistics(
-                format_type=ReportFormat.HTML,
-                generation_time=generation_time,
-                output_size=len(html_content)
-            )
+            self._update_statistics(True, generation_time)
             
             self.logger.info(f"HTML report generated successfully in {generation_time:.2f}s")
             return html_content

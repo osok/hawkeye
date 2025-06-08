@@ -23,6 +23,50 @@ class TargetEnumerator:
         self.settings = settings or get_settings()
         self.logger = get_logger(self.__class__.__name__)
     
+    def enumerate_targets(self, target: str, ports: List[int] = None) -> List[str]:
+        """
+        Enumerate targets from various input formats.
+        
+        This is the main entry point that automatically detects the target format
+        and routes to the appropriate enumeration method.
+        
+        Args:
+            target: Target specification (IP, CIDR, hostname)
+            ports: List of ports to scan (uses default if None)
+            
+        Returns:
+            List[str]: List of target IP addresses/hostnames
+        """
+        if ports is None:
+            ports = self.settings.scan.default_ports
+        
+        targets = []
+        
+        try:
+            # Try to parse as CIDR network
+            if '/' in target:
+                self.logger.debug(f"Parsing target as CIDR: {target}")
+                for scan_target in self.enumerate_from_cidr(target, ports):
+                    targets.append(scan_target.host)
+            else:
+                # Try to parse as single IP address
+                try:
+                    ipaddress.ip_address(target)
+                    self.logger.debug(f"Parsing target as single IP: {target}")
+                    targets.append(target)
+                except ValueError:
+                    # Must be a hostname
+                    self.logger.debug(f"Parsing target as hostname: {target}")
+                    resolved_ips = self._resolve_host(target)
+                    targets.extend(resolved_ips)
+            
+            self.logger.info(f"Enumerated {len(targets)} targets from '{target}'")
+            return targets
+            
+        except Exception as e:
+            self.logger.error(f"Failed to enumerate targets from '{target}': {e}")
+            raise ValueError(f"Invalid target specification: {target}")
+    
     def enumerate_from_cidr(self, cidr: str, ports: List[int] = None) -> Iterator[ScanTarget]:
         """
         Enumerate targets from CIDR notation.

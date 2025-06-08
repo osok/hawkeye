@@ -129,17 +129,22 @@ python application.py report --input scan_results.json --format html
 ```bash
 # Network scanning
 hawkeye scan --target <CIDR|IP> [options]
-hawkeye scan-local [options]
-hawkeye scan-range --start <IP> --end <IP> [options]
+hawkeye quick-scan --target <CIDR|IP> [options]
 
 # MCP detection
-hawkeye detect --target <IP> [options]
-hawkeye detect-local [options]
-hawkeye analyze-process --pid <PID> [options]
+hawkeye detect target --target <IP> [options]
+hawkeye detect local [options]
+hawkeye detect process --pid <PID> [options]
+hawkeye detect config [options]
 
 # Reporting
-hawkeye report --input <scan_results> --format <json|csv|xml|html> [options]
-hawkeye summary --input <scan_results> [options]
+hawkeye report generate --input <scan_results> --format <json|csv|xml|html> [options]
+hawkeye report aggregate --input <scan_results> [options]
+hawkeye report combine --input-dir <results_dir> [options]
+
+# Configuration and utilities
+hawkeye config show [options]
+hawkeye info
 ```
 
 ### Configuration Options

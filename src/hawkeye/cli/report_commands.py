@@ -119,11 +119,14 @@ def generate(ctx, input: str, output: str, format: str, title: str, author: str,
             input_data = load_input_data(input)
             progress.advance(task, 1)
             
+            # Convert dictionary data to objects
+            converted_data = convert_dict_data_to_objects(input_data)
+            
             # Create report metadata
             metadata = ReportMetadata(
                 title=title,
                 report_type=ReportType.RISK_ASSESSMENT,
-                format=ReportFormat(format.upper()),
+                format=ReportFormat(format.lower()),
                 generated_by="hawkeye-cli",
                 version="1.0.0",
                 description=f"Security assessment report generated from {input}",
@@ -136,10 +139,10 @@ def generate(ctx, input: str, output: str, format: str, title: str, author: str,
             # Create report data
             report_data = ReportData(
                 metadata=metadata,
-                scan_results=input_data.get('scan_results', []),
-                detection_results=input_data.get('detection_results', []),
-                assessment_results=input_data.get('assessment_results', []),
-                recommendations=input_data.get('recommendations', [])
+                scan_results=converted_data.get('scan_results', []),
+                detection_results=converted_data.get('detection_results', []),
+                assessment_results=converted_data.get('assessment_results', []),
+                recommendations=converted_data.get('recommendations', [])
             )
             progress.advance(task, 1)
             
@@ -494,7 +497,7 @@ def combine(ctx, input_dir: str, output: str, format: str, merge_strategy: str):
             metadata = ReportMetadata(
                 title="HawkEye Combined Security Assessment Report",
                 report_type=ReportType.RISK_ASSESSMENT,
-                format=ReportFormat(format.upper()),
+                format=ReportFormat(format.lower()),
                 generated_by="hawkeye-cli",
                 version="1.0.0",
                 description=f"Combined report from {len(result_files)} assessment files",
@@ -560,6 +563,78 @@ def load_input_data(file_path: str) -> dict:
         return {'scan_results': []}
     else:
         raise ValueError(f"Unsupported file format: {path.suffix}")
+
+
+def convert_dict_data_to_objects(input_data: dict) -> dict:
+    """Convert dictionary data back to proper objects for reporting."""
+    from ..scanner.base import ScanResult, ScanTarget, PortState, ScanType
+    from ..detection.base import DetectionResult, DetectionMethod
+    from ..assessment.base import AssessmentResult, RiskLevel, VulnerabilityCategory
+    
+    converted_data = {
+        'scan_results': [],
+        'detection_results': [],
+        'assessment_results': [],
+        'recommendations': input_data.get('recommendations', [])
+    }
+    
+    # Convert scan results
+    for scan_dict in input_data.get('scan_results', []):
+        try:
+            # Create ScanTarget (without port - port is separate in ScanResult)
+            target = ScanTarget(
+                host=scan_dict['host'],
+                ports=[scan_dict['port']]  # ScanTarget expects a list of ports
+            )
+            
+            # Create ScanResult
+            scan_result = ScanResult(
+                target=target,
+                port=scan_dict['port'],  # Port is separate parameter
+                state=PortState(scan_dict['state']),
+                scan_type=ScanType(scan_dict['scan_type']),
+                timestamp=scan_dict['timestamp'],
+                response_time=scan_dict.get('response_time'),
+                error=scan_dict.get('error'),
+                raw_data=scan_dict.get('raw_data', {})
+            )
+            converted_data['scan_results'].append(scan_result)
+        except Exception as e:
+            logger.warning(f"Failed to convert scan result: {e}")
+    
+    # Convert detection results
+    for detection_dict in input_data.get('detection_results', []):
+        try:
+            detection_result = DetectionResult(
+                target_host=detection_dict['target_host'],
+                detection_method=DetectionMethod(detection_dict['detection_method']),
+                timestamp=detection_dict['timestamp'],
+                success=detection_dict.get('success', False),
+                confidence=detection_dict.get('confidence', 0.0),
+                error=detection_dict.get('error'),
+                raw_data=detection_dict.get('raw_data', {})
+            )
+            converted_data['detection_results'].append(detection_result)
+        except Exception as e:
+            logger.warning(f"Failed to convert detection result: {e}")
+    
+    # Convert assessment results
+    for assessment_dict in input_data.get('assessment_results', []):
+        try:
+            assessment_result = AssessmentResult(
+                target_host=assessment_dict['target_host'],
+                overall_risk_level=RiskLevel(assessment_dict['overall_risk_level']),
+                risk_score=assessment_dict.get('risk_score', 0.0),
+                timestamp=assessment_dict['timestamp'],
+                findings=assessment_dict.get('findings', []),
+                recommendations=assessment_dict.get('recommendations', []),
+                raw_data=assessment_dict.get('raw_data', {})
+            )
+            converted_data['assessment_results'].append(assessment_result)
+        except Exception as e:
+            logger.warning(f"Failed to convert assessment result: {e}")
+    
+    return converted_data
 
 
 def display_generation_summary(report_data: ReportData, output_path: str, format: str):

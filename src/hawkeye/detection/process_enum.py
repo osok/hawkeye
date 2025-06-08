@@ -473,4 +473,58 @@ class ProcessEnumerator(MCPDetector):
             return None
         except Exception as e:
             self.logger.error(f"Error analyzing process {pid}: {e}")
-            raise ProcessDetectionError(f"Process analysis failed: {e}") 
+            raise ProcessDetectionError(f"Process analysis failed: {e}")
+
+    def enumerate_mcp_processes(self, include_env: bool = True, detailed_analysis: bool = True) -> List[DetectionResult]:
+        """
+        Enumerate and detect MCP processes on the local system.
+        
+        This is a convenience method that wraps the detect() method to return
+        multiple detection results for different processes.
+        
+        Args:
+            include_env: Whether to include environment variable analysis
+            detailed_analysis: Whether to perform detailed process analysis
+            
+        Returns:
+            List[DetectionResult]: List of detection results for MCP processes
+        """
+        try:
+            # Use the main detect method
+            result = self.detect(
+                target_host="localhost",
+                include_env=include_env,
+                detailed_analysis=detailed_analysis
+            )
+            
+            # If we found MCP processes, return them as a list
+            if result.success and result.raw_data and 'all_mcp_processes' in result.raw_data:
+                results = []
+                for process_data in result.raw_data['all_mcp_processes']:
+                    # Create individual detection results for each process
+                    process_result = DetectionResult(
+                        target_host="localhost",
+                        detection_method=self.get_detection_method(),
+                        success=True,
+                        confidence=process_data.get('confidence', 0.5),
+                        raw_data={
+                            'process_details': f"MCP process detected: PID {process_data.get('pid', 'unknown')}",
+                            'process_data': process_data
+                        },
+                        scan_duration=result.scan_duration
+                    )
+                    results.append(process_result)
+                return results
+            else:
+                # Return the single result even if no MCP processes found
+                return [result]
+                
+        except Exception as e:
+            self.logger.error(f"MCP process enumeration failed: {e}")
+            return [DetectionResult(
+                target_host="localhost",
+                detection_method=self.get_detection_method(),
+                success=False,
+                error=str(e),
+                scan_duration=0.0
+            )] 

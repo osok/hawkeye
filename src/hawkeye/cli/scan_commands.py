@@ -1,8 +1,7 @@
 """
-Scan command group for HawkEye CLI.
+Scan command for HawkEye CLI.
 
-This module implements network scanning commands including target scanning,
-local network discovery, and IP range scanning operations.
+This module implements network scanning commands for MCP server discovery.
 """
 
 import sys
@@ -81,13 +80,7 @@ def parse_ports(ports_str: str) -> List[int]:
     return sorted(list(set(port_list)))  # Remove duplicates and sort
 
 
-@click.group()
-def scan():
-    """Network scanning operations for MCP server discovery."""
-    pass
-
-
-@scan.command()
+@click.command()
 @click.option(
     "--target", "-t",
     required=True,
@@ -133,21 +126,21 @@ def scan():
     help="Output format (default: json)"
 )
 @click.pass_context
-def target(ctx, target: str, ports: str, tcp: bool, udp: bool, threads: int, 
-           timeout: int, output: Optional[str], format: str):
+def scan(ctx, target: str, ports: str, tcp: bool, udp: bool, threads: int, 
+         timeout: int, output: Optional[str], format: str):
     """
-    Scan specified target for MCP servers.
+    Network scanning operations for MCP server discovery.
     
-    TARGET can be:
+    Scan specified target for MCP servers. TARGET can be:
     - Single IP address (e.g., 192.168.1.100)
     - CIDR network (e.g., 192.168.1.0/24)
     - Hostname (e.g., example.com)
     
     Examples:
     \b
-        hawkeye scan target -t 192.168.1.100
-        hawkeye scan target -t 192.168.1.0/24 -p 3000-3010
-        hawkeye scan target -t example.com --tcp --udp
+        hawkeye scan -t 192.168.1.100
+        hawkeye scan -t 192.168.1.0/24 -p 3000-3010
+        hawkeye scan -t example.com --tcp --udp
     """
     if not tcp and not udp:
         raise click.UsageError("At least one of --tcp or --udp must be enabled")
@@ -158,7 +151,7 @@ def target(ctx, target: str, ports: str, tcp: bool, udp: bool, threads: int,
         if not port_list:
             port_list = [3000, 8000, 8080, 9000]  # Default MCP ports
         
-        console.print(f"[bold blue]🦅 HawkEye Target Scan[/bold blue]")
+        console.print(f"[bold blue]🦅 HawkEye Network Scan[/bold blue]")
         console.print(f"Target: {target}")
         console.print(f"Ports: {len(port_list)} ports ({min(port_list)}-{max(port_list)})")
         console.print(f"Protocols: {'TCP' if tcp else ''}{' UDP' if udp else ''}")
@@ -174,6 +167,11 @@ def target(ctx, target: str, ports: str, tcp: bool, udp: bool, threads: int,
         # Initialize scanners
         results = []
         
+        # Create a temporary settings override for this scan
+        scan_settings = ctx.obj.settings
+        scan_settings.scan.timeout_seconds = timeout
+        scan_settings.scan.max_threads = threads
+        
         with Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
@@ -183,10 +181,7 @@ def target(ctx, target: str, ports: str, tcp: bool, udp: bool, threads: int,
         ) as progress:
             
             if tcp:
-                tcp_scanner = TCPScanner(
-                    max_threads=threads,
-                    timeout=timeout
-                )
+                tcp_scanner = TCPScanner(settings=scan_settings)
                 
                 task = progress.add_task("TCP Scanning...", total=len(targets) * len(port_list))
                 
@@ -197,10 +192,7 @@ def target(ctx, target: str, ports: str, tcp: bool, udp: bool, threads: int,
                     progress.advance(task, len(port_list))
             
             if udp:
-                udp_scanner = UDPScanner(
-                    max_threads=threads,
-                    timeout=timeout
-                )
+                udp_scanner = UDPScanner(settings=scan_settings)
                 
                 task = progress.add_task("UDP Scanning...", total=len(targets) * len(port_list))
                 
@@ -274,7 +266,7 @@ def save_scan_results(results, output_path: str, format: str):
     metadata = ReportMetadata(
         title="HawkEye Network Scan Results",
         report_type=ReportType.RISK_ASSESSMENT,
-        format=ReportFormat(format.upper()),
+        format=ReportFormat(format.lower()),
         generated_by="hawkeye-cli",
         version="1.0.0",
         description="Network scan results from HawkEye reconnaissance tool",

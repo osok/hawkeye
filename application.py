@@ -17,7 +17,7 @@ Commands:
     info        Display system information
     
 Examples:
-    python application.py scan target -t 192.168.1.0/24
+    python application.py scan --target 192.168.1.0/24
     python application.py detect local
     python application.py report generate -i results.json -o report.html -f html
     python application.py config init

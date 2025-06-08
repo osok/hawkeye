@@ -250,15 +250,181 @@ def quick_scan(ctx, target: str, ports: Optional[str], threads: Optional[int],
     logger = ctx.obj.logger
     
     if not ctx.obj.quiet:
-        console.print(f"[bold green]Starting quick scan of {target}[/bold green]")
+        console.print(f"[bold green]🦅 HawkEye Quick Scan[/bold green]")
+        console.print(f"Target: {target}")
     
     logger.info(f"Quick scan initiated for target: {target}")
     
-    # TODO: Implement quick scan logic
-    console.print("[yellow]Quick scan functionality not yet implemented[/yellow]")
-    
-    if output:
-        console.print(f"[blue]Results would be saved to: {output}[/blue]")
+    try:
+        # Import required modules
+        from ..scanner.tcp_scanner import TCPScanner
+        from ..scanner.target_enum import TargetEnumerator
+        from ..detection.protocol_verify import ProtocolVerifier
+        from ..detection.transport_detect import TransportDetector
+        from ..cli.scan_commands import parse_ports
+        from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn
+        from rich.table import Table
+        
+        # Set defaults
+        if ports is None:
+            ports = "3000,8000,8080,9000"  # Common MCP ports
+        if threads is None:
+            threads = 50
+        if timeout is None:
+            timeout = 5
+        
+        # Parse ports
+        port_list = parse_ports(ports)
+        if not port_list:
+            port_list = [3000, 8000, 8080, 9000]
+        
+        console.print(f"Ports: {len(port_list)} ports")
+        console.print(f"Threads: {threads}, Timeout: {timeout}s")
+        console.print()
+        
+        # Step 1: Network Scanning
+        console.print("[bold blue]Phase 1: Network Scanning[/bold blue]")
+        
+        # Enumerate targets
+        enumerator = TargetEnumerator()
+        targets = enumerator.enumerate_targets(target)
+        
+        # Configure scanner settings
+        scan_settings = ctx.obj.settings
+        scan_settings.scan.timeout_seconds = timeout
+        scan_settings.scan.max_threads = threads
+        
+        # Perform TCP scan
+        tcp_scanner = TCPScanner(settings=scan_settings)
+        scan_results = []
+        
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(),
+            TaskProgressColumn(),
+            console=console
+        ) as progress:
+            
+            task = progress.add_task("Scanning ports...", total=len(targets) * len(port_list))
+            
+            for target_host in targets:
+                from ..scanner.base import ScanTarget
+                scan_target = ScanTarget(host=target_host, ports=port_list)
+                results = tcp_scanner.scan_target(scan_target)
+                scan_results.extend(results)
+                progress.advance(task, len(port_list))
+        
+        # Filter for open ports
+        open_ports = [r for r in scan_results if r.state.value == "open"]
+        
+        if not open_ports:
+            console.print("[yellow]No open ports found. Quick scan complete.[/yellow]")
+            return
+        
+        console.print(f"[green]Found {len(open_ports)} open ports[/green]")
+        
+        # Step 2: MCP Detection
+        console.print("\n[bold blue]Phase 2: MCP Detection[/bold blue]")
+        
+        # Initialize detectors
+        protocol_verifier = ProtocolVerifier(settings=scan_settings)
+        transport_detector = TransportDetector(settings=scan_settings)
+        
+        detection_results = []
+        
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(),
+            TaskProgressColumn(),
+            console=console
+        ) as progress:
+            
+            task = progress.add_task("Detecting MCP services...", total=len(open_ports))
+            
+            for result in open_ports:
+                try:
+                    # Try protocol verification
+                    protocol_result = protocol_verifier.detect(result.target.host, port=result.port)
+                    if protocol_result.success:
+                        detection_results.append(protocol_result)
+                    
+                    # Try transport detection
+                    transport_result = transport_detector.detect(result.target.host, port=result.port)
+                    if transport_result.success:
+                        detection_results.append(transport_result)
+                        
+                except Exception as e:
+                    logger.debug(f"Detection failed for {result.target.host}:{result.port}: {e}")
+                
+                progress.advance(task, 1)
+        
+        # Step 3: Results Summary
+        console.print("\n[bold blue]Phase 3: Results Summary[/bold blue]")
+        
+        if detection_results:
+            # Display MCP detection results
+            table = Table(title="MCP Services Detected", show_header=True, header_style="bold magenta")
+            table.add_column("Host", style="cyan", no_wrap=True)
+            table.add_column("Port", style="green")
+            table.add_column("Transport", style="blue")
+            table.add_column("Confidence", style="yellow")
+            table.add_column("Risk Level", style="red")
+            
+            for result in detection_results:
+                confidence_color = "green" if result.confidence > 0.8 else "yellow" if result.confidence > 0.5 else "red"
+                risk_color = "red" if result.risk_level == "high" else "yellow" if result.risk_level == "medium" else "green"
+                
+                table.add_row(
+                    result.target_host,
+                    str(result.mcp_server.port) if result.mcp_server and result.mcp_server.port else "N/A",
+                    result.mcp_server.transport_type.value if result.mcp_server else "unknown",
+                    f"[{confidence_color}]{result.confidence:.2f}[/{confidence_color}]",
+                    f"[{risk_color}]{result.risk_level}[/{risk_color}]"
+                )
+            
+            console.print(table)
+            console.print(f"\n[bold green]Quick scan complete: Found {len(detection_results)} potential MCP services[/bold green]")
+            
+            # Basic risk assessment
+            high_risk = sum(1 for r in detection_results if r.risk_level == "high")
+            medium_risk = sum(1 for r in detection_results if r.risk_level == "medium")
+            
+            if high_risk > 0:
+                console.print(f"[bold red]⚠️  {high_risk} high-risk services detected![/bold red]")
+            if medium_risk > 0:
+                console.print(f"[bold yellow]⚠️  {medium_risk} medium-risk services detected[/bold yellow]")
+        else:
+            console.print("[yellow]No MCP services detected on open ports[/yellow]")
+        
+        # Save results if output specified
+        if output:
+            # Combine scan and detection results
+            combined_results = {
+                'scan_results': [r.to_dict() for r in scan_results],
+                'detection_results': [r.to_dict() for r in detection_results],
+                'summary': {
+                    'total_ports_scanned': len(scan_results),
+                    'open_ports': len(open_ports),
+                    'mcp_services_detected': len(detection_results),
+                    'high_risk_services': sum(1 for r in detection_results if r.risk_level == "high"),
+                    'medium_risk_services': sum(1 for r in detection_results if r.risk_level == "medium"),
+                }
+            }
+            
+            import json
+            from pathlib import Path
+            
+            output_path = Path(output)
+            with open(output_path, 'w') as f:
+                json.dump(combined_results, f, indent=2, default=str)
+            
+            console.print(f"\n[green]Results saved to {output}[/green]")
+        
+    except Exception as e:
+        logger.error(f"Quick scan failed: {e}")
+        raise click.ClickException(f"Quick scan failed: {e}")
 
 
 if __name__ == "__main__":
