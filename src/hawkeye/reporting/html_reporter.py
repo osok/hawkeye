@@ -195,4 +195,8 @@ class HTMLReporter(BaseReporter):
     
     def get_supported_formats(self) -> list[ReportFormat]:
         """Get list of supported report formats."""
-        return [ReportFormat.HTML] 
+        return [ReportFormat.HTML]
+    
+    def get_format(self) -> ReportFormat:
+        """Get the report format supported by this reporter."""
+        return ReportFormat.HTML 

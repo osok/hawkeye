@@ -262,10 +262,10 @@ class TestRiskAssessmentPipeline:
         # Test overall statistics
         stats = risk_assessment.get_overall_statistics()
         assert isinstance(stats, dict)
-        assert "total_results" in stats
+        assert "total_targets_assessed" in stats
         assert "risk_distribution" in stats
-        assert "finding_categories" in stats
-        assert stats["total_results"] == len(assessments)
+        assert "total_findings" in stats
+        assert stats["total_targets_assessed"] == len(assessments)
     
     def test_cvss_scoring_integration(self, sample_detection_result):
         """Test CVSS scoring integration with assessment pipeline."""
@@ -348,7 +348,12 @@ class TestRiskAssessmentPipeline:
     def test_assessment_error_handling(self, sample_detection_result):
         """Test error handling in assessment pipeline."""
         # Test with invalid detection result
-        invalid_result = DetectionResult(target_host="invalid.host")
+        from hawkeye.detection.base import DetectionMethod
+        invalid_result = DetectionResult(
+            target_host="invalid.host",
+            detection_method=DetectionMethod.PROCESS_ENUMERATION,
+            success=False
+        )
         
         # Configuration analysis should handle gracefully
         config_analyzer = ConfigurationAnalyzer()
@@ -384,10 +389,9 @@ class TestRiskAssessmentPipeline:
             
             detection_result = DetectionResult(
                 target_host=f"mcp{i}.example.com",
-                servers=[server_info],
-                processes=[],
-                configuration_files=[],
-                docker_containers=[]
+                detection_method=DetectionMethod.PROCESS_ENUMERATION,
+                success=True,
+                mcp_server=server_info
             )
             
             detection_results.append(detection_result)
@@ -543,8 +547,9 @@ class TestAssessmentModuleInteraction:
         
         return DetectionResult(
             target_host="vulnerable.example.com",
-            servers=[server_info],
-            processes=[process_info],
+            detection_method=DetectionMethod.PROCESS_ENUMERATION,
+            success=True,
+            mcp_server=server_info,
             raw_data={
                 "security_config": {
                     "authentication": {"enabled": False},

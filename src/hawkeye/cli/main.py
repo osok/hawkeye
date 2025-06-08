@@ -18,6 +18,13 @@ from ..exceptions import HawkEyeError
 from ..utils import configure_logging, get_logger
 from .. import __version__
 
+# Import command groups
+from .scan_commands import scan
+from .detect_commands import detect
+from .report_commands import report
+from .config_file import config, load_config_from_file
+from .output_control import configure_output, VerbosityLevel
+
 
 # Global console for rich output
 console = Console()
@@ -118,10 +125,22 @@ def cli(ctx, verbose: bool, quiet: bool, log_file: Optional[str], config_file: O
     # Setup logging
     ctx.obj.setup_logging(verbose=verbose, quiet=quiet, log_file=log_file)
     
+    # Configure output control
+    if verbose:
+        configure_output(VerbosityLevel.VERBOSE, quiet=quiet, log_file=log_file)
+    elif quiet:
+        configure_output(VerbosityLevel.QUIET, quiet=quiet, log_file=log_file)
+    else:
+        configure_output(VerbosityLevel.NORMAL, quiet=quiet, log_file=log_file)
+    
     # Load config file if specified
     if config_file:
-        # TODO: Implement config file loading
-        pass
+        try:
+            settings = load_config_from_file(config_file)
+            ctx.obj.settings = settings
+        except Exception as e:
+            console.print(f"[red]Error loading config file: {e}[/red]")
+            sys.exit(1)
     
     # Show banner if not quiet
     if not quiet:
@@ -140,31 +159,17 @@ def show_banner():
     console.print(banner, style="bold blue")
 
 
-@cli.group()
-@click.pass_context
-def scan(ctx):
-    """Network scanning operations for MCP server discovery."""
-    pass
-
-
-@cli.group()
-@click.pass_context  
-def detect(ctx):
-    """MCP-specific detection and analysis operations."""
-    pass
+# Add command groups to main CLI
+cli.add_command(scan)
+cli.add_command(detect)
+cli.add_command(report)
+cli.add_command(config)
 
 
 @cli.group()
 @click.pass_context
 def assess(ctx):
     """Security assessment and risk analysis operations."""
-    pass
-
-
-@cli.group()
-@click.pass_context
-def report(ctx):
-    """Report generation and output formatting operations."""
     pass
 
 

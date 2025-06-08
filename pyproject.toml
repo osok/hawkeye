@@ -1,0 +1,369 @@
+[build-system]
+requires = [
+    "setuptools>=65.0",
+    "setuptools-scm>=7.0",
+    "wheel>=0.38.0",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hawkeye-security"
+description = "MCP Security Reconnaissance Tool - Hidden Application Weaknesses & Key Entry-point Yielding Evaluator"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "HawkEye Security Team", email = "security@hawkeye-project.org"},
+]
+maintainers = [
+    {name = "HawkEye Security Team", email = "security@hawkeye-project.org"},
+]
+keywords = [
+    "security",
+    "reconnaissance", 
+    "scanning",
+    "mcp",
+    "vulnerability",
+    "network",
+    "assessment",
+    "penetration-testing",
+    "security-audit",
+    "compliance",
+    "risk-assessment",
+    "cybersecurity",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: System Administrators", 
+    "Intended Audience :: Developers",
+    "Topic :: Security",
+    "Topic :: System :: Networking :: Monitoring",
+    "Topic :: System :: Systems Administration",
+    "Topic :: Software Development :: Testing",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
+    "Environment :: Console",
+    "Environment :: No Input/Output (Daemon)",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "click>=8.1.0",
+    "rich>=13.0.0",
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
+    "pyyaml>=6.0",
+    "jinja2>=3.1.0",
+    "requests>=2.28.0",
+    "aiohttp>=3.8.0",
+    "asyncio-mqtt>=0.13.0",
+    "psutil>=5.9.0",
+    "netifaces>=0.11.0",
+    "python-nmap>=0.7.1",
+    "scapy>=2.5.0",
+    "cryptography>=40.0.0",
+    "jsonschema>=4.17.0",
+    "tabulate>=0.9.0",
+    "colorama>=0.4.6",
+    "tqdm>=4.64.0",
+    "packaging>=23.0",
+]
+dynamic = ["version"]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/hawkeye"
+Documentation = "https://github.com/yourusername/hawkeye/docs"
+Repository = "https://github.com/yourusername/hawkeye"
+"Bug Tracker" = "https://github.com/yourusername/hawkeye/issues"
+Security = "https://github.com/yourusername/hawkeye/security"
+Changelog = "https://github.com/yourusername/hawkeye/blob/main/CHANGELOG.md"
+
+[project.optional-dependencies]
+dev = [
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.5.0",
+    "pre-commit>=3.3.0",
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.11.0",
+    "pytest-asyncio>=0.21.0",
+    "coverage>=7.3.0",
+    "bandit>=1.7.5",
+    "safety>=2.3.0",
+    "pip-audit>=2.6.0",
+]
+test = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.11.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-xdist>=3.3.0",
+    "pytest-benchmark>=4.0.0",
+    "coverage>=7.3.0",
+    "factory-boy>=3.3.0",
+    "faker>=19.0.0",
+]
+docs = [
+    "sphinx>=7.1.0",
+    "sphinx-rtd-theme>=1.3.0",
+    "myst-parser>=2.0.0",
+    "sphinx-autodoc-typehints>=1.24.0",
+    "sphinx-click>=5.0.0",
+    "sphinxcontrib-mermaid>=0.9.0",
+]
+performance = [
+    "uvloop>=0.17.0; sys_platform != 'win32'",
+    "orjson>=3.9.0",
+    "msgpack>=1.0.0",
+    "lz4>=4.3.0",
+    "cython>=3.0.0",
+]
+enterprise = [
+    "redis>=4.6.0",
+    "celery>=5.3.0",
+    "sqlalchemy>=2.0.0",
+    "alembic>=1.12.0",
+    "prometheus-client>=0.17.0",
+    "sentry-sdk>=1.32.0",
+]
+all = [
+    "hawkeye-security[dev,test,docs,performance,enterprise]",
+]
+
+[project.scripts]
+hawkeye = "hawkeye.cli.main:main"
+hawkeye-scan = "hawkeye.cli.scan_commands:scan_main"
+hawkeye-detect = "hawkeye.cli.detect_commands:detect_main"
+hawkeye-report = "hawkeye.cli.report_commands:report_main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["hawkeye*"]
+exclude = ["tests*"]
+
+[tool.setuptools.package-data]
+hawkeye = [
+    "config/*.yaml",
+    "config/*.json",
+    "reporting/templates/*.html",
+    "reporting/templates/*.css", 
+    "reporting/templates/*.js",
+    "data/*.json",
+    "data/*.yaml",
+    "py.typed",
+]
+
+[tool.setuptools_scm]
+write_to = "src/hawkeye/_version.py"
+version_scheme = "post-release"
+local_scheme = "dirty-tag"
+
+# Black code formatting
+[tool.black]
+line-length = 88
+target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+# Ruff linting and formatting
+[tool.ruff]
+target-version = "py38"
+line-length = 88
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+    "ARG", # flake8-unused-arguments
+    "SIM", # flake8-simplify
+    "TCH", # flake8-type-checking
+    "S",   # bandit
+]
+ignore = [
+    "E501",  # line too long, handled by black
+    "B008",  # do not perform function calls in argument defaults
+    "S101",  # use of assert detected
+    "S603",  # subprocess call: check for execution of untrusted input
+    "S607",  # starting a process with a partial executable path
+]
+unfixable = [
+    "B",   # avoid removing unused imports
+]
+
+[tool.ruff.per-file-ignores]
+"tests/**/*" = ["S101", "ARG", "S106"]
+"src/hawkeye/scanner/**/*" = ["S603", "S607"]
+
+[tool.ruff.isort]
+known-first-party = ["hawkeye"]
+force-single-line = true
+
+# MyPy type checking
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+show_error_codes = true
+
+[[tool.mypy.overrides]]
+module = [
+    "scapy.*",
+    "nmap.*",
+    "netifaces.*",
+]
+ignore_missing_imports = true
+
+# Pytest configuration
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--cov=hawkeye",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+    "--cov-report=xml",
+    "--cov-fail-under=80",
+]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+    "network: marks tests that require network access",
+    "privileged: marks tests that require elevated privileges",
+]
+filterwarnings = [
+    "error",
+    "ignore::UserWarning",
+    "ignore::DeprecationWarning",
+]
+
+# Coverage configuration
+[tool.coverage.run]
+source = ["src/hawkeye"]
+branch = true
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "*/__init__.py",
+    "*/conftest.py",
+    "*/migrations/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+show_missing = true
+precision = 2
+
+[tool.coverage.html]
+directory = "htmlcov"
+
+# Bandit security linting
+[tool.bandit]
+exclude_dirs = ["tests", "build", "dist"]
+tests = ["B201", "B301", "B302", "B303", "B304", "B305", "B306", "B307", "B308", "B309", "B310", "B311", "B312", "B313", "B314", "B315", "B316", "B317", "B318", "B319", "B320", "B321", "B322", "B323", "B324", "B325", "B601", "B602", "B603", "B604", "B605", "B606", "B607", "B608", "B609", "B610", "B611", "B701", "B702", "B703"]
+skips = ["B101", "B601"]
+
+# Pre-commit hooks configuration
+[tool.pre-commit]
+repos = [
+    {
+        repo = "https://github.com/pre-commit/pre-commit-hooks",
+        rev = "v4.4.0",
+        hooks = [
+            {id = "trailing-whitespace"},
+            {id = "end-of-file-fixer"},
+            {id = "check-yaml"},
+            {id = "check-added-large-files"},
+            {id = "check-merge-conflict"},
+            {id = "debug-statements"},
+        ]
+    },
+    {
+        repo = "https://github.com/psf/black",
+        rev = "23.7.0",
+        hooks = [
+            {id = "black"}
+        ]
+    },
+    {
+        repo = "https://github.com/charliermarsh/ruff-pre-commit",
+        rev = "v0.0.287",
+        hooks = [
+            {id = "ruff", args = ["--fix"]}
+        ]
+    },
+    {
+        repo = "https://github.com/pre-commit/mirrors-mypy",
+        rev = "v1.5.1",
+        hooks = [
+            {id = "mypy", additional_dependencies = ["types-all"]}
+        ]
+    },
+]
+
+# Semantic versioning
+[tool.semantic_release]
+version_toml = ["pyproject.toml:project.version"]
+version_variables = [
+    "src/hawkeye/__init__.py:__version__",
+]
+build_command = "pip install build && python -m build"
+dist_path = "dist/"
+upload_to_pypi = false
+upload_to_release = true
+hvcs = "github"
+commit_author = "github-actions <action@github.com>" 

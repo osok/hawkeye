@@ -10,7 +10,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import List, Optional
 
-from pydantic import Field, validator
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings
 
 
@@ -33,9 +33,10 @@ class ScanSettings(BaseSettings):
     enable_udp_scan: bool = Field(default=False, description="Enable UDP port scanning")
     enable_ipv6: bool = Field(default=False, description="Enable IPv6 support")
     
-    @validator('port_range_end')
-    def validate_port_range(cls, v, values):
-        if 'port_range_start' in values and v < values['port_range_start']:
+    @field_validator('port_range_end')
+    @classmethod
+    def validate_port_range(cls, v, info):
+        if info.data and 'port_range_start' in info.data and v < info.data['port_range_start']:
             raise ValueError('port_range_end must be greater than or equal to port_range_start')
         return v
 
