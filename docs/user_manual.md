@@ -1,7 +1,7 @@
 # 🦅 HawkEye User Manual
 ## Hidden Application Weaknesses & Key Entry-point Yielding Evaluator
 
-### Version 1.0 | December 2024
+### Version 1.0
 
 ---
 
@@ -118,7 +118,7 @@ HawkEye provides real-time feedback during scanning:
 [FOUND] 192.168.1.100:3000 - MCP Server (Node.js)
 [RISK] Medium risk: Default configuration detected
 [INFO] Scan completed in 12.3 seconds
-[INFO] Results saved to: hawkeye_scan_20241219_103045.json
+[INFO] Results saved to: hawkeye_scan_YYYYMMDD_HHMMSS.json
 ```
 
 ### Basic Workflow
@@ -756,5 +756,5 @@ For additional support, consult the troubleshooting guide or contact the HawkEye
 ---
 
 **Document Version**: 1.0  
-**Last Updated**: December 19, 2024  
-**Next Review**: March 19, 2025 
+**Last Updated**: Current Version  
+**Next Review**: Quarterly 

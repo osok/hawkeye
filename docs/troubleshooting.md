@@ -1,7 +1,7 @@
 # 🔧 HawkEye Troubleshooting Guide
 ## Diagnostic Procedures and Problem Resolution
 
-### Version 1.0 | December 2024
+### Version 1.0 
 
 ---
 
@@ -929,5 +929,5 @@ echo "0 9 * * * /path/to/monitor.sh" | crontab -
 ---
 
 **Document Version**: 1.0  
-**Last Updated**: December 19, 2024  
-**Next Review**: March 19, 2025 
+**Last Updated**: Current Version  
+**Next Review**: Quarterly 

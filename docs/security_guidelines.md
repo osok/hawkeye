@@ -161,7 +161,7 @@ cat > auth.json << 'EOF'
         "192.168.1.254"
     ],
     "authorized_by": "John Smith, CISO",
-    "valid_until": "2024-12-31T23:59:59Z"
+    "valid_until": "YYYY-MM-DDT23:59:59Z"
 }
 EOF
 ```
@@ -408,7 +408,7 @@ python application.py emergency-notify \
 # Security Assessment Incident Report
 
 **Incident ID**: INC-2024-001
-**Date/Time**: 2024-12-19 14:30:00 UTC
+**Date/Time**: YYYY-MM-DD 14:30:00 UTC
 **Severity**: [LOW/MEDIUM/HIGH/CRITICAL]
 **Status**: [OPEN/INVESTIGATING/RESOLVED/CLOSED]
 
@@ -491,7 +491,7 @@ compliance:
 
 ```json
 {
-    "timestamp": "2024-12-19T14:30:00Z",
+    "timestamp": "YYYY-MM-DDT14:30:00Z",
     "user_id": "security_analyst_1",
     "action": "network_scan",
     "target": "192.168.1.0/24",
