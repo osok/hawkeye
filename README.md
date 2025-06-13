@@ -60,6 +60,40 @@ python application.py scan --target 192.168.1.0/24 --ports 3000-9000
 python application.py report --input scan_results.json --format html
 ```
 
+## 📖 Complete Workflow Guide
+
+For comprehensive step-by-step instructions covering all HawkEye scenarios, see our **[Complete Workflow Guide](docs/workflow_guide.md)**. This guide includes:
+
+### 🎯 **15 Detailed Scenarios:**
+- **Network Scanning**: Single IP, CIDR ranges, custom ports
+- **Detection Workflows**: Local systems, remote targets, process analysis
+- **Security Assessment**: Comprehensive audits, incident response
+- **Reporting**: Executive reports, aggregated analysis
+- **Advanced Usage**: Automation, custom configurations, SIEM integration
+
+### 🛠️ **Each Scenario Includes:**
+- Complete command examples with all options
+- Expected output samples and progress indicators
+- Risk assessments and time requirements
+- Troubleshooting tips and best practices
+
+### 🚀 **Quick Navigation:**
+```bash
+# Local system scan (Scenario 6)
+python application.py --verbose detect local
+
+# Small network assessment (Scenario 2)
+python application.py scan --target 192.168.1.0/24 --output network_scan.json
+
+# Process investigation (Scenario 7)
+python application.py detect process --pid 1234 --deep-analysis
+
+# Complete security assessment (Scenario 9)
+python application.py detect local --output local_audit.json
+```
+
+**👉 [View Complete Workflow Guide →](docs/workflow_guide.md)**
+
 ## 📋 Features
 
 ### Network Scanning Engine
@@ -255,6 +289,7 @@ pytest --cov=src/hawkeye --cov-report=html
 
 ## 📚 Documentation
 
+- **[Complete Workflow Guide](docs/workflow_guide.md)** - 15 step-by-step scenarios for all use cases
 - [User Manual](docs/user_manual.md) - Comprehensive usage guide
 - [API Documentation](docs/api/) - Developer reference
 - [Security Guidelines](docs/security_guidelines.md) - Security best practices

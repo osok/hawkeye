@@ -5,6 +5,12 @@ skinparam classAttributeIconSize 0
 skinparam classFontStyle bold
 skinparam packageStyle rectangle
 
+  class TestServerConfig {
+    +server_id: str
+    +command
+    +url
+  }
+
 package "tests.test_assessment" {
   class TestDefaultPattern {
     +pattern
@@ -572,6 +578,106 @@ package "tests.test_assessment" {
     +test_security_rules_initialization()
     +test_weak_tls_patterns()
     +test_insecure_protocols()
+  }
+
+  class TestRemediationAction {
+    +action
+    +immediate_action
+    +high_action
+    +medium_action
+    +low_action
+    +info_action
+    +action
+    --
+    +test_remediation_action_init()
+    +test_priority_score()
+    +test_effort_to_impact_ratio()
+  }
+
+  class TestRemediationPlan {
+    +plan
+    +plan
+    +immediate
+    +plan
+    +high_priority
+    +plan
+    +auth_actions
+    +encryption_actions
+    +network_actions
+    +plan
+    +medium_actions
+    +low_actions
+    +high_actions
+    +plan
+    --
+    +sample_actions()
+    +test_remediation_plan_init()
+    +test_immediate_actions(sample_actions)
+    +test_high_priority_actions(sample_actions)
+    +test_get_actions_by_category(sample_actions)
+    +test_get_actions_by_complexity(sample_actions)
+    +test_calculate_totals(sample_actions)
+  }
+
+  class TestRemediationEngine {
+    +result
+    +plan
+    +plan
+    +auth_findings
+    +actions
+    +encryption_findings
+    +actions
+    +config_findings
+    +actions
+    +network_findings
+    +actions
+    +actions
+    +prioritized
+    +actions
+    +quick_wins
+    +actions
+    +long_term
+    +actions
+    +phases
+    +plan
+    +summary
+    --
+    +engine()
+    +sample_findings()
+    +sample_assessment_results(sample_findings)
+    +test_engine_init(engine)
+    +test_generate_remediation_plan_empty(engine)
+    +test_generate_remediation_plan_basic(engine, sample_assessment_results)
+    +test_generate_auth_actions(engine, sample_findings)
+    +test_generate_encryption_actions(engine, sample_findings)
+    +test_generate_config_actions(engine, sample_findings)
+    +test_generate_network_actions(engine, sample_findings)
+    +test_prioritize_actions(engine)
+    +test_identify_quick_wins(engine)
+    +test_identify_long_term_actions(engine)
+    +test_create_implementation_phases(engine)
+    +test_generate_executive_summary(engine, sample_findings)
+  }
+
+  class TestRemediationIntegration {
+    +findings
+    +assessment_result
+    +plan
+    +immediate_actions
+    +high_priority_actions
+    +quick_wins
+    +estimates
+    +results
+    +findings
+    +result
+    +plan
+    +total_findings
+    +result
+    +plan
+    --
+    +test_end_to_end_remediation_workflow()
+    +test_multiple_assessment_results()
+    +test_empty_findings_handling()
   }
 
   class TestCVSSScores {
@@ -1188,6 +1294,112 @@ package "tests.test_detection" {
     +test_create_docker_inspector()
   }
 
+  class TestMCPTool {
+    +tool
+    +tool
+    +tool
+    +tool
+    +tool
+    +new_tool
+    +legacy_tool
+    --
+    +test_tool_creation()
+    +test_capability_category_file_system()
+    +test_capability_category_network_access()
+    +test_capability_category_code_execution()
+    +test_capability_category_unknown()
+    +test_from_new_tool_conversion()
+  }
+
+  class TestMCPResource {
+    +resource
+    +new_resource
+    +legacy_resource
+    --
+    +test_resource_creation()
+    +test_from_new_resource_conversion()
+  }
+
+  class TestMCPCapabilities {
+    +tools
+    +resources
+    +capabilities
+    +tools
+    +capabilities
+    +categories
+    +tools
+    +capabilities
+    +tools
+    +capabilities
+    +new_tools
+    +new_resources
+    +new_server_info
+    +legacy_capabilities
+    --
+    +test_capabilities_creation()
+    +test_capability_categories()
+    +test_highest_risk_level()
+    +test_access_flags()
+    +test_from_new_capabilities_conversion()
+  }
+
+  class TestMCPIntrospector {
+    +config
+    +mock_result
+    +mock_introspection_instance
+    +result
+    +mock_result
+    +mock_introspection_instance
+    +result
+    +result
+    +server_info
+    +result
+    +stats
+    +stats
+    +stats
+    +transports
+    +result
+    +mock_discovery_instance
+    +tools
+    +mock_discovery_instance
+    +resources
+    --
+    +introspector()
+    +sample_server_info()
+    +sample_process_info()
+    +test_introspector_initialization(introspector)
+    +test_successful_introspection(mock_introspection_class, introspector, sample_server_info, sample_process_info)
+    +test_failed_introspection(mock_introspection_class, introspector, sample_server_info, sample_process_info)
+    +test_input_validation(introspector)
+    +test_transport_statistics(introspector)
+    +test_discovery_statistics(introspector)
+    +test_cache_statistics(introspector)
+    +test_supported_transports(introspector)
+    +test_transport_connectivity(introspector, sample_server_info, sample_process_info)
+    +test_discover_tools_only(mock_tool_discovery, introspector, sample_server_info, sample_process_info)
+    +test_discover_resources_only(mock_resource_discovery, introspector, sample_server_info, sample_process_info)
+    +test_performance_metrics_integration(introspector)
+  }
+
+  class TestIntegrationScenarios {
+    +servers
+    +results
+    +result
+    +invalid_server
+    +invalid_process
+    +result
+    +server_info
+    +process_info
+    +result1
+    +initial_cache_misses
+    +result2
+    --
+    +introspector()
+    +test_multiple_server_introspection(introspector)
+    +test_error_handling_and_recovery(introspector)
+    +test_caching_behavior(introspector)
+  }
+
   class TestEnvironmentAnalyzer {
     +settings
     +analyzer
@@ -1372,6 +1584,75 @@ package "tests.test_detection" {
     +test_create_npx_detector()
   }
 
+  class TestDetectionPipelineIntegration {
+    +process_info
+    +server_info
+    +tools
+    +resources
+    +pipeline
+    +pipeline
+    +pipeline
+    +mock_introspection
+    +result
+    +pipeline
+    +failed_result
+    +result
+    +config
+    +pipeline
+    +result
+    +pipeline
+    +high_risk_capabilities: mock_capabilities
+    +mock_introspection
+    +result
+    +pipeline
+    +detection_results
+    +mcp_servers
+    +pipeline
+    +result
+    +mock_result
+    +pipeline
+    +targets
+    +results
+    +pipeline
+    +stats
+    +updated_stats
+    +pipeline
+    +result
+    +pipeline
+    +server_info
+    +low_confidence_result
+    +result
+    --
+    +pipeline_config()
+    +mock_detection_result()
+    +mock_capabilities()
+    +test_pipeline_initialization(pipeline_config)
+    +test_pipeline_factory_function(pipeline_config)
+    +test_execute_pipeline_success(pipeline_config, mock_detection_result, mock_capabilities)
+    +test_execute_pipeline_no_mcp_servers(pipeline_config)
+    +test_execute_pipeline_introspection_disabled(mock_detection_result)
+    +test_execute_pipeline_with_risk_assessment(pipeline_config, mock_detection_result, mock_capabilities)
+    +test_extract_mcp_servers(pipeline_config, mock_detection_result)
+    +test_analyze_results(pipeline_config, mock_detection_result)
+    +test_batch_pipeline_execution(pipeline_config)
+    +test_pipeline_statistics(pipeline_config)
+    +test_pipeline_error_handling(pipeline_config)
+    +test_confidence_threshold_filtering(pipeline_config)
+  }
+
+  class TestPipelineConfigurationOptions {
+    +config
+    +pipeline
+    +config
+    +pipeline
+    +config
+    +pipeline
+    --
+    +test_minimal_configuration()
+    +test_full_configuration()
+    +test_custom_thresholds()
+  }
+
   class TestProcessEnumerator {
     +result
     +result
@@ -1547,6 +1828,1553 @@ package "tests.test_detection" {
     +test_analyze_specific_config_file_not_found()
     +test_analyze_specific_config_file_success(mock_has_indicators, mock_analyze_single, mock_exists)
     +test_analyze_specific_config_file_no_indicators(mock_has_indicators, mock_analyze_single, mock_exists)
+  }
+
+}
+
+package "tests.test_detection.test_mcp_introspection" {
+  class TestToolRiskAnalyzer {
+    +risks
+    +risks
+    +high_risks
+    +code_exec_risks
+    +risky_names
+    +tool
+    +risks
+    +risky_descriptions
+    +tool
+    +risks
+    +risky_schema
+    +tool
+    +risks
+    +param_risks
+    +test_cases
+    +score
+    +risks
+    +score
+    +file_tools
+    +risks
+    +file_risks
+    +network_tools
+    +risks
+    +network_risks
+    +exec_tools
+    +risks
+    +exec_risks
+    +data_tools
+    +risks
+    +data_risks
+    +priv_tools
+    +risks
+    +priv_risks
+    +sys_tools
+    +risks
+    +sys_risks
+    +tools
+    +results
+    +sample_score
+    +dangerous_score
+    +tools
+    +results
+    +summary
+    +empty_tool
+    +risks
+    +malformed_tool
+    +risks
+    +complex_schema
+    +tool
+    +risks
+    +custom_pattern
+    +tool
+    +risks
+    +custom_risks
+    +tools
+    +tool
+    +start_time
+    +results
+    +end_time
+    --
+    +setUp()
+    +test_analyzer_initialization()
+    +test_analyze_tool_basic()
+    +test_analyze_dangerous_tool()
+    +test_detect_name_patterns()
+    +test_detect_description_patterns()
+    +test_analyze_parameters()
+    +test_calculate_risk_score()
+    +test_calculate_composite_score()
+    +test_file_system_risk_detection()
+    +test_network_risk_detection()
+    +test_code_execution_risk_detection()
+    +test_data_access_risk_detection()
+    +test_privilege_escalation_risk_detection()
+    +test_system_modification_risk_detection()
+    +test_analyze_multiple_tools()
+    +test_get_risk_summary()
+    +test_empty_tool_analysis()
+    +test_malformed_schema_handling()
+    +test_complex_schema_analysis()
+    +test_risk_pattern_customization()
+    +test_performance_with_large_tool_set()
+  }
+
+  class TestRiskCategorizer {
+    +profile
+    +profile
+    +expected_categories
+    +actual_categories
+    +profile
+    +expected_counts
+    +profile
+    +profile
+    +current_cat
+    +next_cat
+    +current_analysis
+    +next_analysis
+    +profile
+    +max_possible
+    +profile
+    +single_risk
+    +profile
+    +file_risks
+    +profile
+    +file_analysis
+    +risks
+    +profile
+    +code_analysis
+    +file_analysis
+    +risks
+    +profile
+    +analysis
+    +profile
+    +high_risk_cats
+    +expected_high_risk
+    +profile
+    +recommendations
+    +risks1
+    +risks2
+    +profile1
+    +profile2
+    +comparison
+    +profiles
+    +risks
+    +trends
+    +profile
+    +summary
+    +file_risks
+    +high_risks
+    +expected_count
+    +profile
+    +impact
+    +profile
+    +distribution
+    +cat_percentages
+    +total_cat_percentage
+    +patterns
+    +custom_weights
+    +custom_categorizer
+    +custom_multipliers
+    +custom_categorizer
+    +many_risks
+    +risk
+    +start_time
+    +profile
+    +end_time
+    +identical_risks
+    +profile
+    +analysis
+    --
+    +setUp()
+    +test_categorizer_initialization()
+    +test_categorize_risks_basic()
+    +test_risk_profile_creation()
+    +test_severity_distribution()
+    +test_category_analysis()
+    +test_priority_ranking()
+    +test_risk_score_calculation()
+    +test_empty_risk_list()
+    +test_single_risk_categorization()
+    +test_same_category_multiple_risks()
+    +test_category_weights()
+    +test_severity_multipliers()
+    +test_get_high_risk_categories()
+    +test_get_category_recommendations()
+    +test_compare_profiles()
+    +test_analyze_risk_trends()
+    +test_generate_risk_summary()
+    +test_filter_by_category()
+    +test_filter_by_severity()
+    +test_calculate_category_impact()
+    +test_risk_distribution_analysis()
+    +test_identify_risk_patterns()
+    +test_custom_category_weights()
+    +test_custom_severity_multipliers()
+    +test_performance_with_many_risks()
+    +test_edge_case_all_same_risk()
+  }
+
+  class MockTransportHandler {
+    -__init__()
+  }
+
+  class TestBaseTransportHandler {
+    +handler
+    +handler
+    +info
+    +expected_keys
+    +handler
+    +call_times
+    +original_create_session
+    +delay1
+    +delay2
+    +tasks
+    +custom_logger
+    +handler
+    +handler
+    --
+    +handler()
+    +failing_handler()
+    +timeout_handler()
+    +test_initialization(handler)
+    +test_is_connected_property(handler)
+    +test_get_connection_info(handler)
+    +test_custom_logger()
+    +test_default_logger()
+  }
+
+  class TestTransportErrors {
+    +error
+    +error
+    +error
+    --
+    +test_transport_error_base()
+    +test_connection_timeout_error()
+    +test_connection_failed_error()
+  }
+
+  class TestTransportHandlerEdgeCases {
+    +handler
+    +handler
+    +handler
+    --
+    +test_invalid_initialization_parameters()
+  }
+
+  class TestPoolStats {
+    +stats
+    +stats
+    --
+    +test_pool_stats_creation()
+    +test_default_stats()
+  }
+
+  class TestConnectionInfo {
+    +mock_handler
+    +created_time
+    +conn_info
+    +mock_handler
+    +created_time
+    +custom_id: str
+    +conn_info
+    +mock_handler
+    +created_time
+    +conn_info
+    +expected_id
+    --
+    +test_connection_info_creation()
+    +test_connection_info_with_custom_id()
+    +test_connection_info_auto_id_generation()
+  }
+
+  class TestConnectionPool {
+    +handler
+    +handler1_id
+    +handler2_id
+    +connections
+    +conn_ctx
+    +handler
+    +handler
+    +pool
+    +stats
+    +stats
+    +health
+    +created_connections
+    +destroyed_connections
+    +tasks
+    +results
+    --
+    +mock_handler_factory()
+    +factory()
+    +connection_pool()
+    +test_pool_initialization(connection_pool)
+    +timeout_factory()
+    +failing_factory()
+  }
+
+  class TestTransportExceptions {
+    +error
+    +error
+    +error
+    --
+    +test_transport_error()
+    +test_connection_failed_error()
+    +test_connection_timeout_error()
+  }
+
+  class TestStreamableHTTPTransportHandler {
+    +logger
+    +session
+    +valid_urls
+    +invalid_urls
+    +invalid_urls
+    +auth
+    +headers
+    +auth
+    +headers
+    +auth
+    +headers
+    +auth
+    +headers
+    +expected
+    +headers
+    +mock_session
+    +mock_connector_instance
+    +session
+    +mock_connector
+    +result
+    +result
+    +result
+    +mock_session
+    +result
+    +result
+    +mock_response
+    +mock_session
+    +endpoints
+    +expected
+    +mock_session
+    +endpoints
+    +info
+    +expected
+    +info
+    +mock_session
+    +repr_str
+    --
+    +handler()
+    +mock_session()
+    +test_init(handler)
+    +test_validate_url_valid_http(handler)
+    +test_validate_url_invalid_scheme(handler)
+    +test_validate_url_missing_hostname(handler)
+    +test_prepare_auth_headers_bearer_token(handler)
+    +test_prepare_auth_headers_api_key(handler)
+    +test_prepare_auth_headers_api_key_default_header(handler)
+    +test_prepare_auth_headers_custom_headers(handler)
+    +test_prepare_auth_headers_empty(handler)
+    +test_get_server_info(handler)
+    +test_get_server_info_no_auth(handler)
+    +test_repr(handler)
+  }
+
+  class TestStreamableHTTPTransportHandlerIntegration {
+    +mock_session
+    +mock_connector_instance
+    +health
+    +mock_session
+    +call_args
+    +mock_session
+    +call_args
+    +mock_session
+    +call_args
+    +mock_session
+    +call_args
+    +headers
+    --
+    +handler()
+  }
+
+  class TestLegacyIntrospectionResult {
+    +result
+    +result
+    --
+    +test_result_creation_success()
+    +test_result_creation_failure()
+  }
+
+  class TestNodeJSCompatibilityLayer {
+    +config
+    +script
+    +transport_type
+    +http_server_info
+    +transport_type
+    +sse_server_info
+    +transport_type
+    +config
+    +http_server_info
+    +config
+    +new_tools
+    +new_resources
+    +new_server_info
+    +legacy_result
+    +tool
+    +resource
+    +mock_result
+    +mock_introspection_instance
+    +script_content: str
+    +result
+    +mock_result
+    +mock_introspection_instance
+    +script_content: str
+    +result
+    +mock_result
+    +mock_introspection_instance
+    +result
+    +result
+    --
+    +compat_layer()
+    +sample_server_info()
+    +sample_process_info()
+    +test_compatibility_layer_initialization(compat_layer)
+    +test_generate_introspection_script(compat_layer, sample_server_info, sample_process_info)
+    +test_determine_transport_type_stdio(compat_layer, sample_server_info, sample_process_info)
+    +test_determine_transport_type_http(compat_layer, sample_process_info)
+    +test_determine_transport_type_sse(compat_layer, sample_process_info)
+    +test_convert_to_server_config_stdio(compat_layer, sample_server_info, sample_process_info)
+    +test_convert_to_server_config_http(compat_layer, sample_process_info)
+    +test_convert_to_legacy_result(compat_layer)
+    +test_execute_introspection_script_success(mock_introspection_class, compat_layer, sample_server_info, sample_process_info)
+    +test_execute_introspection_script_failure(mock_introspection_class, compat_layer, sample_server_info, sample_process_info)
+    +test_introspect_server_legacy_success(mock_introspection_class, compat_layer, sample_server_info, sample_process_info)
+    +test_introspect_server_legacy_exception(compat_layer, sample_server_info, sample_process_info)
+  }
+
+  class TestLegacyMCPIntrospector {
+    +config
+    +mock_result
+    +mock_compat_layer_instance
+    +result
+    +mock_result
+    +mock_compat_layer_instance
+    +result
+    +script
+    +mock_result
+    +mock_compat_layer_instance
+    +script_content: str
+    +result
+    +mock_result
+    +mock_compat_layer_instance
+    +script_content: str
+    +result
+    --
+    +legacy_introspector()
+    +sample_server_info()
+    +sample_process_info()
+    +test_legacy_introspector_initialization(legacy_introspector)
+    +test_introspect_server_success(mock_compat_layer_class, legacy_introspector, sample_server_info, sample_process_info)
+    +test_introspect_server_failure(mock_compat_layer_class, legacy_introspector, sample_server_info, sample_process_info)
+    +test_generate_script(legacy_introspector, sample_server_info, sample_process_info)
+    +test_execute_script_success(mock_compat_layer_class, legacy_introspector, sample_server_info, sample_process_info)
+    +test_execute_script_failure(mock_compat_layer_class, legacy_introspector, sample_server_info, sample_process_info)
+  }
+
+  class TestConvenienceFunctions {
+    +legacy_config
+    +legacy_file
+    +result
+    +valid_config
+    +config_file
+    --
+    +setUp()
+    +tearDown()
+    +test_migrate_legacy_configuration()
+    +test_validate_configuration()
+  }
+
+  class TestIntegrationScenarios {
+    +config
+    +compat_layer
+    +server_info
+    +process_info
+    +script
+    +transport_type
+    +server_config
+    +config
+    +compat_layer
+    +invalid_server
+    +invalid_process
+    +script
+    +transport_type
+    +result
+    --
+    +test_end_to_end_compatibility()
+    +test_error_handling_robustness()
+  }
+
+  class TestStdioTransportHandler {
+    +session
+    +session
+    +result
+    +result
+    +result
+    +result
+    +info
+    +info
+    +repr_str
+    +repr_str
+    +mock_session
+    +message
+    +info
+    --
+    +handler()
+    +mock_session()
+    +test_init(handler)
+    +test_validate_command_valid(handler)
+    +test_validate_command_invalid(handler)
+    +test_validate_command_not_found(mock_which, handler)
+    +test_validate_command_absolute_path(mock_exists, mock_access, handler)
+    +test_get_server_info_not_configured(handler)
+    +test_get_server_info_configured(handler)
+    +test_repr_not_configured(handler)
+    +test_repr_configured(handler)
+    +test_connection_info(handler)
+  }
+
+  class TestMCPCapabilities {
+    +capabilities
+    +experimental
+    +capabilities
+    +capabilities
+    +capabilities
+    +count
+    --
+    +test_default_capabilities()
+    +test_custom_capabilities()
+    +test_has_capability()
+    +test_get_capability_count()
+  }
+
+  class TestMCPTool {
+    +schema
+    +tool
+    +schema
+    +risk_categories
+    +security_notes
+    +tool
+    +tool
+    +schema
+    +tool
+    +required
+    +schema
+    +tool
+    +optional
+    --
+    +test_basic_tool()
+    +test_tool_with_risk_assessment()
+    +test_has_risk_category()
+    +test_get_required_parameters()
+    +test_get_optional_parameters()
+  }
+
+  class TestMCPResource {
+    +resource
+    +risk_categories
+    +security_notes
+    +resource
+    +resource
+    +scheme
+    +local_resource
+    +remote_resource
+    --
+    +test_basic_resource()
+    +test_resource_with_risk_assessment()
+    +test_get_uri_scheme()
+    +test_is_local_resource()
+  }
+
+  class TestMCPServerInfo {
+    +capabilities
+    +tools
+    +resources
+    +server_info
+    +server_info
+    +tools
+    +server_info
+    +resources
+    +server_info
+    +tools
+    +server_info
+    +high_risk
+    --
+    +test_basic_server_info()
+    +test_server_info_with_error()
+    +test_get_tool_count()
+    +test_get_resource_count()
+    +test_get_high_risk_tools()
+  }
+
+  class TestRiskAssessment {
+    +findings
+    +assessment
+    +findings
+    +assessment
+    +high_findings
+    +critical_findings
+    +findings
+    +assessment
+    +file_findings
+    +network_findings
+    --
+    +test_basic_risk_assessment()
+    +test_get_findings_by_severity()
+    +test_get_findings_by_category()
+  }
+
+  class TestSecurityFinding {
+    +finding
+    +high_finding
+    +critical_finding
+    +low_finding
+    --
+    +test_security_finding_creation()
+    +test_is_high_severity()
+  }
+
+  class TestComplianceCheck {
+    +check
+    +compliant_check
+    +non_compliant_check
+    --
+    +test_compliance_check_creation()
+    +test_is_compliant()
+  }
+
+  class TestPerformanceMetrics {
+    +metrics
+    +fast_metrics
+    +slow_metrics
+    --
+    +test_performance_metrics_creation()
+    +test_is_performant()
+  }
+
+  class TestTransportConfig {
+    +config
+    +config
+    +valid_config
+    +invalid_config
+    +valid_config
+    +invalid_config
+    --
+    +test_stdio_transport_config()
+    +test_sse_transport_config()
+    +test_validate_stdio_config()
+    +test_validate_sse_config()
+  }
+
+  class TestMCPIntrospectionResult {
+    +server_info
+    +risk_assessment
+    +performance_metrics
+    +result
+    +result
+    +server_info
+    +result
+    +result_dict
+    --
+    +test_introspection_result_creation()
+    +test_failed_introspection_result()
+    +test_to_dict()
+  }
+
+  class TestEnums {
+    +test_risk_level_enum()
+    +test_security_category_enum()
+    +test_compliance_status_enum()
+  }
+
+  class TestValidationError {
+    +error
+    --
+    +test_validation_error()
+  }
+
+  class TestPerformanceMetric {
+    +timestamp
+    +metric
+    +metric
+    --
+    +test_metric_creation()
+    +test_metric_with_defaults()
+  }
+
+  class TestTimingMetric {
+    +start_time
+    +timing
+    +start_time
+    +timing
+    +start_time
+    +timing
+    --
+    +test_timing_metric_creation()
+    +test_timing_metric_finish_success()
+    +test_timing_metric_finish_failure()
+  }
+
+  class TestMetricsCollector {
+    +metric
+    +timing
+    +timing
+    +values
+    +stats
+    +stats
+    +timing1
+    +timing2
+    +timing3
+    +summary
+    +op1_stats
+    +op2_stats
+    +recent
+    +timing
+    +report
+    +timing
+    +threads
+    +thread
+    --
+    +collector()
+    +test_collector_initialization(collector)
+    +test_record_metric(collector)
+    +test_start_and_finish_timing(collector)
+    +test_timing_with_failure(collector)
+    +test_increment_counter(collector)
+    +test_set_gauge(collector)
+    +test_get_counter(collector)
+    +test_get_gauge(collector)
+    +test_histogram_stats(collector)
+    +test_histogram_stats_empty(collector)
+    +test_operation_summary(collector)
+    +test_recent_metrics(collector)
+    +test_performance_report(collector)
+    +test_clear_metrics(collector)
+    +test_thread_safety(collector)
+    +worker()
+  }
+
+  class TestPerformanceMonitor {
+    +report
+    +result
+    +report
+    +report
+    +stats
+    +report
+    +report
+    +report
+    --
+    +monitor()
+    +test_monitor_initialization(monitor)
+    +test_time_operation_context(monitor)
+    +test_monitor_function_decorator(monitor)
+    +test_function(y)
+    +test_monitor_function_with_exception(monitor)
+    +failing_function()
+    +test_record_metric(monitor)
+    +test_increment_counter(monitor)
+    +test_set_gauge(monitor)
+  }
+
+  class TestTimingContext {
+    +timing
+    +timing
+    --
+    +collector()
+    +test_timing_context_success(collector)
+    +test_timing_context_with_exception(collector)
+  }
+
+  class TestGlobalFunctions {
+    +monitor1
+    +monitor2
+    +result
+    +monitor
+    +report
+    +result
+    +monitor
+    +report
+    --
+    +test_get_global_monitor()
+    +test_time_operation_decorator()
+    +test_function()
+    +test_monitor_function_decorator()
+    +test_function()
+  }
+
+  class TestCompositeRiskScore {
+    +valid_score
+    +boundary_score
+    +critical_score
+    +high_score
+    +medium_score
+    +low_score
+    +info_score
+    +score_dict
+    +breakdown
+    +component_scores
+    --
+    +setUp()
+    +test_score_initialization()
+    +test_score_validation()
+    +test_get_risk_level()
+    +test_to_dict()
+    +test_score_breakdown()
+  }
+
+  class TestRiskScorer {
+    +risk
+    +score
+    +scores
+    +score
+    +severity_score
+    +likelihood_score
+    +impact_score
+    +exposure_score
+    +exploitability_score
+    +cvss_scorer
+    +risk
+    +score
+    +weighted_scorer
+    +risk
+    +score
+    +max_scorer
+    +risk
+    +score
+    +component_scores
+    +code_risk
+    +file_risk
+    +code_score
+    +file_score
+    +scores
+    +aggregated
+    +test_values
+    +normalized
+    +high_risk
+    +score
+    +recommendations
+    +risk1
+    +risk2
+    +score1
+    +score2
+    +comparison
+    +scores
+    +risk
+    +trend
+    +custom_weights
+    +custom_scorer
+    +custom_category_weights
+    +custom_scorer
+    +risk
+    +score1
+    +score2
+    +many_risks
+    +risk
+    +start_time
+    +scores
+    +end_time
+    +scores
+    +aggregated
+    +identical_risks
+    +scores
+    +first_score
+    +scores
+    +distribution
+    +level_mappings
+    +risk
+    +score
+    --
+    +setUp()
+    +test_scorer_initialization()
+    +test_calculate_risk_score_single()
+    +test_calculate_risk_score_multiple()
+    +test_calculate_tool_risk_score()
+    +test_severity_score_calculation()
+    +test_likelihood_score_calculation()
+    +test_impact_score_calculation()
+    +test_exposure_score_calculation()
+    +test_exploitability_score_calculation()
+    +test_cvss_methodology()
+    +test_weighted_average_methodology()
+    +test_maximum_methodology()
+    +test_category_weight_application()
+    +test_aggregate_scores()
+    +test_normalize_score()
+    +test_get_score_recommendations()
+    +test_compare_scores()
+    +test_score_trend_analysis()
+    +test_custom_weights()
+    +test_custom_category_weights()
+    +test_score_caching()
+    +test_batch_scoring_performance()
+    +test_edge_case_zero_risks()
+    +test_edge_case_identical_risks()
+    +test_score_distribution_analysis()
+    +test_risk_level_mapping()
+  }
+
+  class TestMigrationConfig {
+    +config
+    +config
+    --
+    +test_default_values()
+    +test_custom_values()
+  }
+
+  class TestLegacyMCPConfig {
+    +config
+    +servers
+    +config
+    --
+    +test_default_values()
+    +test_with_servers()
+  }
+
+  class TestMigrationResult {
+    +result
+    --
+    +test_initialization()
+  }
+
+  class TestConfigurationMigrator {
+    +migrator
+    +custom_config
+    +migrator
+    +config_file
+    +config_data
+    +backup_path
+    +backup_data
+    +config_data
+    +config_file
+    +legacy_config
+    +config_content: str
+    +config_file
+    +legacy_config
+    +config
+    +config
+    +config
+    +config
+    +config
+    +server_config
+    +migrated
+    +legacy_config
+    +result
+    +migrated
+    +mcp_config
+    +valid_config
+    +errors
+    +invalid_config
+    +errors
+    +invalid_config
+    +errors
+    +valid_server
+    +errors
+    +invalid_server
+    +errors
+    +invalid_server
+    +errors
+    +invalid_server
+    +errors
+    +config
+    +output_path
+    +saved_data
+    +config
+    +output_path
+    +legacy_config
+    +legacy_file
+    +output_file
+    +result
+    +result
+    --
+    +setUp()
+    +tearDown()
+    +test_initialization()
+    +test_create_backup()
+    +test_load_legacy_config_json()
+    +test_load_legacy_config_yaml()
+    +test_detect_transport_type()
+    +test_migrate_server_config()
+    +test_migrate_config_structure()
+    +test_validate_migrated_config()
+    +test_validate_server_config()
+    +test_save_migrated_config_json()
+    +test_save_migrated_config_yaml()
+    +test_migrate_configuration_success()
+    +test_migrate_configuration_failure()
+  }
+
+  class TestConfigurationValidator {
+    +valid_config
+    +config_file
+    +invalid_config
+    +config_file
+    +config
+    +config_file
+    +valid_server
+    +errors
+    +invalid_server
+    +errors
+    +invalid_server
+    +errors
+    +invalid_server
+    +errors
+    --
+    +setUp()
+    +tearDown()
+    +test_validate_valid_configuration()
+    +test_validate_invalid_configuration()
+    +test_validate_missing_section()
+    +test_validate_server_configuration()
+  }
+
+  class TestSSETransportHandler {
+    +logger
+    +session
+    +valid_urls
+    +invalid_urls
+    +invalid_urls
+    +invalid_urls
+    +mock_connector_instance
+    +session
+    +mock_connector
+    +result
+    +result
+    +result
+    +mock_session
+    +result
+    +result
+    +info
+    +expected
+    +mock_session
+    +repr_str
+    --
+    +handler()
+    +mock_session()
+    +test_init(handler)
+    +test_validate_url_valid_http(handler)
+    +test_validate_url_invalid_scheme(handler)
+    +test_validate_url_missing_hostname(handler)
+    +test_validate_url_malformed(handler)
+    +test_get_server_info(handler)
+    +test_repr(handler)
+  }
+
+  class TestSSETransportHandlerIntegration {
+    +mock_connector_instance
+    +health
+    +call_args
+    --
+    +handler()
+  }
+
+  class TestTransportFactory {
+    +logger
+    +factory
+    +handler
+    +handler
+    +handler
+    +mock_transport
+    +config
+    +transport_type
+    +config
+    +transport_type
+    +config
+    +transport_type
+    +config
+    +transport_type
+    +config
+    +transport_type
+    +config
+    +transport_type
+    +sse_urls
+    +config
+    +transport_type
+    +http_urls
+    +config
+    +transport_type
+    +config
+    +transport_type
+    +config
+    +transport_type
+    +config
+    +handler
+    +config
+    +handler
+    +config
+    +handler
+    +config
+    +config
+    +config
+    +config
+    +config
+    +config
+    +config
+    +transports
+    +mock_transport
+    +mock_handler_class
+    +config
+    +mock_handler
+    +result
+    +config
+    +mock_handler
+    +result
+    +config
+    +result
+    +repr_str
+    --
+    +factory()
+    +test_init(factory)
+    +test_init_default_logger()
+    +test_create_handler_stdio_enum(factory)
+    +test_create_handler_sse_string(factory)
+    +test_create_handler_http_with_kwargs(factory)
+    +test_create_handler_invalid_string(factory)
+    +test_create_handler_unsupported_enum(factory)
+    +test_auto_detect_transport_explicit(factory)
+    +test_auto_detect_transport_invalid_explicit(factory)
+    +test_auto_detect_transport_stdio_command(factory)
+    +test_auto_detect_transport_stdio_args_only(factory)
+    +test_auto_detect_transport_sse_url(factory)
+    +test_auto_detect_transport_http_url(factory)
+    +test_auto_detect_transport_base_url(factory)
+    +test_auto_detect_transport_fallback(factory)
+    +test_create_from_config_stdio(factory)
+    +test_create_from_config_sse(factory)
+    +test_create_from_config_http(factory)
+    +test_validate_config_stdio_valid(factory)
+    +test_validate_config_stdio_missing_command(factory)
+    +test_validate_config_sse_valid(factory)
+    +test_validate_config_sse_missing_url(factory)
+    +test_validate_config_http_valid_base_url(factory)
+    +test_validate_config_http_valid_url(factory)
+    +test_validate_config_http_missing_url(factory)
+    +test_get_supported_transports(factory)
+    +test_register_handler(factory)
+    +test_repr(factory)
+  }
+
+  class TestTransportFactoryFunctions {
+    +handler
+    +handler
+    +config
+    +handler
+    +config
+    +handler
+    --
+    +test_create_transport_handler_stdio()
+    +test_create_transport_handler_sse_enum()
+    +test_create_transport_handler_invalid()
+    +test_create_from_config_stdio()
+    +test_create_from_config_http()
+  }
+
+  class TestTransportFactoryIntegration {
+    +config
+    +transport_type
+    +handler
+    +config
+    +transport_type
+    +handler
+    +config
+    +transport_type
+    +handler
+    +config
+    +transport_type
+    +handler
+    +config
+    +transport_type
+    +handler
+    --
+    +factory()
+    +test_full_stdio_workflow(factory)
+    +test_full_sse_workflow(factory)
+    +test_full_http_workflow(factory)
+    +test_config_priority_explicit_transport(factory)
+    +test_fallback_behavior(factory)
+  }
+
+  class TestThreatModel {
+    +threat
+    +vector
+    +threat_id: str
+    +mitigation: str
+    +threat1
+    +threat2
+    +data_threats
+    +threat1
+    +threat2
+    +high_threats
+    +threat
+    +score
+    +expected_score
+    --
+    +setUp()
+    +test_threat_model_initialization()
+    +test_add_threat()
+    +test_add_attack_vector()
+    +test_add_mitigation()
+    +test_get_threats_by_category()
+    +test_get_threats_by_severity()
+    +test_calculate_risk_score()
+  }
+
+  class TestThreatModelingEngine {
+    +threats
+    +tools
+    +threat_model
+    +threats
+    +threats
+    +file_threats
+    +threats
+    +network_threats
+    +threats
+    +exec_threats
+    +tools
+    +threat_model
+    +compound_threats
+    +tools
+    +threat_model
+    +categories
+    +threats
+    +high_severity
+    +threats
+    +threats
+    +threats
+    +tools
+    +threat_model
+    +dangerous_tool
+    +threats
+    +high_threats
+    +file_capability
+    +threats
+    +threat_categories
+    +tools
+    +threat_model
+    +total_risk
+    +tools
+    +threat_model
+    +prioritized
+    +current_score
+    +next_score
+    +tools
+    +threat_model
+    +chains
+    +tools
+    +threat_model
+    +correlations
+    +threat_model
+    +malformed_tool
+    +threats
+    +tools
+    +tool
+    +start_time
+    +threat_model
+    +end_time
+    +custom_pattern
+    +tool
+    +threats
+    +custom_threats
+    --
+    +setUp()
+    +test_engine_initialization()
+    +test_analyze_single_tool()
+    +test_analyze_multiple_tools()
+    +test_analyze_capabilities()
+    +test_detect_file_system_threats()
+    +test_detect_network_threats()
+    +test_detect_code_execution_threats()
+    +test_compound_threat_detection()
+    +test_threat_categorization()
+    +test_severity_assessment()
+    +test_likelihood_calculation()
+    +test_impact_assessment()
+    +test_attack_vector_mapping()
+    +test_mitigation_generation()
+    +test_threat_pattern_matching()
+    +test_capability_threat_mapping()
+    +test_risk_aggregation()
+    +test_threat_prioritization()
+    +test_attack_chain_analysis()
+    +test_threat_correlation()
+    +test_empty_tool_list()
+    +test_malformed_tool_handling()
+    +test_performance_with_many_tools()
+    +test_custom_threat_patterns()
+  }
+
+}
+
+package "tests.performance" {
+  class TestScannerPerformance {
+    +mock_sock
+    +scanner
+    +target_count: int
+    +ports_per_target: int
+    +targets
+    +ports
+    +start_time
+    +target
+    +end_time
+    +total_time
+    +total_scans
+    +throughput
+    +stats
+    +mock_sock
+    +scanner
+    +targets
+    +ports
+    +target
+    +start_time
+    +futures
+    +results
+    +end_time
+    +total_time
+    +expected_sequential_time
+    +process
+    +initial_memory
+    +scanner
+    +target
+    +result
+    +current_memory
+    +memory_increase
+    --
+    +setup_method()
+    +test_tcp_scan_throughput(mock_socket)
+    +test_concurrent_scan_performance(mock_socket)
+    +scan_target_wrapper()
+    +test_memory_usage_during_large_scan()
+  }
+
+  class TestDetectionPerformance {
+    +mock_processes
+    +mock_process
+    +detector
+    +start_time
+    +result
+    +end_time
+    +detection_time
+    +detector
+    +targets
+    +start_time
+    +results
+    +end_time
+    +total_time
+    +target_hosts
+    --
+    +setup_method()
+    +test_process_enumeration_performance(mock_process_iter)
+    +test_detection_with_multiple_targets()
+  }
+
+  class TestAssessmentPerformance {
+    +assessor
+    +detection_results
+    +server_info
+    +result
+    +start_time
+    +assessment_results
+    +assessment
+    +end_time
+    +total_time
+    +throughput
+    +assessor
+    +detection_results
+    +server_info
+    +result
+    +start_time
+    +futures
+    +assessment_results
+    +end_time
+    +total_time
+    --
+    +setup_method()
+    +test_assessment_throughput()
+    +test_concurrent_assessment_performance()
+    +assess_wrapper()
+  }
+
+  class TestReportingPerformance {
+    +scan_results
+    +detection_results
+    +target
+    +scan_result
+    +detection_result
+    +metadata
+    +report_data
+    +reporter
+    +start_time
+    +report_content
+    +end_time
+    +generation_time
+    +report_json
+    +scan_results
+    +target
+    +result
+    +metadata_json
+    +metadata_csv
+    +metadata_xml
+    +report_data_json
+    +report_data_csv
+    +report_data_xml
+    +reporters
+    +start_time
+    +content
+    +end_time
+    +total_time
+    --
+    +setup_method()
+    +test_large_report_generation_performance()
+    +test_multiple_format_generation_performance()
+  }
+
+  class TestSystemResourceUsage {
+    +process
+    +scanner
+    +cpu_percentages
+    +monitor_thread
+    +target_hosts
+    +ports
+    +target
+    +avg_cpu
+    +max_cpu
+    +process
+    +initial_fds
+    +scanner
+    +target
+    +final_fds
+    +fd_increase
+    --
+    +setup_method()
+    +test_cpu_usage_during_intensive_operations()
+    +monitor_cpu()
+    +test_file_descriptor_usage()
+  }
+
+  class TestScalabilityBenchmarks {
+    +mock_sock
+    +scanner
+    +target_hosts
+    +ports
+    +start_time
+    +target
+    +end_time
+    +total_time
+    +total_operations
+    +throughput
+    +expected_max_time
+    --
+    +setup_method()
+    +test_scanning_scalability(mock_socket, target_count, port_count)
+  }
+
+  class BenchmarkResult {
+    +name: str
+    +duration_seconds: float
+    +memory_usage_mb: float
+    +cpu_usage_percent: float
+    +operations_per_second: float
+    +success_rate: float
+    +error_count: int
+    +metadata
+  }
+
+  class BenchmarkSuite {
+    +name: str
+    +results
+    +total_duration: float
+    +peak_memory_mb: float
+    +average_cpu_percent: float
+    +durations
+    +memory_usage
+    +ops_per_sec
+    +success_rates
+    --
+    +summary()
+  }
+
+  class PerformanceMonitor {
+    +current_memory
+    +current_cpu
+    +duration
+    +current_memory
+    +memory_delta
+    +avg_cpu
+    --
+    -__init__()
+    +start()
+    +sample()
+    +stop()
+  }
+
+  class MCPIntrospectionBenchmarks {
+    +tools
+    +resources
+    +capabilities
+    +monitor
+    +start_time
+    +success_count: int
+    +error_count: int
+    +operations_per_second
+    +success_rate
+    +result
+    +server_info
+    +legacy_server
+    +process_info
+    +result
+    +result
+    +servers
+    +futures
+    +legacy_server
+    +process_info
+    +future
+    +results
+    +result
+    +result
+    +cache_manager
+    +key
+    +value
+    +cached_value
+    +result
+    --
+    +setUp()
+    +tearDown()
+    -_create_mock_server_info(server_id): MCPServerInfo
+    -_run_benchmark(name, operation_func, iterations): BenchmarkResult
+    +test_single_server_introspection_performance()
+    +introspect_server()
+    +test_concurrent_introspection_performance()
+    +concurrent_introspection(num_workers)
+    +test_cache_performance()
+    +cache_operations()
+    +test_connection_pool_performance()
+  }
+
+  class MockConnectionPool {
+    -__init__()
+    +add_connection(conn_id, connection)
+    +get_connection(conn_id)
+  }
+
+  class MockScalingOptimizer {
+    -__init__()
+    +get_optimization_statistics()
+    +apply_optimization(metrics)
+  }
+
+  class BenchmarkRunner {
+    +suite
+    +runner
+    +result
+    +all_results
+    +report_data
+    +output_file
+    --
+    +{static} run_all_benchmarks(): BenchmarkSuite
+    +{static} save_benchmark_report(output_path)
   }
 
 }
@@ -1745,6 +3573,1183 @@ package "tests.test_utils" {
 
 }
 
+package "tests.test_reporting" {
+  class TestIntrospectionReporting {
+    +tools
+    +resources
+    +server
+    +start_time
+    +end_time
+    +metadata
+    +data
+    +metadata
+    +data
+    +reporter
+    +result
+    +report_dict
+    +server
+    +metadata
+    +data
+    +reporter
+    +result
+    +lines
+    +summary_section: bool
+    +summary_section: bool
+    +metadata
+    +data
+    +reporter
+    +result
+    +root
+    +exec_summary
+    +introspection_summary
+    +introspection_data
+    +mcp_servers
+    +server
+    +reporter
+    +result
+    +metadata
+    +data
+    +reporter
+    +result
+    +report_dict
+    +analysis
+    +metadata
+    +data
+    +reporters
+    +result
+    +metadata
+    +data
+    +json_reporter
+    +json_result
+    +json_data
+    +pipeline_results
+    +pipeline_result
+    +xml_reporter
+    +xml_result
+    +xml_root
+    +pipeline_section
+    +pipeline_elem
+    +stats
+    +servers
+    +high_risk_servers
+    +file_tools
+    --
+    +sample_mcp_server()
+    +sample_capabilities()
+    +sample_introspection_summary()
+    +sample_pipeline_result(sample_mcp_server)
+    +sample_report_data(sample_mcp_server, sample_capabilities, sample_introspection_summary, sample_pipeline_result)
+    +test_json_reporter_introspection(sample_mcp_server, sample_capabilities, sample_introspection_summary)
+    +test_csv_reporter_introspection(sample_mcp_server, sample_capabilities, sample_introspection_summary)
+    +test_xml_reporter_introspection(sample_mcp_server, sample_capabilities, sample_introspection_summary)
+    +test_html_reporter_introspection(sample_report_data)
+    +test_introspection_reporter_specialized(sample_mcp_server, sample_capabilities, sample_introspection_summary)
+    +test_all_reporters_handle_empty_introspection()
+    +test_pipeline_result_introspection_integration(sample_pipeline_result)
+    +test_report_data_introspection_properties(sample_report_data)
+  }
+
+  class TestExecutiveSummaryGenerator {
+    +summary
+    +summary
+    +metrics
+    +metrics
+    +findings
+    +critical_findings
+    +findings
+    +critical_findings
+    +high_risk_score
+    +low_risk_score
+    +potential
+    +critical_metrics
+    +high_metrics
+    +low_metrics
+    +metrics
+    +overview
+    +findings
+    +section
+    +findings
+    +section
+    +metrics
+    +findings
+    +conclusion
+    +metrics
+    +conclusion
+    +fallback
+    +count
+    +count
+    --
+    +generator()
+    +sample_metadata()
+    +high_risk_data(sample_metadata)
+    +low_risk_data(sample_metadata)
+    +test_generator_initialization(generator)
+    +test_generate_summary_high_risk(generator, high_risk_data)
+    +test_generate_summary_low_risk(generator, low_risk_data)
+    +test_extract_metrics_high_risk(generator, high_risk_data)
+    +test_extract_metrics_low_risk(generator, low_risk_data)
+    +test_identify_key_findings_high_risk(generator, high_risk_data)
+    +test_identify_key_findings_low_risk(generator, low_risk_data)
+    +test_calculate_security_score(generator, high_risk_data, low_risk_data)
+    +test_calculate_risk_reduction_potential(generator, high_risk_data)
+    +test_determine_overall_risk_level(generator)
+    +test_generate_overview_section(generator)
+    +test_generate_key_findings_section(generator)
+    +test_generate_recommendations_section(generator)
+    +test_generate_conclusion_urgent(generator)
+    +test_generate_conclusion_positive(generator)
+    +test_fallback_summary_generation(generator, high_risk_data)
+    +test_count_compliance_issues(generator, high_risk_data)
+    +test_count_unprotected_deployments(generator, high_risk_data)
+  }
+
+  class TestExecutiveFinding {
+    +finding
+    --
+    +test_executive_finding_creation()
+  }
+
+  class TestExecutiveMetrics {
+    +metrics
+    --
+    +test_executive_metrics_creation()
+  }
+
+  class TestXMLReporter {
+    +target
+    +server_info
+    +finding
+    +reporter
+    +result
+    +root
+    +output_path
+    +result
+    +content
+    +mock_log
+    +root
+    +metadata_elem
+    +root
+    +summary_elem
+    +stats_elem
+    +root
+    +scan_results_elem
+    +results
+    +result
+    +service_elem
+    +root
+    +detection_results_elem
+    +results
+    +result
+    +server_info
+    +root
+    +assessment_results_elem
+    +results
+    +result
+    +findings
+    +finding_elems
+    +finding
+    +recommendations
+    +root
+    +recommendations_elem
+    +recommendation_elems
+    +root
+    +child
+    +pretty_xml
+    +content: str
+    +output_path
+    +content: str
+    +invalid_path
+    +result
+    +invalid_xml: str
+    +result
+    +root
+    +result
+    +root
+    +metadata
+    +scan_results
+    +scan_result
+    +detection_results
+    +detection_result
+    +server_info
+    +reporter
+    +result
+    +lines
+    +reporter
+    +result
+    +root
+    +data
+    +large_scan_results
+    +target
+    +result
+    +data
+    +result
+    +root
+    +scan_results
+    +scan_result_elems
+    +metadata: sample_metadata
+    +data
+    +result
+    +root
+    +title_elem
+    +stats
+    +stats
+    +result
+    +root
+    +result
+    --
+    +reporter()
+    +sample_metadata()
+    +sample_scan_results()
+    +sample_detection_results()
+    +sample_assessment_results()
+    +sample_report_data(sample_metadata, sample_scan_results, sample_detection_results, sample_assessment_results)
+    +test_reporter_init(reporter)
+    +test_reporter_init_custom_params()
+    +test_get_format(reporter)
+    +test_generate_report_memory(reporter, sample_report_data)
+    +test_generate_report_file_output(reporter, sample_report_data)
+    +test_generate_report_invalid_data(reporter)
+    +test_generate_report_logging(mock_logger, reporter, sample_report_data)
+    +test_add_metadata_section(reporter, sample_metadata)
+    +test_add_summary_section(reporter, sample_report_data)
+    +test_add_scan_results_section(reporter, sample_scan_results)
+    +test_add_detection_results_section(reporter, sample_detection_results)
+    +test_add_assessment_results_section(reporter, sample_assessment_results)
+    +test_add_recommendations_section(reporter)
+    +test_prettify_xml(reporter)
+    +test_save_xml_file(reporter)
+    +test_save_xml_file_error(reporter)
+    +test_validate_xml_output(reporter, sample_report_data)
+    +test_xml_structure_completeness(reporter, sample_report_data)
+    +test_xml_data_integrity(reporter, sample_report_data)
+    +test_pretty_print_disabled(sample_report_data)
+    +test_custom_encoding(sample_report_data)
+    +test_empty_data_sections(reporter, sample_metadata)
+    +test_large_data_handling(reporter, sample_metadata)
+    +test_special_characters_handling(reporter, sample_metadata, sample_scan_results)
+    +test_statistics_tracking(reporter, sample_report_data)
+    +test_error_handling_and_statistics(reporter)
+    +test_xml_namespace_handling(reporter, sample_report_data)
+    +test_xml_encoding_declaration(reporter, sample_report_data)
+  }
+
+  class TestJSONReporter {
+    +target
+    +service_info
+    +mcp_server
+    +finding
+    +result
+    +parsed
+    +output_path
+    +result
+    +content
+    +parsed
+    +result
+    +parsed
+    +metadata
+    +summary
+    +scan_results
+    +detection_results
+    +assessment_results
+    +result
+    +parsed
+    +scan_result
+    +result
+    +parsed
+    +detection_result
+    +result
+    +parsed
+    +assessment_result
+    +stats
+    +result
+    +parsed
+    +stats
+    +overview
+    +path_obj
+    +result
+    +enum_obj
+    +result
+    --
+    +json_reporter()
+    +sample_metadata()
+    +sample_scan_results()
+    +sample_detection_results()
+    +sample_assessment_results()
+    +sample_report_data(sample_metadata, sample_scan_results, sample_detection_results, sample_assessment_results)
+    +test_get_format(json_reporter)
+    +test_generate_report_in_memory(json_reporter, sample_report_data)
+    +test_generate_report_to_file(json_reporter, sample_report_data)
+    +test_json_content_structure(json_reporter, sample_report_data)
+    +test_enhanced_scan_results(json_reporter, sample_report_data)
+    +test_enhanced_detection_results(json_reporter, sample_report_data)
+    +test_enhanced_assessment_results(json_reporter, sample_report_data)
+    +test_aggregated_statistics(json_reporter, sample_report_data)
+    +test_json_serializer_custom_types(json_reporter)
+  }
+
+  class CustomObject {
+    -__str__()
+  }
+
+  class TestHTMLReporter {
+    +templates
+    +expected_templates
+    +html_content
+    +html_content
+    +html_content
+    +html_content
+    +output_file
+    +html_content
+    +file_content
+    +custom_vars
+    +html_content
+    --
+    +html_reporter()
+    +sample_metadata()
+    +sample_scan_summary()
+    +sample_detection_summary()
+    +sample_risk_summary()
+    +sample_report_data(sample_metadata, sample_scan_summary, sample_detection_summary, sample_risk_summary)
+    +test_html_reporter_initialization(html_reporter)
+    +test_generate_technical_report(html_reporter, sample_report_data)
+    +test_generate_executive_summary_report(html_reporter, sample_report_data)
+    +test_generate_vulnerability_report(html_reporter, sample_report_data)
+    +test_generate_compliance_report(html_reporter, sample_report_data)
+    +test_save_to_file(html_reporter, sample_report_data)
+    +test_custom_template_variables(html_reporter, sample_report_data)
+    +test_invalid_template_name(html_reporter, sample_report_data)
+    +test_register_custom_template(html_reporter)
+  }
+
+  class CustomTemplate {
+    -__init__()
+    +get_template_content()
+  }
+
+  class TestTemplateEngine {
+    +template_engine()
+    +sample_template()
+  }
+
+  class SampleTemplate {
+    -__init__()
+    +get_template_content()
+  }
+
+  class TestHTMLTemplates {
+    +template
+    +rendered
+    +template
+    +rendered
+    +template
+    +rendered
+    +template
+    +rendered
+    +template
+    +css
+    +template
+    +js
+    +template
+    +css
+    --
+    +sample_data()
+    +test_executive_summary_template(sample_data)
+    +test_technical_report_template(sample_data)
+    +test_vulnerability_report_template(sample_data)
+    +test_compliance_report_template(sample_data)
+    +test_template_css_content()
+    +test_template_js_content()
+    +test_compliance_template_enhanced_css()
+  }
+
+  class TestBaseTemplate {
+    +test_html_escaping()
+  }
+
+  class TestTemplate {
+    -__init__()
+    +get_template_content()
+  }
+
+  class TestCSVReporter {
+    +target
+    +server_info
+    +finding
+    +reporter
+    +result
+    +lines
+    +output_path
+    +result
+    +content
+    +mock_log
+    +output
+    +content
+    +output
+    +content
+    +output
+    +content
+    +output
+    +content
+    +output
+    +content
+    +recommendations
+    +output
+    +content
+    +content: str
+    +output_path
+    +content: str
+    +invalid_path
+    +base_path
+    +files
+    +output_path
+    +content
+    +output_path
+    +content
+    +output_path
+    +content
+    +output_path
+    +content
+    +result
+    +lines
+    +csv_sections
+    +current_section
+    +current_section
+    +reader
+    +rows
+    +reporter
+    +result
+    +reporter
+    +result
+    +data
+    +large_scan_results
+    +target
+    +result
+    +data
+    +result
+    +stats
+    +stats
+    --
+    +reporter()
+    +sample_metadata()
+    +sample_scan_results()
+    +sample_detection_results()
+    +sample_assessment_results()
+    +sample_report_data(sample_metadata, sample_scan_results, sample_detection_results, sample_assessment_results)
+    +test_reporter_init(reporter)
+    +test_reporter_init_custom_params()
+    +test_get_format(reporter)
+    +test_generate_report_memory(reporter, sample_report_data)
+    +test_generate_report_file_output(reporter, sample_report_data)
+    +test_generate_report_invalid_data(reporter)
+    +test_generate_report_logging(mock_logger, reporter, sample_report_data)
+    +test_write_metadata_section(reporter, sample_metadata)
+    +test_write_summary_section(reporter, sample_report_data)
+    +test_write_scan_results_section(reporter, sample_scan_results)
+    +test_write_detection_results_section(reporter, sample_detection_results)
+    +test_write_assessment_results_section(reporter, sample_assessment_results)
+    +test_write_recommendations_section(reporter)
+    +test_save_csv_file(reporter)
+    +test_save_csv_file_error(reporter)
+    +test_generate_separate_files(reporter, sample_report_data)
+    +test_generate_metadata_file(reporter, sample_metadata)
+    +test_generate_scan_results_file(reporter, sample_scan_results)
+    +test_generate_detection_results_file(reporter, sample_detection_results)
+    +test_generate_assessment_results_file(reporter, sample_assessment_results)
+    +test_csv_parsing_validity(reporter, sample_report_data)
+    +test_custom_delimiter(sample_report_data)
+    +test_custom_quoting(sample_report_data)
+    +test_empty_data_sections(reporter, sample_metadata)
+    +test_large_data_handling(reporter, sample_metadata)
+    +test_statistics_tracking(reporter, sample_report_data)
+    +test_error_handling_and_statistics(reporter)
+  }
+
+}
+
+package "tests.e2e" {
+  class TestCompleteWorkflows {
+    +scanner
+    +target
+    +scan_results
+    +detector
+    +detection_result
+    +config_detector
+    +config_result
+    +assessor
+    +assessment_result
+    +metadata
+    +report_data
+    +reporter
+    +output_file
+    +result_path
+    +report_content
+    +report_json
+    +mock_sock
+    +scanner
+    +target_hosts
+    +all_scan_results
+    +target
+    +results
+    +metadata
+    +report_data
+    +reporter
+    +output_file
+    +result_path
+    +report_content
+    +report_json
+    +scan_targets
+    +mock_process
+    +detector
+    +detection_result
+    +assessor
+    +assessment_result
+    +metadata
+    +report_data
+    +reporter
+    +output_file
+    +result_path
+    +report_content
+    +report_json
+    --
+    +setup_method()
+    +teardown_method()
+    +test_complete_localhost_scan_workflow()
+    +test_network_scan_to_report_workflow(mock_socket)
+    +test_detection_to_assessment_workflow(mock_process_iter)
+  }
+
+  class TestWorkflowPerformance {
+    +mock_sock
+    +targets
+    +ports
+    +scanner
+    +start_time
+    +all_results
+    +target
+    +results
+    +end_time
+    +scan_duration
+    +stats
+    +process
+    +initial_memory
+    +scanner
+    +detector
+    +target
+    +result
+    +current_memory
+    +memory_increase
+    --
+    +setup_method()
+    +teardown_method()
+    +test_large_scale_scan_performance(mock_socket)
+    +test_memory_usage_during_large_workflow()
+  }
+
+  class TestWorkflowErrorHandling {
+    +scanner
+    +target
+    +results
+    +detector
+    +result
+    +invalid_result
+    +assessor
+    +assessment_result
+    +metadata
+    +report_data
+    +reporter
+    +invalid_path
+    --
+    +setup_method()
+    +teardown_method()
+    +test_workflow_with_network_errors()
+    +test_workflow_with_detection_failures()
+    +test_workflow_with_assessment_errors()
+    +test_workflow_with_reporting_errors()
+  }
+
+  class TestWorkflowIntegration {
+    +target
+    +scan_result
+    +detector
+    +detection_result
+    +scanner
+    +detector
+    +assessor
+    +reporter
+    +log_messages
+    --
+    +setup_method()
+    +test_data_flow_between_components()
+    +test_configuration_consistency()
+    +test_logging_integration()
+  }
+
+  class TestHandler {
+    +emit(record)
+  }
+
+}
+
+package "tests.integration" {
+  class TestTransportIntegration {
+    +logger
+    +handlers
+    +handler
+    +test_cases
+    +detected_type
+    +valid_configs
+    +invalid_configs
+    +handler
+    +mock_process
+    +health
+    +mock_session
+    +health
+    +mock_session
+    +health
+    +handler
+    +handler
+    +info
+    +configs
+    +handlers
+    +mock_process
+    +mock_sse_session
+    +mock_http_session
+    +connect_tasks
+    +disconnect_tasks
+    --
+    +factory()
+    +sample_configs()
+    +test_factory_creates_all_transport_types(factory, sample_configs)
+    +test_auto_detection_accuracy(factory)
+    +test_config_validation_comprehensive(factory)
+    +test_server_info_consistency(factory, sample_configs)
+    +test_transport_registration(factory)
+  }
+
+  class CustomTransportHandler {
+    -__init__()
+  }
+
+  class TestTransportErrorScenarios {
+    +configs
+    +handler
+    +configs
+    +handler
+    +invalid_configs
+    +handler
+    --
+    +factory()
+    +test_invalid_configuration_handling(factory)
+  }
+
+  class TestTransportPerformance {
+    +configs
+    +start_time
+    +handler
+    +end_time
+    +creation_time
+    +configs
+    +start_time
+    +transport_type
+    +end_time
+    +detection_time
+    --
+    +factory()
+    +test_handler_creation_performance(factory)
+    +test_auto_detection_performance(factory)
+  }
+
+  class TestReportingPipeline {
+    +results
+    +hosts
+    +ports
+    +target
+    +state
+    +service_info: NoneType
+    +service_info
+    +results
+    +hosts
+    +server_info
+    +results
+    +hosts
+    +risk_levels
+    +findings
+    +finding_configs
+    +reporters
+    +results
+    +data: comprehensive_report_data
+    +result
+    +json_data
+    +xml_root
+    +csv_content
+    +base_path
+    +reporters
+    +generated_files
+    +data: comprehensive_report_data
+    +output_path
+    +result
+    +content
+    +aggregator
+    +scan_summary
+    +detection_summary
+    +risk_summary
+    +generator
+    +summary
+    +base_path
+    +generator
+    +executive_summary
+    +formats_and_reporters
+    +generated_reports
+    +data: comprehensive_report_data
+    +output_path
+    +result_path
+    +json_path
+    +json_data
+    +xml_path
+    +xml_root
+    +json_scan_count
+    +xml_scan_count
+    +json_detection_count
+    +xml_detection_count
+    +reporters
+    +stats
+    +large_scan_results
+    +target
+    +large_data
+    +reporters
+    +result
+    +results
+    +errors
+    +reporter
+    +data: comprehensive_report_data
+    +result
+    +threads
+    +reporter_configs
+    +thread
+    +json_reporter
+    +csv_reporter
+    +xml_reporter
+    +json_result
+    +json_data
+    +xml_result
+    +xml_root
+    +json_scan_hosts
+    +xml_scan_hosts
+    +json_detection_hosts
+    +xml_detection_hosts
+    +reporter
+    +stats
+    +large_scan_results
+    +target
+    +large_data
+    +reporter
+    +result
+    --
+    +sample_metadata()
+    +comprehensive_scan_results()
+    +comprehensive_detection_results()
+    +comprehensive_assessment_results()
+    +comprehensive_report_data(sample_metadata, comprehensive_scan_results, comprehensive_detection_results, comprehensive_assessment_results)
+    +test_all_reporters_generate_valid_output(comprehensive_report_data)
+    +test_multi_format_file_generation(comprehensive_report_data)
+    +test_data_aggregation_pipeline(comprehensive_scan_results, comprehensive_detection_results, comprehensive_assessment_results)
+    +test_executive_summary_generation(comprehensive_report_data)
+    +test_end_to_end_reporting_workflow(comprehensive_report_data)
+    +test_error_handling_across_reporters()
+    +test_performance_with_large_dataset(sample_metadata)
+    +test_concurrent_report_generation(comprehensive_report_data)
+    +generate_report(format_name)
+    +test_report_data_consistency(comprehensive_report_data)
+    +test_statistics_aggregation(comprehensive_report_data)
+    +test_memory_usage_optimization(sample_metadata)
+  }
+
+  class TestMCPRiskAnalysisIntegration {
+    +all_risks
+    +tool_risk_results
+    +risks
+    +threat_model
+    +risk_profile
+    +risk_scores
+    +schema_risks
+    +schema_analysis
+    +policy_violations
+    +report_data
+    +json_report
+    +html_report
+    +exec_tool
+    +tool_risks
+    +threat_analysis
+    +schema_risks
+    +high_risks
+    +code_threats
+    +all_risks
+    +violations
+    +high_risk_violations
+    +all_risks
+    +tool_risks
+    +schema_risks
+    +risk_profile
+    +file_risks
+    +network_risks
+    +threat_model
+    +compound_threats
+    +tool
+    +tool_risks
+    +schema_risks
+    +all_risks
+    +scores
+    +score
+    +all_risks
+    +risks
+    +violations
+    +blocked_risks
+    +warned_risks
+    +audited_risks
+    +total_violations
+    +critical_risks
+    +critical_violations
+    +threat_model
+    +capability_threats
+    +aggregate_risk
+    +prioritized
+    +current_score
+    +next_score
+    +all_schema_risks
+    +schema_risks
+    +schema_profile
+    +schema_scores
+    +injection_risks
+    +path_risks
+    +all_risks
+    +tool_analyses
+    +tool_risks
+    +schema_risks
+    +combined_risks
+    +threat_model
+    +risk_profile
+    +risk_scores
+    +violations
+    +report_data
+    +json_report
+    +html_report
+    +markdown_report
+    +additional_tools
+    +tool
+    +all_tools
+    +start_time
+    +all_risks
+    +tool_risks
+    +schema_risks
+    +threat_model
+    +risk_profile
+    +risk_scores
+    +violations
+    +end_time
+    +analysis_time
+    +malformed_tool
+    +tool_risks
+    +schema_risks
+    +threat_analysis
+    +high_risk_tools
+    +all_risks
+    +tool_risks
+    +schema_risks
+    +threat_model
+    +risk_scores
+    +aggregate_score
+    +threat_risk
+    +high_level_risks
+    --
+    +setUp()
+    +test_complete_risk_analysis_pipeline()
+    +test_high_risk_tool_detection()
+    +test_risk_correlation_analysis()
+    +test_risk_scoring_consistency()
+    +test_policy_enforcement_integration()
+    +test_threat_model_integration()
+    +test_schema_analysis_integration()
+    +test_report_generation_integration()
+    +test_performance_with_multiple_tools()
+    +test_error_handling_integration()
+    +test_risk_aggregation_accuracy()
+  }
+
+  class TestCompleteIntrospectionWorkflow {
+    +config
+    +server_info
+    +process_info
+    +initial_stats
+    +initial_introspections
+    +result
+    +updated_stats
+    +discovery_stats
+    +cache_stats
+    +results
+    +result
+    +stats
+    +multiple_results
+    +stdio_server
+    +stdio_process
+    +stdio_result
+    +http_server
+    +http_process
+    +http_result
+    +stats
+    +supported
+    +server_info
+    +process_info
+    +tools
+    +resources
+    +capabilities
+    +discovery_stats
+    +server_info
+    +process_info
+    +risks
+    +risk_summary
+    +result
+    +server_info
+    +process_info
+    +initial_report
+    +initial_operations
+    +result
+    +updated_report
+    +updated_operations
+    +server_info
+    +process_info
+    +result1
+    +cache_stats1
+    +result2
+    +cache_stats2
+    +invalid_server
+    +invalid_process
+    +result
+    +stats
+    +minimal_config
+    +minimal_introspector
+    +server_info
+    +process_info
+    +result
+    --
+    +introspector()
+    +sample_servers()
+    +test_single_server_complete_workflow(introspector)
+    +test_multiple_servers_workflow(introspector, sample_servers)
+    +test_transport_integration(introspector)
+    +test_discovery_integration(introspector)
+    +test_risk_analysis_integration(introspector)
+    +test_performance_monitoring_integration(introspector)
+    +test_caching_workflow(introspector)
+    +test_error_handling_workflow(introspector)
+    +test_configuration_workflow(introspector)
+  }
+
+  class TestLegacyCompatibilityWorkflow {
+    +config
+    +server_info
+    +process_info
+    +result
+    +server_info
+    +process_info
+    +script
+    +result
+    --
+    +legacy_introspector()
+    +test_legacy_complete_workflow(legacy_introspector)
+    +test_legacy_script_workflow(legacy_introspector)
+  }
+
+  class TestWorkflowPerformance {
+    +config
+    +server_info
+    +process_info
+    +start_time
+    +result
+    +end_time
+    +execution_time
+    +stats
+    +servers
+    +start_time
+    +results
+    +result
+    +end_time
+    +execution_time
+    +stats
+    +server_info
+    +process_info
+    +result
+    +stats
+    +cache_stats
+    --
+    +performance_introspector()
+    +test_single_server_performance(performance_introspector)
+    +test_multiple_servers_performance(performance_introspector)
+    +test_memory_usage_workflow(performance_introspector)
+  }
+
+  class TestWorkflowRobustness {
+    +config
+    +invalid_servers
+    +result
+    +timeout_config
+    +timeout_introspector
+    +server_info
+    +process_info
+    +result
+    +stats
+    +results
+    +errors
+    +server_info
+    +process_info
+    +result
+    +threads
+    +thread
+    +stats
+    --
+    +robust_introspector()
+    +test_invalid_server_robustness(robust_introspector)
+    +test_timeout_robustness(robust_introspector)
+    +test_concurrent_workflow_robustness(robust_introspector)
+    +worker()
+  }
+
+  class TestRiskAssessmentPipeline {
+    +server_info
+    +process_info
+    +config_data
+    +temp_path
+    +config_analyzer
+    +config_assessment
+    +config_findings
+    +default_detector
+    +default_assessment
+    +default_findings
+    +auth_analyzer
+    +auth_assessment
+    +auth_findings
+    +transport_analyzer
+    +transport_assessment
+    +transport_findings
+    +compliance_assessor
+    +compliance_assessment
+    +all_assessments
+    +all_findings
+    +remediation_plan
+    +action_titles
+    +auth_actions
+    +encryption_actions
+    +config_actions
+    +assessments
+    +config_analyzer
+    +config_result
+    +auth_analyzer
+    +auth_result
+    +transport_analyzer
+    +transport_result
+    +risk_assessment
+    +high_risk_results
+    +critical_risk_results
+    +high_risk_targets
+    +stats
+    +config_analyzer
+    +assessment_result
+    +cvss_calculator
+    +cvss_vector
+    +scores
+    +vuln_info
+    +cvss_vulnerabilities
+    +exploitable_vulns
+    +unpatched_vulns
+    +compliance_assessor
+    +compliance_result
+    +compliance_violations
+    +violations
+    +invalid_result
+    +config_analyzer
+    +config_assessment
+    +default_detector
+    +default_assessment
+    +detection_results
+    +server_info
+    +detection_result
+    +all_assessments
+    +config_analyzer
+    +assessment
+    +remediation_plans
+    +plan
+    +config_analyzer
+    +assessment_result
+    +result_dict
+    +finding
+    +json_str
+    +deserialized
+    +config_analyzer
+    +assessment_result
+    +remediation_plan
+    +plan_dict
+    +json_str
+    +deserialized
+    --
+    +sample_detection_result()
+    +temp_config_file()
+    +test_complete_assessment_workflow(sample_detection_result, temp_config_file)
+    +test_risk_assessment_aggregation(sample_detection_result)
+    +test_cvss_scoring_integration(sample_detection_result)
+    +test_compliance_framework_integration(sample_detection_result)
+    +test_assessment_error_handling(sample_detection_result)
+    +test_performance_with_large_dataset()
+    +test_assessment_data_serialization(sample_detection_result)
+    +test_remediation_plan_serialization(sample_detection_result)
+  }
+
+  class TestAssessmentModuleInteraction {
+    +server_info
+    +process_info
+    +config_analyzer
+    +config_result
+    +auth_analyzer
+    +auth_result
+    +transport_analyzer
+    +transport_result
+    +default_detector
+    +default_result
+    +all_findings
+    +categories
+    +category
+    +auth_findings
+    +config_findings
+    +encryption_findings
+    +assessments
+    +config_analyzer
+    +auth_analyzer
+    +transport_analyzer
+    +remediation_plan
+    +action_categories
+    +category
+    +action_titles
+    +unique_titles
+    +duplicate_ratio
+    +assessments
+    +config_analyzer
+    +auth_analyzer
+    +transport_analyzer
+    +severity_counts
+    +total_findings
+    +critical_and_high
+    +remediation_plan
+    +immediate_actions
+    +high_priority_actions
+    +priority_actions
+    +first_phase
+    --
+    +multi_issue_detection_result()
+    +test_cross_module_finding_correlation(multi_issue_detection_result)
+    +test_remediation_action_deduplication(multi_issue_detection_result)
+    +test_assessment_priority_handling(multi_issue_detection_result)
+  }
+
+}
+
 package "tests.test_scanner" {
   class TestTCPScanner {
     +mock_socket
@@ -1837,6 +4842,300 @@ package "src.hawkeye.cli" {
   class HawkEyeGroup {
     +format_help(ctx, formatter)
     +invoke(ctx)
+  }
+
+  class HawkEyeProgress {
+    +columns
+    +scan_task
+    +detect_task
+    +assess_task
+    +report_task
+    +elapsed_time
+    +table
+    --
+    -__init__(console)
+    +create_progress(show_speed, show_eta): Progress
+    +scanning_progress(total_targets, total_ports)
+    +detection_progress(total_targets)
+    +assessment_progress(total_services)
+    +reporting_progress(total_reports)
+    +display_final_summary(operation_type, stats)
+  }
+
+  class ProgressTracker {
+    -__init__(progress, task_id, stats)
+    +update(advance, description)
+    +set_description(description)
+  }
+
+  class ScanProgressTracker {
+    +description
+    --
+    +update_scan_result(target, port, state)
+    +update_target_complete(target)
+  }
+
+  class DetectionProgressTracker {
+    +description
+    --
+    +update_detection_result(target, confidence, found_mcp)
+  }
+
+  class AssessmentProgressTracker {
+    +description
+    --
+    +update_assessment_result(service, risk_level)
+  }
+
+  class ReportingProgressTracker {
+    +description
+    --
+    +update_report_result(report_type, findings, recommendations)
+  }
+
+  class StatusDisplay {
+    +layout
+    +header
+    +footer
+    --
+    -__init__(console)
+    +live_status(title)
+  }
+
+  class StatusUpdater {
+    +content
+    +header
+    --
+    -__init__(layout, live)
+    +update_main(content)
+    +update_header(title)
+  }
+
+  class VerbosityLevel {
+    +QUIET: int
+    +NORMAL: int
+    +VERBOSE: int
+    +DEBUG: int
+  }
+
+  class OutputController {
+    +log_level
+    +log_level
+    +log_level
+    +log_level
+    +root_logger
+    +console_handler
+    +file_handler
+    +formatter
+    +banner_text
+    +panel
+    +message
+    +message
+    +message
+    +percentage
+    +original_console
+    +original_level
+    +original_quiet
+    +original_debug
+    +minutes
+    +secs
+    +hours
+    +minutes
+    +secs
+    +rate
+    --
+    -__init__(console)
+    +set_verbosity(level)
+    +set_quiet_mode(quiet)
+    +set_debug_mode(debug)
+    +set_log_file(log_file)
+    -_configure_logging()
+    +print()
+    +print_verbose()
+    +print_debug()
+    +print_error()
+    +print_warning()
+    +print_success()
+    +print_info()
+    +print_banner(title, subtitle)
+    +print_section_header(title)
+    +print_operation_start(operation, details)
+    +print_operation_complete(operation, duration)
+    +print_operation_failed(operation, error)
+    +print_progress_update(message, current, total)
+    +print_debug_info(category, data)
+    +print_statistics(title, stats)
+    +capture_output()
+    +temporary_verbosity(level)
+    +format_duration(seconds): str
+    +format_size(bytes_count): str
+    +format_rate(count, duration, unit): str
+  }
+
+  class QuietMode {
+    -__init__(output_controller)
+    -__enter__()
+    -__exit__(exc_type, exc_val, exc_tb)
+  }
+
+  class VerboseMode {
+    -__init__(output_controller)
+    -__enter__()
+    -__exit__(exc_type, exc_val, exc_tb)
+  }
+
+  class DebugMode {
+    -__init__(output_controller)
+    -__enter__()
+    -__exit__(exc_type, exc_val, exc_tb)
+  }
+
+  class InputValidator {
+    +HOSTNAME_REGEX
+    +DOMAIN_REGEX
+    +PORT_RANGE_REGEX
+    +hostname
+    +target
+    +validated_ip
+    +validated_network
+    +validated_hostname
+    +port_num
+    +ports
+    +part
+    +match
+    +start_port
+    +end_port
+    +port
+    +path
+    +path
+    +parsed
+    +timeout_val
+    +thread_count
+    +format_lower
+    --
+    -__init__()
+    +validate_ip_address(ip_str)
+    +validate_network(network_str)
+    +validate_hostname(hostname): str
+    +validate_target(target)
+    +validate_port(port): int
+    +validate_port_range(port_range)
+    +validate_file_path(file_path, must_exist, must_be_file, must_be_readable): Path
+    +validate_directory_path(dir_path, must_exist, must_be_writable): Path
+    +validate_url(url): str
+    +validate_timeout(timeout): float
+    +validate_thread_count(threads): int
+    +validate_output_format(format_str, supported_formats): str
+  }
+
+  class CLIErrorHandler {
+    +message
+    +message
+    +message
+    +message
+    +message
+    +message
+    +message
+    +message
+    +message
+    +message
+    +content
+    --
+    -__init__(console)
+    +handle_validation_error(error, param_name)
+    +handle_configuration_error(error)
+    +handle_network_error(error, target)
+    +handle_permission_error(error, operation)
+    +handle_file_error(error, file_path)
+    +handle_generic_error(error, operation)
+    +create_error_panel(title, message, suggestions): Panel
+  }
+
+  class ValidatedIPAddress {
+    +name: str
+    +validator
+    --
+    +convert(value, param, ctx)
+  }
+
+  class ValidatedTarget {
+    +name: str
+    +validator
+    --
+    +convert(value, param, ctx)
+  }
+
+  class ValidatedPortRange {
+    +name: str
+    +validator
+    --
+    +convert(value, param, ctx)
+  }
+
+  class ValidatedTimeout {
+    +name: str
+    +validator
+    --
+    +convert(value, param, ctx)
+  }
+
+  class SimpleDetectionResult {
+    -__init__(method_str)
+  }
+
+  class ConfigFileManager {
+    +SUPPORTED_FORMATS
+    +DEFAULT_CONFIG_NAMES
+    +start_path
+    +current_path
+    +config_path
+    +current_path
+    +home_path
+    +config_path
+    +config_path
+    +file_format
+    +content
+    +config_data
+    +config_data
+    +config_data
+    +parser
+    +config_data
+    +config_path
+    +format
+    +parser
+    +settings
+    +error_details
+    +field
+    +message
+    +merged
+    +env_overrides
+    +config_key
+    +key_parts
+    +value
+    +current_dict: env_overrides
+    +current_dict
+    +config_data
+    +settings
+    +default_config
+    --
+    -__init__()
+    +find_config_file(start_path)
+    +load_config_file(config_path)
+    +save_config_file(config_data, config_path, format)
+    +validate_config(config_data): HawkEyeSettings
+    +merge_configs(base_config, override_config)
+    +apply_environment_overrides(config_data)
+    -_convert_env_value(value): Any
+    +create_default_config()
+    +generate_config_template(format): str
+  }
+
+  class ConfigFileType {
+    +name: str
+    +config_path
+    +manager
+    --
+    +convert(value, param, ctx)
   }
 
 }
@@ -2119,6 +5418,151 @@ package "src.hawkeye.assessment" {
   class ComplianceError {
   }
 
+  class RemediationPriority {
+    +IMMEDIATE: str
+    +HIGH: str
+    +MEDIUM: str
+    +LOW: str
+    +INFORMATIONAL: str
+  }
+
+  class RemediationComplexity {
+    +TRIVIAL: str
+    +LOW: str
+    +MEDIUM: str
+    +HIGH: str
+    +COMPLEX: str
+  }
+
+  class RemediationCategory {
+    +CONFIGURATION: str
+    +AUTHENTICATION: str
+    +ENCRYPTION: str
+    +NETWORK_SECURITY: str
+    +ACCESS_CONTROL: str
+    +MONITORING: str
+    +COMPLIANCE: str
+    +INFRASTRUCTURE: str
+    +CODE_CHANGES: str
+    +PROCESS_IMPROVEMENT: str
+  }
+
+  class RemediationAction {
+    +id: str
+    +title: str
+    +description: str
+    +category: RemediationCategory
+    +priority: RemediationPriority
+    +complexity: RemediationComplexity
+    +estimated_effort_hours: int
+    +implementation_steps
+    +prerequisites
+    +verification_steps
+    +tools_required
+    +documentation_links
+    +compliance_frameworks
+    +affected_findings
+    +risk_reduction: float
+    +cost_estimate
+    +timeline_estimate
+    +priority_weights
+    --
+    +{class} validate_effort_hours(v)
+    +priority_score(): int
+    +effort_to_impact_ratio(): float
+  }
+
+  class RemediationPlan {
+    +target_host: str
+    +plan_timestamp: float
+    +actions
+    +total_estimated_effort: int
+    +total_risk_reduction: float
+    +implementation_phases
+    +executive_summary: str
+    +quick_wins
+    +long_term_actions
+    --
+    +immediate_actions()
+    +high_priority_actions()
+    +get_actions_by_category(category)
+    +get_actions_by_complexity(complexity)
+    +calculate_totals()
+  }
+
+  class RemediationEngine {
+    +target_host
+    +plan
+    +all_findings
+    +actions
+    +actions
+    +action_id_counter: int
+    +findings_by_category
+    +category_actions
+    +cross_cutting_actions
+    +actions
+    +actions
+    +finding_ids
+    +has_weak_auth
+    +has_no_auth
+    +has_weak_passwords
+    +actions
+    +finding_ids
+    +has_no_tls
+    +has_weak_crypto
+    +actions
+    +finding_ids
+    +has_default_config
+    +has_debug_enabled
+    +actions
+    +finding_ids
+    +has_cors_issues
+    +has_port_issues
+    +actions
+    +finding_ids
+    +actions
+    +finding_ids
+    +actions
+    +finding_ids
+    +actions
+    +finding_ids
+    +actions
+    +finding_ids
+    +actions
+    +finding_ids
+    +frameworks
+    +actions
+    +quick_wins
+    +long_term
+    +phases
+    +critical_count
+    +high_count
+    +summary_parts
+    --
+    -__init__(settings)
+    +generate_remediation_plan(assessment_results): RemediationPlan
+    -_generate_remediation_actions(findings)
+    -_generate_category_actions(category, findings, start_id)
+    -_generate_auth_actions(findings, start_id)
+    -_generate_encryption_actions(findings, start_id)
+    -_generate_config_actions(findings, start_id)
+    -_generate_network_actions(findings, start_id)
+    -_generate_authorization_actions(findings, start_id)
+    -_generate_input_validation_actions(findings, start_id)
+    -_generate_session_actions(findings, start_id)
+    -_generate_error_handling_actions(findings, start_id)
+    -_generate_logging_actions(findings, start_id)
+    -_generate_compliance_actions(findings, start_id)
+    -_generate_cross_cutting_actions(findings, start_id)
+    -_prioritize_actions(actions)
+    +priority_key()
+    -_identify_quick_wins(actions)
+    -_identify_long_term_actions(actions)
+    -_create_implementation_phases(actions)
+    -_generate_executive_summary(plan, findings): str
+    -_load_remediation_templates()
+  }
+
   class CVSSScores {
     +base_score: float
     +temporal_score
@@ -2215,6 +5659,21 @@ package "src.hawkeye.assessment" {
     +assess_vulnerability(vulnerability): VulnerabilityInfo
     +create_vulnerability_from_cvss(vuln_id, title, description, cvss_vector_string): VulnerabilityInfo
     +get_score_breakdown(cvss_vector)
+  }
+
+  class RemediationError {
+  }
+
+  class InvalidFindingError {
+  }
+
+  class RemediationTemplateError {
+  }
+
+  class PrioritizationError {
+  }
+
+  class RiskCalculationError {
   }
 
   class TransportSecurityAssessor {
@@ -2743,6 +6202,95 @@ package "src.hawkeye.detection" {
     +analyze_specific_config_file(file_path)
   }
 
+  class PipelineConfig {
+    +enable_process_enumeration: bool
+    +enable_config_discovery: bool
+    +enable_protocol_verification: bool
+    +enable_transport_detection: bool
+    +enable_npx_detection: bool
+    +enable_docker_inspection: bool
+    +enable_environment_analysis: bool
+    +enable_mcp_introspection: bool
+    +introspection_timeout: float
+    +enable_detailed_analysis: bool
+    +enable_risk_assessment: bool
+    +fail_fast: bool
+    +parallel_detection: bool
+    +max_concurrent_detections: int
+    +min_confidence_threshold: float
+    +include_failed_detections: bool
+  }
+
+  class PipelineResult {
+    +target_host: str
+    +start_time: datetime
+    +end_time: datetime
+    +duration: float
+    +success: bool
+    +detection_results
+    +introspection_results
+    +total_detections: int
+    +successful_detections: int
+    +failed_detections: int
+    +mcp_servers_found: int
+    +best_mcp_server
+    +highest_confidence_result
+    +risk_assessment
+    +errors
+    +warnings
+    +raw_data
+  }
+
+  class DetectionPipeline {
+    +introspection_config
+    +start_time
+    +result
+    +detection_results
+    +introspection_results
+    +end_time
+    +results
+    +detection_results
+    +detection_result
+    +introspection_results
+    +mcp_servers
+    +server_id
+    +capabilities
+    +mcp_servers
+    +process_info
+    +process_info
+    +all_results
+    +filtered_results
+    +mcp_results
+    +best_result
+    +risk_assessment
+    +high_risk_servers
+    +critical_risk_servers
+    +risk_level: str
+    +risk_level: str
+    +risk_level: str
+    +total_pipelines
+    +current_avg
+    +new_avg
+    +total_pipelines
+    +results
+    +result
+    +error_result
+    +successful_count
+    --
+    -__init__(config, settings)
+    -_init_detectors()
+    -_init_introspection()
+    +execute_pipeline(target_host): PipelineResult
+    -_execute_traditional_detection(target_host)
+    -_execute_introspection(target_host, detection_results)
+    -_extract_mcp_servers(detection_results)
+    -_analyze_results(result)
+    -_perform_risk_assessment(result)
+    -_update_average_duration(duration)
+    +get_pipeline_statistics()
+    +execute_batch_pipeline(targets)
+  }
+
   class NPXDetector {
     +start_time
     +check_global
@@ -3056,6 +6604,9 @@ package "src.hawkeye.detection" {
     +env_vars
     +env_vars
     +process_info
+    +result
+    +results
+    +process_result
     --
     -__init__(settings)
     +get_detection_method(): DetectionMethod
@@ -3070,6 +6621,7 @@ package "src.hawkeye.detection" {
     -_process_to_dict(process)
     +get_all_node_processes(include_env)
     +analyze_process_by_pid(pid, include_env)
+    +enumerate_mcp_processes(include_env, detailed_analysis)
   }
 
   class TransportDetector {
@@ -3362,6 +6914,2333 @@ package "src.hawkeye.detection" {
     -_infer_transport_from_service(service): TransportType
     -_select_best_mcp_server(servers)
     -_calculate_confidence(server, detection_data): float
+  }
+
+}
+
+package "src.hawkeye.detection.mcp_introspection" {
+  class LegacyIntrospectionResult {
+    +success: bool
+    +server_name: str
+    +server_version: str
+    +protocol_version: str
+    +tools
+    +resources
+    +capabilities
+    +error_message
+    +execution_time
+  }
+
+  class NodeJSCompatibilityLayer {
+    +transport_type
+    +script_content
+    +start_time
+    +server_config
+    +result
+    +execution_time
+    +new_server_info
+    +error_msg
+    +execution_time
+    +script_content
+    +result
+    +args_str
+    +transport_type
+    +config_data
+    +legacy_tools
+    +legacy_resources
+    --
+    -__init__(config)
+    +generate_introspection_script(server_info, process_info): str
+    +execute_introspection_script(script_content, server_info, process_info): LegacyIntrospectionResult
+    +introspect_server_legacy(server_info, process_info): LegacyIntrospectionResult
+    -_determine_transport_type(server_info, process_info): str
+    -_convert_to_server_config(server_info, process_info): MCPServerConfig
+    -_convert_to_legacy_result(new_server_info, execution_time): LegacyIntrospectionResult
+  }
+
+  class LegacyMCPIntrospector {
+    +result
+    +result
+    --
+    -__init__(config)
+    +introspect_server(server_info, process_info)
+    +generate_script(server_info, process_info): str
+    +execute_script(script_content, server_info, process_info)
+  }
+
+  class PerformanceMetric {
+    +name: str
+    +value: float
+    +timestamp: datetime
+    +tags
+    +metadata
+  }
+
+  class TimingMetric {
+    +operation: str
+    +start_time: float
+    +end_time
+    +duration
+    +success: bool
+    +error_message
+    +tags
+    --
+    +finish(success, error_message)
+  }
+
+  class MetricsCollector {
+    +metric
+    +timing_metric
+    +values
+    +sorted_values
+    +count
+    +total_operations
+    +total_errors
+    +uptime
+    +cutoff_time
+    +operation_summary
+    +timing_stats
+    +duration_key
+    +recent_metrics
+    +recent_operations
+    --
+    -__init__(max_metrics)
+    +record_metric(name, value, tags, metadata)
+    +start_timing(operation, tags): TimingMetric
+    +finish_timing(timing_metric, success, error_message)
+    +increment_counter(name, value, tags)
+    +set_gauge(name, value, tags)
+    +get_counter(name): int
+    +get_gauge(name)
+    +get_histogram_stats(name)
+    +get_operation_summary()
+    +get_recent_metrics(minutes)
+    +get_performance_report()
+    +clear_metrics()
+  }
+
+  class PerformanceMonitor {
+    +start_time
+    +duration
+    +durations
+    --
+    -__init__(logger)
+    +record_metric(operation_name, duration)
+    +get_stats(operation_name)
+    +get_all_stats()
+  }
+
+  class TimingContext {
+    +success
+    +error_message
+    --
+    -__init__(metrics_collector, operation_name, tags)
+    -__enter__()
+    -__exit__(exc_type, exc_val, exc_tb)
+  }
+
+  class IntrospectionConfig {
+    +timeout: float
+    +max_concurrent_servers: int
+    +enable_detailed_analysis: bool
+    +enable_risk_assessment: bool
+    +aggregator_config
+    --
+    -__post_init__()
+  }
+
+  class MCPIntrospection {
+    +start_time
+    +cache_key
+    +cached_result
+    +introspection_start
+    +server_info
+    +introspection_time
+    +result
+    +start_time
+    +all_servers
+    +successful_count: int
+    +failed_count: int
+    +server_info
+    +error_server_info
+    +overall_risk
+    +introspection_time
+    +result
+    +server_command
+    +server_info
+    +command
+    +risk_counts
+    +error_server_info
+    +cache_ttl
+    +result
+    +server_info
+    --
+    -__init__(config)
+    +introspect_server(server_config): IntrospectionResult
+    +introspect_multiple_servers(server_configs): IntrospectionResult
+    -_introspect_single_server(server_config): MCPServerInfo
+    -_create_server_command(server_config)
+    -_calculate_overall_risk(risk_levels): RiskLevel
+    -_create_error_result(server_config, start_time, error_message): IntrospectionResult
+    -_create_error_server_info(server_config, start_time, error_message): MCPServerInfo
+    -_is_cache_valid(result): bool
+    +clear_cache(server_id)
+    +get_server_summary(server_id)
+  }
+
+  class MigrationConfig {
+    +backup_enabled: bool
+    +backup_directory: str
+    +validate_migration: bool
+    +preserve_old_config: bool
+    +migration_log_level: str
+  }
+
+  class LegacyMCPConfig {
+    +servers
+    +nodejs_script_path
+    +timeout_seconds: int
+    +max_retries: int
+    +enable_introspection: bool
+  }
+
+  class MigrationResult {
+    +success: bool
+    +migrated_servers: int
+    +failed_servers: int
+    +warnings
+    +errors
+    +backup_path
+    +migration_timestamp: datetime
+  }
+
+  class ConfigurationMigrator {
+    +result
+    +legacy_config
+    +migrated_config
+    +validation_errors
+    +backup_dir
+    +config_file
+    +timestamp
+    +backup_filename
+    +backup_path
+    +data
+    +data
+    +content
+    +data
+    +data
+    +migrated
+    +migrated_server
+    +migrated_server
+    +errors
+    +mcp_config
+    +required_fields
+    +server_errors
+    +transport_errors
+    +errors
+    +required_fields
+    +valid_transports
+    +errors
+    +valid_transports
+    +output_file
+    --
+    -__init__(config)
+    +migrate_configuration(legacy_config_path, output_config_path): MigrationResult
+    -_create_backup(config_path): str
+    -_load_legacy_config(config_path)
+    -_migrate_config_structure(legacy_config, result)
+    -_migrate_server_config(server_config)
+    -_detect_transport_type(server_config): str
+    -_validate_migrated_config(config)
+    -_validate_server_config(server, index)
+    -_validate_transport_config(transport)
+    -_save_migrated_config(config, output_path)
+    -_log_migration_summary(result)
+  }
+
+  class ConfigurationValidator {
+    +errors
+    +config
+    +config
+    +validation_errors
+    +server_errors
+    +errors
+    +mcp_config
+    +required_fields
+    +errors
+    +required_fields
+    +valid_transports
+    --
+    -__init__()
+    +validate_configuration(config_path)
+    -_validate_config_structure(config)
+    -_validate_server_configuration(server, index)
+  }
+
+  class FallbackStrategy {
+    +SKIP: str
+    +BASIC_INFO: str
+    +CACHED_RESULT: str
+    +HEURISTIC_ANALYSIS: str
+    +MINIMAL_SAFE: str
+    +RETRY_WITH_TIMEOUT: str
+    +DEGRADED_SCAN: str
+  }
+
+  class FailureReason {
+    +TIMEOUT: str
+    +CONNECTION_ERROR: str
+    +AUTHENTICATION_ERROR: str
+    +PROTOCOL_ERROR: str
+    +PERMISSION_ERROR: str
+    +RESOURCE_ERROR: str
+    +CONFIGURATION_ERROR: str
+    +UNKNOWN_ERROR: str
+  }
+
+  class FallbackConfig {
+    +primary_strategy: FallbackStrategy
+    +secondary_strategy: FallbackStrategy
+    +final_strategy: FallbackStrategy
+    +enable_retry: bool
+    +max_retries: int
+    +retry_delay: float
+    +retry_timeout_reduction: float
+    +use_cached_results: bool
+    +cache_expiry_hours: int
+    +allow_stale_cache: bool
+    +stale_cache_max_age_hours: int
+    +enable_heuristic_analysis: bool
+    +heuristic_confidence_threshold: float
+    +enable_pattern_matching: bool
+    +default_risk_level: RiskLevel
+    +enable_conservative_defaults: bool
+    +log_fallback_usage: bool
+    +fallback_timeout: float
+    +max_concurrent_fallbacks: int
+  }
+
+  class FallbackResult {
+    +success: bool
+    +strategy_used: FallbackStrategy
+    +server_info
+    +confidence_score: float
+    +fallback_reason: str
+    +original_error
+    +processing_time: float
+    +metadata
+    --
+    +is_degraded(): bool
+  }
+
+  class FallbackStatistics {
+    +total_fallbacks: int
+    +successful_fallbacks: int
+    +failed_fallbacks: int
+    +strategy_usage
+    +failure_reasons
+    +average_confidence: float
+    +average_processing_time: float
+    +cache_hit_rate: float
+    --
+    +success_rate(): float
+  }
+
+  class HeuristicAnalyzer {
+    +confidence_factors
+    +tools
+    +resources
+    +capabilities
+    +risk_level
+    +command_analysis
+    +command_risk
+    +risk_level: command_risk
+    +transport_analysis
+    +name_analysis
+    +env_analysis
+    +overall_confidence
+    +server_info
+    +minimal_info
+    +analysis
+    +command_lower
+    +args_str
+    +analysis
+    +analysis
+    +name_lower
+    +tool_patterns
+    +analysis
+    +error_type
+    --
+    -__init__(config)
+    +analyze_server(server_config, error_context)
+    -_analyze_command(command, args)
+    -_analyze_transport(transport_type)
+    -_analyze_name(name)
+    -_analyze_environment(server_config, error_context)
+    -_create_minimal_server_info(server_config): MCPServerInfo
+    -_load_tool_patterns()
+    -_load_risk_patterns()
+    -_load_capability_patterns()
+  }
+
+  class FallbackManager {
+    +start_time
+    +failure_reason
+    +result
+    +result
+    +result
+    +result
+    +server_info
+    +cache_key
+    +age_hours
+    +server_info
+    +error_str
+    +cache_key
+    +total_successful
+    +total_fallbacks
+    +cache_hits
+    +current_time
+    +valid_entries: int
+    +stale_entries: int
+    +age_hours
+    --
+    -__init__(config)
+    +handle_failed_introspection(server_config, original_error, error_context): FallbackResult
+    -_try_strategy(strategy, server_config, original_error, error_context): FallbackResult
+    -_skip_strategy(server_config, original_error): FallbackResult
+    -_basic_info_strategy(server_config, original_error): FallbackResult
+    -_cached_result_strategy(server_config, original_error): FallbackResult
+    -_heuristic_analysis_strategy(server_config, original_error, error_context): FallbackResult
+    -_minimal_safe_strategy(server_config, original_error): FallbackResult
+    -_retry_strategy(server_config, original_error, error_context): FallbackResult
+    -_degraded_scan_strategy(server_config, original_error, error_context): FallbackResult
+    -_categorize_failure(error, context): FailureReason
+    -_finalize_result(result, start_time): FallbackResult
+    -_update_statistics(result)
+    +get_statistics(): FallbackStatistics
+    +clear_cache()
+    +get_cache_info()
+  }
+
+  class MCPIntrospector {
+    -__init__(config)
+    +introspect_server(name, command, args)
+  }
+
+  class RiskLevel {
+    +CRITICAL: str
+    +HIGH: str
+    +MEDIUM: str
+    +LOW: str
+    +MINIMAL: str
+    +UNKNOWN: str
+  }
+
+  class TransportType {
+    +STDIO: str
+    +SSE: str
+    +HTTP: str
+    +WEBSOCKET: str
+    +UNKNOWN: str
+  }
+
+  class RiskCategory {
+    +FILE_SYSTEM: str
+    +NETWORK_ACCESS: str
+    +CODE_EXECUTION: str
+    +DATA_ACCESS: str
+    +SYSTEM_MODIFICATION: str
+    +AUTHENTICATION: str
+    +ENCRYPTION: str
+    +EXTERNAL_API: str
+    +DATABASE: str
+    +CLOUD_SERVICES: str
+    +UNKNOWN: str
+  }
+
+  class MCPCapabilities {
+    +supports_tools: bool
+    +supports_resources: bool
+    +supports_prompts: bool
+    +supports_logging: bool
+    +supports_completion: bool
+    +supports_sampling: bool
+    +experimental_capabilities
+    +custom_capabilities
+    +protocol_version
+    +server_version
+    +standard_caps
+    --
+    +get_capability_count(): int
+    +has_dangerous_capabilities(): bool
+  }
+
+  class MCPToolParameter {
+    +name: str
+    +type: str
+    +description: str
+    +required: bool
+    +default
+    +enum
+    +metadata
+  }
+
+  class MCPTool {
+    +name: str
+    +description: str
+    +parameters
+    +input_schema
+    +metadata
+  }
+
+  class MCPResource {
+    +uri: str
+    +name: str
+    +description: str
+    +mime_type
+    +metadata
+  }
+
+  class MCPServerConfig {
+    +server_id: str
+    +name
+    +command
+    +executable
+    +args
+    +url
+    +env
+    +transport_type: TransportType
+    +transport_config
+    +timeout: float
+    --
+    +get_display_name(): str
+  }
+
+  class MCPCapability {
+    +name: str
+    +description: str
+    +capabilities
+    +metadata
+  }
+
+  class SecurityRisk {
+    +category: str
+    +severity: RiskLevel
+    +description: str
+    +details
+    +mitigation: str
+  }
+
+  class MCPServerInfo {
+    +server_id: str
+    +server_url
+    +discovery_timestamp: datetime
+    +tools
+    +resources
+    +capabilities
+    +security_risks
+    +overall_risk_level: RiskLevel
+    +metadata
+    --
+    +get_tool_count(): int
+    +get_resource_count(): int
+    +get_capability_count(): int
+  }
+
+  class DiscoveryResult {
+    +server_id: str
+    +discovery_type: str
+    +timestamp: datetime
+    +duration: Any
+    +success: bool
+    +error
+    +tools
+    +resources
+    +capabilities
+    +security_risks
+    +metadata
+  }
+
+  class IntrospectionResult {
+    +timestamp: datetime
+    +duration: Any
+    +success: bool
+    +servers
+    +total_servers: int
+    +successful_servers: int
+    +failed_servers: int
+    +overall_risk_level: RiskLevel
+    +error
+    +metadata
+  }
+
+  class MCPIntrospectionResult {
+    +servers
+    +scan_timestamp: datetime
+    +scan_duration: float
+    +total_servers: int
+    +successful_introspections: int
+    +failed_introspections: int
+    +critical_risk_servers: int
+    +high_risk_servers: int
+    +medium_risk_servers: int
+    +tools
+    +categories
+    --
+    +update_statistics()
+    +get_servers_by_risk(risk_level)
+    +get_all_tools()
+    +get_all_risk_categories()
+  }
+
+  class ErrorHandler {
+    -__init__(logger)
+    +handle_error(error, context)
+    +log_warning(message, context)
+    +log_info(message, context)
+  }
+
+  class ErrorSeverity {
+    +CRITICAL: str
+    +HIGH: str
+    +MEDIUM: str
+    +LOW: str
+    +INFO: str
+  }
+
+  class ErrorCategory {
+    +CONNECTION: str
+    +TIMEOUT: str
+    +AUTHENTICATION: str
+    +PROTOCOL: str
+    +VALIDATION: str
+    +RESOURCE: str
+    +PERMISSION: str
+    +UNKNOWN: str
+  }
+
+  class ErrorContext {
+    +operation: str
+    +server_name
+    +transport_type
+    +attempt_number: int
+    +start_time: float
+    +additional_info
+    --
+    -__post_init__()
+  }
+
+  class MCPIntrospectionError {
+    -__init__(message, category, severity, context, original_error)
+    +to_dict()
+  }
+
+  class ConnectionError {
+    -__init__(message, context, original_error)
+  }
+
+  class TimeoutError {
+    -__init__(message, context, original_error)
+  }
+
+  class ProtocolError {
+    -__init__(message, context, original_error)
+  }
+
+  class ValidationError {
+    -__init__(message, context, original_error)
+  }
+
+  class AsyncBatch {
+    +results
+    +batch
+    +tasks
+    +task
+    +batch_results
+    --
+    -__init__(max_concurrency, batch_size, logger)
+  }
+
+}
+
+package "src.hawkeye.detection.mcp_introspection.optimization" {
+  class PoolOptimizationConfig {
+    +enable_adaptive_sizing: bool
+    +min_pool_size: int
+    +max_pool_size: int
+    +target_utilization: float
+    +scaling_factor: float
+    +enable_load_balancing: bool
+    +load_balance_strategy: str
+    +health_check_interval: float
+    +enable_connection_warming: bool
+    +warm_connections_count: int
+    +enable_predictive_scaling: bool
+    +request_pattern_window: int
+    +enable_circuit_breaker: bool
+    +circuit_breaker_threshold: int
+    +circuit_breaker_timeout: float
+    +enable_connection_affinity: bool
+  }
+
+  class ConnectionMetrics {
+    +connection_id: str
+    +response_times: deque
+    +error_count: int
+    +success_count: int
+    +last_error_time
+    +health_score: float
+    +load_factor: float
+    +total
+    --
+    +add_response_time(response_time)
+    +add_success()
+    +add_error()
+    +average_response_time(): float
+    +error_rate(): float
+  }
+
+  class CircuitBreaker {
+    -__init__(threshold, timeout)
+    +record_success()
+    +record_failure()
+    +can_execute(): bool
+  }
+
+  class OptimizedConnectionPool {
+    +base_stats
+    +avg_health_score: float
+    +avg_response_time: float
+    +total_errors: int
+    +health_scores
+    +avg_health_score
+    +response_times
+    +avg_response_time
+    --
+    -__init__(config)
+    +get_optimization_stats()
+  }
+
+  class CacheStrategy {
+    +LRU: str
+    +LFU: str
+    +FIFO: str
+    +TTL_ONLY: str
+  }
+
+  class CacheConfig {
+    +enabled: bool
+    +default_ttl: float
+    +max_size: int
+    +strategy: CacheStrategy
+    +server_info_ttl: float
+    +tools_ttl: float
+    +resources_ttl: float
+    +capabilities_ttl: float
+    +cleanup_interval: float
+    +enable_compression: bool
+    +enable_persistence: bool
+    +persistence_file
+  }
+
+  class CacheEntry {
+    +key: str
+    +value: Any
+    +created_at: float
+    +last_accessed: float
+    +access_count: int
+    +ttl: float
+    +compressed: bool
+    +size_bytes: int
+    --
+    -__post_init__()
+    -_calculate_size(): int
+    +is_expired(): bool
+    +touch()
+  }
+
+  class CacheStatistics {
+    +hits: int
+    +misses: int
+    +evictions: int
+    +expired_entries: int
+    +total_size_bytes: int
+    +average_access_time: float
+    +cache_efficiency: float
+    +total
+    --
+    +hit_rate(): float
+  }
+
+  class CacheKeyGenerator {
+    +key_parts
+    +key_string
+    --
+    +{static} generate_key(): str
+    +{static} server_info_key(): str
+    +{static} tools_key(): str
+  }
+
+  class ResultCache {
+    +start_time
+    +entry
+    +access_time
+    +ttl
+    +entry
+    +key
+    +key
+    +key
+    +key
+    +key_to_evict: NoneType
+    +key_to_evict
+    +key_to_evict
+    +key_to_evict
+    +key_to_evict
+    +entry
+    +current_time
+    +expired_keys
+    +alpha: float
+    +hit_rate
+    +memory_efficiency
+    --
+    -__init__(config)
+    +get(key)
+    +put(key, value, ttl)
+    +get_server_info(server_config)
+    +put_server_info(server_config, server_info)
+    +get_tools(server_config)
+    +put_tools(server_config, tools)
+    +get_statistics(): CacheStatistics
+    -_update_access_tracking(key)
+    -_evict_entry()
+    -_remove_entry(key)
+    -_cleanup_expired_entries()
+    -_start_cleanup_thread()
+    +cleanup_loop()
+    -_update_average_access_time(access_time)
+    -_calculate_cache_efficiency(): float
+    +hit_rate(): float
+    +size(): int
+    +memory_usage(): int
+  }
+
+  class ScalingConfig {
+    +enable_batch_processing: bool
+    +batch_size: int
+    +max_batch_size: int
+    +adaptive_batch_sizing: bool
+    +batch_timeout: float
+    +max_workers: int
+    +worker_scaling_factor: float
+    +adaptive_worker_scaling: bool
+    +worker_timeout: float
+    +enable_resource_monitoring: bool
+    +max_memory_usage_mb: int
+    +max_cpu_usage_percent: float
+    +resource_check_interval: float
+    +enable_result_streaming: bool
+    +enable_early_termination: bool
+    +failure_threshold_percent: float
+    +enable_priority_queuing: bool
+    +enable_load_balancing: bool
+    +enable_circuit_breaker: bool
+    +enable_backpressure: bool
+    +backpressure_threshold: int
+  }
+
+  class BatchMetrics {
+    +batch_id: str
+    +server_count: int
+    +start_time: float
+    +end_time
+    +successful_scans: int
+    +failed_scans: int
+    +timeout_scans: int
+    +total_duration: float
+    +average_scan_time: float
+    +memory_usage_mb: float
+    +cpu_usage_percent: float
+    +total
+    +total_scans
+    --
+    +success_rate(): float
+    +is_complete(): bool
+    +complete_batch()
+  }
+
+  class ScalingStatistics {
+    +total_servers_processed: int
+    +total_batches_processed: int
+    +successful_scans: int
+    +failed_scans: int
+    +timeout_scans: int
+    +average_batch_size: float
+    +average_batch_duration: float
+    +peak_memory_usage_mb: float
+    +peak_cpu_usage_percent: float
+    +total_processing_time: float
+    +throughput_servers_per_second: float
+    +total
+    --
+    +overall_success_rate(): float
+  }
+
+  class ResourceMonitor {
+    +memory_usage
+    +cpu_usage
+    +timestamp
+    +alert
+    +alert
+    +current
+    --
+    -__init__(config)
+    +start_monitoring()
+    +stop_monitoring()
+    -_monitor_loop()
+    +get_current_usage()
+    +should_throttle(): bool
+    +get_resource_history()
+  }
+
+  class BatchProcessor {
+    +batches
+    +max_workers
+    +batch_futures
+    +completed_batches: int
+    +future
+    +batch_id
+    +results
+    +batches
+    +batch_size
+    +batch_servers
+    +batch_id
+    +batch_size
+    +batch_size
+    +batch_size
+    +current_usage
+    +batch_size
+    +batch_size
+    +batch_metrics
+    +results
+    +failure_rate
+    +start_time
+    +result
+    +duration
+    +current_usage
+    +completed_batches
+    +total_servers
+    +total_successful
+    +total_failed
+    +total_timeout
+    +avg_batch_size
+    +avg_batch_duration
+    +avg_success_rate
+    --
+    -__init__(config, introspection)
+    +process_servers_in_batches(servers, progress_callback)
+    -_create_batches(servers)
+    -_calculate_optimal_batch_size(total_servers): int
+    -_process_batch(batch_id, servers)
+    +get_batch_statistics()
+  }
+
+  class LargeScaleOptimizer {
+    +all_results
+    +total_batches: int
+    +completed_batches: int
+    +error_type
+    +base_stats
+    --
+    -__init__(scaling_config, introspection_config, pool_config, cache_config)
+    +optimize_large_scan(servers, progress_callback)
+    -_update_statistics(batch_results)
+    -_finalize_statistics()
+    +get_optimization_statistics()
+    +optimization_context()
+  }
+
+}
+
+package "src.hawkeye.detection.mcp_introspection.transport" {
+  class RetryStrategy {
+    +EXPONENTIAL: str
+    +LINEAR: str
+    +FIXED: str
+    +FIBONACCI: str
+  }
+
+  class CircuitState {
+    +CLOSED: str
+    +OPEN: str
+    +HALF_OPEN: str
+  }
+
+  class RetryConfig {
+    +max_attempts: int
+    +base_delay: float
+    +max_delay: float
+    +strategy: RetryStrategy
+    +backoff_multiplier: float
+    +jitter: bool
+    +jitter_range: float
+    +failure_threshold: int
+    +recovery_timeout: float
+    +half_open_max_calls: int
+  }
+
+  class RetryState {
+    +attempt_count: int
+    +total_delay: float
+    +last_attempt
+    +last_error
+    +consecutive_failures: int
+    +circuit_state: CircuitState
+    +circuit_opened_at
+    +half_open_calls: int
+  }
+
+  class RetryManager {
+    +delay
+    +delay
+    +delay
+    +delay
+    +delay
+    +delay
+    +jitter_amount
+    +jitter
+    +delay
+    +retryable_errors
+    +time_since_open
+    +result
+    +delay
+    +now
+    +recent_failures
+    --
+    -__init__(config, logger)
+    +calculate_delay(attempt): float
+    -_fibonacci(n): int
+    +should_retry(error): bool
+    -_should_attempt_recovery(): bool
+    +record_attempt(error)
+    +reset()
+    +get_stats()
+    -__repr__(): str
+  }
+
+  class StdioTransportHandler {
+    +command
+    +args
+    +env
+    +cwd
+    +session
+    +command_path
+    +dangerous_patterns
+    +command
+    +args
+    +validate_command
+    --
+    -__init__(timeout, max_retries, retry_delay, logger)
+    -_validate_command(command, args): bool
+    +get_server_info()
+    -__repr__(): str
+  }
+
+  class TransportError {
+  }
+
+  class ConnectionTimeoutError {
+  }
+
+  class ConnectionFailedError {
+  }
+
+  class BaseTransportHandler {
+    +last_error: NoneType
+    +last_error
+    +last_error
+    --
+    -__init__(timeout, max_retries, retry_delay, logger)
+    +is_connected(): bool
+    +get_connection_info()
+  }
+
+  class StreamableHTTPTransportHandler {
+    +base_url
+    +headers
+    +auth
+    +verify_ssl
+    +proxy
+    +streaming
+    +auth_headers
+    +all_headers
+    +connector
+    +session
+    +parsed
+    +parts
+    +headers
+    +key_header
+    +credentials
+    +connector
+    +test_headers
+    +auth_headers
+    +test_endpoints
+    +endpoints
+    +common_paths
+    +connector
+    +url
+    +base_url
+    +test_connection
+    +discover_endpoints
+    +endpoints
+    --
+    -__init__(timeout, max_retries, retry_delay, logger)
+    -_validate_url(url): bool
+    -_prepare_auth_headers(auth)
+    +get_server_info()
+    -__repr__(): str
+  }
+
+  class SSETransportHandler {
+    +url
+    +headers
+    +verify_ssl
+    +proxy
+    +connector
+    +session
+    +parsed
+    +parts
+    +connector
+    +url
+    +test_connection
+    --
+    -__init__(timeout, max_retries, retry_delay, logger)
+    -_validate_url(url): bool
+    +get_server_info()
+    -__repr__(): str
+  }
+
+  class TransportFactory {
+    -_handlers
+    +transport_type
+    +handler_class
+    +handler_kwargs
+    +transport_str
+    +url
+    +parsed
+    +transport_type
+    +handler
+    +transport_type
+    +handler
+    +transport_type
+    +connect_params
+    +connect_params
+    +connect_params
+    +supported
+    --
+    -__init__(logger)
+    +create_handler(transport_type): BaseTransportHandler
+    +auto_detect_transport(config): TransportType
+    +create_from_config(config): BaseTransportHandler
+    +validate_config(config): bool
+    +get_supported_transports()
+    +register_handler(transport_type, handler_class)
+    -__repr__(): str
+  }
+
+  class ValidationSeverity {
+    +ERROR: str
+    +WARNING: str
+    +INFO: str
+  }
+
+  class ValidationIssue {
+    +severity: ValidationSeverity
+    +field: str
+    +message: str
+    +suggestion
+  }
+
+  class TransportConfigValidator {
+    +issues
+    +transport_type
+    +url
+    +issues
+    +required
+    +issues
+    +command
+    +args
+    +env
+    +issues
+    +url
+    +headers
+    +sensitive_headers
+    +issues
+    +base_url
+    +auth
+    +valid_auth_keys
+    +auth_keys
+    +issues
+    +parsed
+    +issues
+    +timeout
+    +max_retries
+    +issues
+    +verify_ssl
+    +sensitive_fields
+    +issues
+    +recommended
+    +issues
+    +error_count
+    +warning_count
+    +info_count
+    --
+    -__init__(logger)
+    +validate_config(config, transport_type)
+    -_detect_transport_type(config)
+    -_validate_required_fields(config, transport_type)
+    -_validate_stdio_config(config)
+    -_validate_sse_config(config)
+    -_validate_http_config(config)
+    -_validate_url(url, field_name)
+    -_validate_common_fields(config)
+    -_validate_security(config, transport_type)
+    -_validate_performance(config, transport_type)
+    +is_valid(config, transport_type): bool
+    +get_validation_summary(issues)
+  }
+
+  class ErrorSeverity {
+    +CRITICAL: str
+    +HIGH: str
+    +MEDIUM: str
+    +LOW: str
+    +INFO: str
+  }
+
+  class ErrorCategory {
+    +NETWORK: str
+    +AUTHENTICATION: str
+    +CONFIGURATION: str
+    +PROTOCOL: str
+    +TIMEOUT: str
+    +PERMISSION: str
+    +RESOURCE: str
+    +UNKNOWN: str
+  }
+
+  class ErrorContext {
+    +timestamp: datetime
+    +operation: str
+    +transport_type: str
+    +error_type: str
+    +error_message: str
+    +severity: ErrorSeverity
+    +category: ErrorCategory
+    +details
+    +stack_trace
+    +recovery_suggestions
+    --
+    -__post_init__()
+  }
+
+  class TransportErrorHandler {
+    +details
+    +error_type
+    +error_message
+    +suggestions
+    +context
+    +pattern_key
+    +message_lower
+    +severity
+    +suggestions
+    +log_level
+    +log_level
+    +log_level
+    +log_level
+    +log_level
+    +message
+    +details_str
+    +suggestions_str
+    +context
+    +category_counts
+    +severity_counts
+    +recent_errors
+    --
+    -__init__(logger)
+    +classify_error(error, operation, transport_type, details): ErrorContext
+    -_classify_error_type(error, message)
+    -_generate_recovery_suggestions(error, category, transport_type)
+    +log_error(context)
+    +handle_error(error, operation, transport_type, details, raise_error): ErrorContext
+    +get_error_stats()
+    +get_recent_errors(limit)
+    +clear_history()
+  }
+
+  class PoolStats {
+    +total_connections: int
+    +active_connections: int
+    +idle_connections: int
+    +failed_connections: int
+    +total_requests: int
+    +successful_requests: int
+    +failed_requests: int
+    +average_response_time: float
+    +created_at: float
+  }
+
+  class ConnectionInfo {
+    +handler: BaseTransportHandler
+    +created_at: float
+    +last_used: float
+    +use_count: int
+    +is_active: bool
+    +connection_id: str
+    --
+    -__post_init__()
+  }
+
+  class ConnectionPool {
+    +conn_id: NoneType
+    +start_time
+    +conn_id
+    +connection
+    +response_time
+    +handler
+    +current_time
+    +conn_id
+    +conn_info
+    +conn_info
+    +conn_info
+    +current_time
+    +to_remove
+    +conn_info
+    +idle_time
+    +alpha: float
+    +stats
+    +unhealthy_connections
+    --
+    -__init__(max_connections, max_idle_time, cleanup_interval, connection_timeout, logger)
+    -_update_average_response_time(response_time)
+    +get_stats(): PoolStats
+    +add_connection_callback(on_created, on_destroyed)
+  }
+
+}
+
+package "src.hawkeye.detection.mcp_introspection.risk" {
+  class ThreatCategory {
+    +PRIVILEGE_ESCALATION: str
+    +DATA_EXFILTRATION: str
+    +LATERAL_MOVEMENT: str
+    +DENIAL_OF_SERVICE: str
+    +CODE_INJECTION: str
+    +CONFIGURATION_TAMPERING: str
+    +CREDENTIAL_THEFT: str
+    +SUPPLY_CHAIN: str
+    +INFORMATION_DISCLOSURE: str
+    +UNAUTHORIZED_ACCESS: str
+  }
+
+  class AttackVector {
+    +TOOL_ABUSE: str
+    +RESOURCE_MANIPULATION: str
+    +PROTOCOL_EXPLOITATION: str
+    +CONFIGURATION_WEAKNESS: str
+    +TRANSPORT_INTERCEPTION: str
+    +AUTHENTICATION_BYPASS: str
+    +INPUT_VALIDATION: str
+    +DEPENDENCY_CONFUSION: str
+  }
+
+  class ThreatVector {
+    +vector_id: str
+    +name: str
+    +description: str
+    +category: ThreatCategory
+    +attack_vector: AttackVector
+    +likelihood: float
+    +impact: RiskLevel
+    +affected_assets
+    +prerequisites
+    +mitigations
+    +references
+  }
+
+  class ThreatModel {
+    +server_id: str
+    +server_name
+    +model_timestamp: datetime
+    +threat_vectors
+    +overall_threat_level: RiskLevel
+    +critical_threats: int
+    +high_threats: int
+    +medium_threats: int
+    +low_threats: int
+    --
+    +add_threat_vector(threat)
+    +get_threats_by_category(category)
+    +get_threats_by_attack_vector(attack_vector)
+    +get_high_likelihood_threats(threshold)
+    -_update_statistics()
+  }
+
+  class ThreatModelingEngine {
+    +model
+    +capability_threats
+    +tool_threats
+    +resource_threats
+    +combination_threats
+    +models
+    +model
+    +threats
+    +capability_name
+    +threat
+    +threats
+    +tool_name
+    +tool_desc
+    +threat
+    +param_threats
+    +threats
+    +resource_uri
+    +resource_name
+    +threat
+    +threats
+    +has_file_tools
+    +has_network_tools
+    +has_exec_tools
+    +threat
+    +threat
+    +threats
+    +param_name
+    +threat
+    +threat
+    --
+    -__init__()
+    +generate_threat_model(server_info): ThreatModel
+    +generate_threat_models(servers)
+    -_analyze_capability_threats(server_info)
+    -_analyze_tool_threats(tools)
+    -_analyze_resource_threats(resources)
+    -_analyze_combination_threats(server_info)
+    -_analyze_tool_parameter_threats(tool)
+    -_initialize_threat_templates()
+    -_initialize_capability_threats()
+    -_initialize_tool_threats()
+    -_initialize_resource_threats()
+  }
+
+  class ReportFormat {
+    +JSON: str
+    +HTML: str
+    +MARKDOWN: str
+    +CSV: str
+    +PDF: str
+  }
+
+  class ReportLevel {
+    +SUMMARY: str
+    +DETAILED: str
+    +COMPREHENSIVE: str
+  }
+
+  class RiskSummary {
+    +total_servers: int
+    +total_risks: int
+    +critical_risks: int
+    +high_risks: int
+    +medium_risks: int
+    +low_risks: int
+    +minimal_risks: int
+    +average_risk_score: float
+    +highest_risk_server
+    +most_common_risk_category
+  }
+
+  class ServerRiskReport {
+    +server_id: str
+    +server_name
+    +server_url
+    +assessment_timestamp: datetime
+    +overall_risk_level: RiskLevel
+    +risk_score: float
+    +total_risks: int
+    +risk_breakdown
+    +category_breakdown
+    +security_risks
+    +threat_vectors
+    +schema_risks
+    +recommendations
+    +mitigation_priorities
+  }
+
+  class ComprehensiveRiskReport {
+    +report_id: str
+    +generation_timestamp: datetime
+    +assessment_period: str
+    +report_level: ReportLevel
+    +summary: RiskSummary
+    +server_reports
+    +risk_trends
+    +threat_landscape
+    +recommendations
+    +executive_summary: str
+    +technical_details
+  }
+
+  class RiskReporter {
+    +report_id
+    +server_reports
+    +server_report
+    +summary
+    +threat_landscape
+    +risk_trends
+    +recommendations
+    +executive_summary
+    +technical_details
+    +report
+    +summary_lines
+    +all_risks
+    +risk_breakdown
+    +category_breakdown
+    +category
+    +overall_risk_level
+    +overall_risk_level
+    +severities
+    +overall_risk_level
+    +overall_risk_level
+    +overall_risk_level
+    +overall_risk_level
+    +recommendations
+    +mitigation_priorities
+    +total_servers
+    +total_risks
+    +critical_risks
+    +high_risks
+    +medium_risks
+    +low_risks
+    +minimal_risks
+    +risk_scores
+    +average_risk_score
+    +highest_risk_server: NoneType
+    +highest_risk_report
+    +highest_risk_server
+    +all_categories
+    +most_common_risk_category: NoneType
+    +category_counts
+    +most_common_risk_category
+    +all_threats
+    +threat_categories
+    +attack_vectors
+    +high_likelihood_threats
+    +risk_distribution
+    +risk_scores
+    +recommendations
+    +high_risk_servers
+    +server_names
+    +lines
+    +details
+    +recommendations
+    +critical_risks
+    +categories
+    +high_likelihood_threats
+    +critical_schema_risks
+    +priorities
+    +critical_risks
+    +high_risks
+    +categories
+    +report_dict
+    +json_content
+    +lines
+    +markdown_content
+    +html_content
+    +risk_class
+    +output
+    +writer
+    +csv_content
+    --
+    -__init__()
+    +generate_comprehensive_report(servers, threat_models, risk_scores, schema_analyses, report_level): ComprehensiveRiskReport
+    +export_report(report, format, output_path): str
+    +generate_server_summary(server_report): str
+    -_generate_server_report(server, threat_model, risk_score, schema_analysis): ServerRiskReport
+    -_generate_risk_summary(server_reports): RiskSummary
+    -_analyze_threat_landscape(threat_models)
+    -_analyze_risk_trends(server_reports)
+    -_generate_global_recommendations(server_reports, summary)
+    -_generate_executive_summary(summary, recommendations): str
+    -_generate_technical_details(server_reports, report_level)
+    -_generate_server_recommendations(server, risks, threat_model, risk_score, schema_analysis)
+    -_generate_mitigation_priorities(risks)
+    -_export_json(report, output_path): str
+    -_export_markdown(report, output_path): str
+    -_export_html(report, output_path): str
+    -_export_csv(report, output_path): str
+    -_convert_report_to_dict(report)
+  }
+
+  class PolicyAction {
+    +ALLOW: str
+    +WARN: str
+    +BLOCK: str
+    +QUARANTINE: str
+    +AUDIT: str
+  }
+
+  class PolicyScope {
+    +GLOBAL: str
+    +SERVER: str
+    +TOOL: str
+    +RESOURCE: str
+    +CAPABILITY: str
+  }
+
+  class RiskThreshold {
+    +critical: float
+    +high: float
+    +medium: float
+    +low: float
+    +info: float
+    +thresholds
+    --
+    +get_level(score): RiskLevel
+    +validate(): bool
+  }
+
+  class PolicyRule {
+    +id: str
+    +name: str
+    +description: str
+    +scope: PolicyScope
+    +risk_categories
+    +risk_levels
+    +action: PolicyAction
+    +enabled: bool
+    +conditions
+    +metadata
+    +context_value
+    +operator
+    +value
+    --
+    +matches(risk, context): bool
+    -_evaluate_condition(context_value, condition_value): bool
+  }
+
+  class PolicyViolation {
+    +rule_id: str
+    +rule_name: str
+    +risk: SecurityRisk
+    +action: PolicyAction
+    +timestamp: datetime
+    +context
+    +resolved: bool
+    +resolution_notes
+  }
+
+  class RiskPolicyEngine {
+    +default_rules
+    +violations
+    +context
+    +violation
+    +all_violations
+    +violations
+    +violations
+    +action_priority
+    +most_restrictive
+    +action
+    +cutoff_time
+    +original_count
+    +cleared_count
+    +config
+    +threshold_data
+    +thresholds
+    +rule
+    +config
+    +rule_data
+    +enabled_rules
+    +disabled_rules
+    +action_counts
+    +scope_counts
+    +unresolved_violations
+    --
+    -__init__(config_path)
+    -_load_default_policies()
+    +add_rule(rule): bool
+    +remove_rule(rule_id): bool
+    +enable_rule(rule_id): bool
+    +disable_rule(rule_id): bool
+    +evaluate_risk(risk, context)
+    +evaluate_risks(risks, context)
+    +get_action_for_risk(risk, context): PolicyAction
+    +is_allowed(risk, context): bool
+    +get_violations(resolved)
+    +resolve_violation(violation_index, notes): bool
+    +clear_violations(older_than)
+    +update_thresholds(thresholds): bool
+    +load_policies(config_path): bool
+    +save_policies(config_path): bool
+    +get_policy_summary()
+  }
+
+  class PolicyManager {
+    +engine_name
+    +engine
+    +engine
+    +engine
+    +engine
+    +config_path
+    +summary
+    --
+    -__init__(config_dir)
+    -_load_engines()
+    +get_engine(name)
+    +create_engine(name, config_path): RiskPolicyEngine
+    +remove_engine(name): bool
+    +list_engines()
+    +evaluate_with_engine(engine_name, risks, context)
+    +is_allowed_by_engine(engine_name, risk, context): bool
+    +save_all_engines(): bool
+    +get_global_summary()
+  }
+
+  class ToolRiskPattern {
+    +FILE_OPERATIONS: str
+    +NETWORK_ACCESS: str
+    +CODE_EXECUTION: str
+    +SYSTEM_COMMANDS: str
+    +DATABASE_ACCESS: str
+    +AUTHENTICATION: str
+    +ENCRYPTION: str
+    +EXTERNAL_API: str
+    +CLOUD_SERVICES: str
+    +DATA_MANIPULATION: str
+  }
+
+  class RiskIndicator {
+    +pattern: str
+    +category: RiskCategory
+    +severity: RiskLevel
+    +description: str
+    +confidence: float
+  }
+
+  class ToolRiskAnalyzer {
+    +risks
+    +name_risks
+    +desc_risks
+    +param_risks
+    +schema_risks
+    +metadata_risks
+    +unique_risks
+    +results
+    +risks
+    +risks
+    +risk_levels
+    +risks
+    +categories
+    +category
+    +risks
+    +name
+    +risk
+    +risks
+    +description
+    +risk
+    +risks
+    +param_risks
+    +risks
+    +param_name
+    +param_desc
+    +risk
+    +risk
+    +risk
+    +risks
+    +properties
+    +schema_risks
+    +risk
+    +risks
+    +risk
+    +risks
+    +dangerous_keys
+    +risk
+    +unique_risks
+    +seen_risks
+    +signature
+    +patterns
+    --
+    -__init__()
+    +analyze_tool(tool)
+    +analyze_tools(tools)
+    +get_tool_risk_level(tool): RiskLevel
+    +get_risk_categories(tool)
+    -_analyze_tool_name(tool)
+    -_analyze_tool_description(tool)
+    -_analyze_tool_parameters(tool)
+    -_analyze_parameter(param, tool_name)
+    -_analyze_input_schema(tool)
+    -_analyze_schema_property(prop_name, prop_schema, tool_name)
+    -_analyze_tool_metadata(tool)
+    -_deduplicate_risks(risks)
+    -_initialize_risk_patterns()
+    -_initialize_parameter_risks()
+    -_initialize_schema_risks()
+  }
+
+  class SchemaRiskType {
+    +INJECTION_VULNERABILITY: str
+    +PATH_TRAVERSAL: str
+    +COMMAND_INJECTION: str
+    +SQL_INJECTION: str
+    +SCRIPT_INJECTION: str
+    +UNSAFE_DESERIALIZATION: str
+    +BUFFER_OVERFLOW: str
+    +INFORMATION_DISCLOSURE: str
+    +PRIVILEGE_ESCALATION: str
+    +WEAK_VALIDATION: str
+  }
+
+  class ParameterRiskLevel {
+    +CRITICAL: str
+    +HIGH: str
+    +MEDIUM: str
+    +LOW: str
+    +MINIMAL: str
+  }
+
+  class SchemaRisk {
+    +risk_type: SchemaRiskType
+    +severity: RiskLevel
+    +parameter_name: str
+    +parameter_type: str
+    +description: str
+    +evidence
+    +recommendations
+    +cwe_ids
+  }
+
+  class SchemaAnalysisResult {
+    +tool_name: str
+    +total_parameters: int
+    +risky_parameters: int
+    +schema_risks
+    +overall_risk_level: RiskLevel
+    +security_score: float
+    --
+    +get_risks_by_type(risk_type)
+    +get_critical_risks()
+  }
+
+  class SchemaAnalyzer {
+    +result
+    +param_risks
+    +schema_risks
+    +results
+    +result
+    +risks
+    +uri_risks
+    +metadata_risks
+    +risks
+    +param_name
+    +param_type
+    +risk
+    +type_info
+    +risk
+    +injection_risks
+    +validation_risks
+    +risks
+    +properties
+    +prop_risks
+    +risk
+    +risks
+    +prop_type
+    +risk
+    +risk
+    +pattern_risks
+    +risks
+    +uri
+    +risk
+    +risk
+    +risks
+    +risks
+    +param_name
+    +risk
+    +risk
+    +risk
+    +risks
+    +has_constraints
+    +risk
+    +risks
+    +redos_patterns
+    +risk
+    +severities
+    +score: float
+    +risky_percentage
+    --
+    -__init__()
+    +analyze_tool_schema(tool): SchemaAnalysisResult
+    +analyze_multiple_tools(tools)
+    +analyze_resource_schema(resource)
+    -_analyze_parameter_schema(param, tool_name)
+    -_analyze_input_schema(schema, tool_name)
+    -_analyze_schema_property(prop_name, prop_schema, tool_name)
+    -_analyze_resource_uri(resource)
+    -_analyze_resource_metadata(resource)
+    -_check_injection_vulnerabilities(param, tool_name)
+    -_check_validation_weaknesses(param)
+    -_analyze_regex_pattern(prop_name, pattern)
+    -_calculate_overall_risk_level(risks): RiskLevel
+    -_calculate_security_score(result): float
+    -_initialize_risk_patterns()
+    -_initialize_dangerous_types()
+    -_initialize_injection_patterns()
+    -_initialize_validation_patterns()
+  }
+
+  class ScoreComponent {
+    +SEVERITY: str
+    +LIKELIHOOD: str
+    +IMPACT: str
+    +EXPOSURE: str
+    +EXPLOITABILITY: str
+    +BUSINESS_IMPACT: str
+    +TECHNICAL_IMPACT: str
+    +COMPLIANCE_IMPACT: str
+  }
+
+  class ScoreMethod {
+    +CVSS_LIKE: str
+    +WEIGHTED_AVERAGE: str
+    +MULTIPLICATIVE: str
+    +MAXIMUM: str
+    +CUSTOM: str
+  }
+
+  class ScoreBreakdown {
+    +total_score: float
+    +severity_score: float
+    +likelihood_score: float
+    +impact_score: float
+    +exposure_score: float
+    +exploitability_score: float
+    +business_impact_score: float
+    +technical_impact_score: float
+    +compliance_impact_score: float
+    +method: ScoreMethod
+    +confidence: float
+    --
+    +get_component_scores()
+  }
+
+  class CompositeRiskScore {
+    +server_id: str
+    +overall_score: float
+    +risk_level: RiskLevel
+    +score_breakdown: ScoreBreakdown
+    +contributing_risks
+    +threat_vectors
+    +risk_profiles
+    +recommendations
+    --
+    +get_risk_level_from_score(): RiskLevel
+    +get_priority_rank(): int
+  }
+
+  class RiskScorer {
+    +all_risks
+    +severity_score
+    +likelihood_score
+    +impact_score
+    +exposure_score
+    +exploitability_score
+    +business_impact_score
+    +technical_impact_score
+    +compliance_impact_score
+    +overall_score
+    +breakdown
+    +composite_score
+    +scores
+    +threat_model
+    +server_profiles
+    +score
+    +severity_weights
+    +total_weight
+    +risk_count_factor
+    +high_severity_count
+    +severity_factor
+    +avg_likelihood
+    +category_impacts
+    +max_impact: float
+    +category
+    +impact
+    +max_impact
+    +max_impact
+    +capability_multiplier: float
+    +exposure: float
+    +tool_count
+    +resource_count
+    +exploitable_categories
+    +max_exploitability: float
+    +category
+    +exploitability
+    +max_exploitability
+    +max_exploitability
+    +high_likelihood_threats
+    +max_exploitability
+    +business_categories
+    +max_business_impact: float
+    +category
+    +impact
+    +max_business_impact
+    +max_business_impact
+    +technical_categories
+    +max_technical_impact: float
+    +category
+    +impact
+    +max_technical_impact
+    +max_technical_impact
+    +compliance_categories
+    +max_compliance_impact: float
+    +category
+    +impact
+    +max_compliance_impact
+    +max_compliance_impact
+    +base_score
+    +temporal_score
+    +environmental_score
+    +weights
+    +weighted_sum
+    +factors
+    +normalized_factors
+    +product: float
+    +confidence: float
+    +recommendations
+    --
+    -__init__(method)
+    +calculate_server_score(server_info, threat_model, risk_profiles): CompositeRiskScore
+    +calculate_multiple_scores(servers, threat_models, risk_profiles)
+    +rank_servers_by_risk(scores)
+    -_calculate_severity_score(risks): float
+    -_calculate_likelihood_score(risks, threat_model): float
+    -_calculate_impact_score(risks, server_info): float
+    -_calculate_exposure_score(server_info): float
+    -_calculate_exploitability_score(risks, threat_model): float
+    -_calculate_business_impact_score(risks, risk_profiles): float
+    -_calculate_technical_impact_score(risks, server_info): float
+    -_calculate_compliance_impact_score(risks, risk_profiles): float
+    -_calculate_composite_score(severity, likelihood, impact, exposure, exploitability, business_impact, technical_impact, compliance_impact): float
+    -_calculate_confidence(risks, threat_model): float
+    -_score_to_risk_level(score): RiskLevel
+    -_generate_score_recommendations(score, breakdown)
+    -_initialize_component_weights()
+    -_initialize_severity_mappings()
+    -_initialize_category_weights()
+  }
+
+  class RiskClassification {
+    +CRITICAL_INFRASTRUCTURE: str
+    +HIGH_IMPACT: str
+    +MEDIUM_IMPACT: str
+    +LOW_IMPACT: str
+    +INFORMATIONAL: str
+  }
+
+  class RiskDomain {
+    +SECURITY: str
+    +PRIVACY: str
+    +COMPLIANCE: str
+    +OPERATIONAL: str
+    +BUSINESS: str
+    +TECHNICAL: str
+  }
+
+  class RiskProfile {
+    +category: RiskCategory
+    +classification: RiskClassification
+    +domain: RiskDomain
+    +severity: RiskLevel
+    +count: int
+    +risks
+    +threat_vectors
+    +severity_weights
+    +total_weight
+    +avg_weight
+    --
+    +add_risk(risk)
+    +add_threat_vector(threat)
+    +get_average_severity(): RiskLevel
+  }
+
+  class CategoryAnalysis {
+    +category: RiskCategory
+    +total_risks: int
+    +severity_distribution
+    +domain_distribution
+    +classification_distribution
+    +top_risks
+    +recommendations
+  }
+
+  class RiskCategorizer {
+    +profiles
+    +category
+    +classification
+    +domain
+    +categories
+    +analysis
+    +category
+    +domain
+    +classification
+    +total_categories
+    +analysis
+    +domains
+    +classifications
+    +severity_weight
+    +category_weight
+    +classification_weight
+    +risk_category
+    +severity
+    +category
+    +category
+    +domain_mapping
+    +weights
+    +weights
+    +weights
+    +recommendations
+    +critical_count
+    +high_count
+    --
+    -__init__()
+    +categorize_risks(risks)
+    +categorize_threat_vectors(threats)
+    +analyze_risk_distribution(risks)
+    +generate_category_analysis(category, risks): CategoryAnalysis
+    +get_risk_priorities(risks)
+    +priority_score(): float
+    -_determine_risk_category(risk): RiskCategory
+    -_determine_risk_classification(risk): RiskClassification
+    -_determine_risk_domain(risk): RiskDomain
+    -_get_severity_weight(severity): float
+    -_get_category_weight(category): float
+    -_get_classification_weight(classification): float
+    -_generate_category_recommendations(category, analysis)
+    -_initialize_category_rules()
+    -_initialize_classification_rules()
+    -_initialize_domain_rules()
+  }
+
+}
+
+package "src.hawkeye.detection.mcp_introspection.discovery" {
+  class AggregatorConfig {
+    +timeout: float
+    +enable_parallel_discovery: bool
+    +enable_risk_aggregation: bool
+    +tool_discovery_config
+    +resource_discovery_config
+    +capability_assessment_config
+    --
+    -__post_init__()
+  }
+
+  class ServerInfoAggregator {
+    +start_time
+    +cached_info
+    +discovery_start
+    +discovery_results
+    +server_info
+    +aggregation_time
+    +results
+    +all_tools
+    +all_resources
+    +all_capabilities
+    +all_security_risks
+    +tools_result
+    +resources_result
+    +capabilities_result
+    +aggregated_risks
+    +all_security_risks: aggregated_risks
+    +overall_risk
+    +aggregation_time
+    +server_info
+    +aggregated_risks
+    +file_tools
+    +file_resources
+    +network_tools
+    +network_resources
+    +seen_risks
+    +deduplicated_risks
+    +risk_key
+    +risk_counts
+    +cache_ttl
+    --
+    -__init__(config)
+    +aggregate_server_info(server_command, server_id, server_url): MCPServerInfo
+    -_sequential_discovery(server_command, server_id)
+    -_aggregate_results(server_id, server_url, discovery_results, start_time): MCPServerInfo
+    -_aggregate_risks(tools, resources, capabilities, existing_risks)
+    -_calculate_overall_risk(security_risks): RiskLevel
+    -_create_error_discovery_result(server_id, discovery_type, error_message): DiscoveryResult
+    -_create_error_server_info(server_id, server_url, start_time, error_message): MCPServerInfo
+    -_is_cache_valid(server_info): bool
+    +clear_cache(server_id)
+  }
+
+  class CapabilityAssessmentConfig {
+    +timeout: float
+    +max_retries: int
+    +retry_delay: float
+    +enable_risk_assessment: bool
+    +high_risk_capabilities
+    --
+    -__post_init__()
+  }
+
+  class CapabilityAssessment {
+    +start_time
+    +cache_key
+    +cached_result
+    +start_assessment
+    +capabilities_data
+    +capabilities
+    +security_risks
+    +capability
+    +risks
+    +assessment_time
+    +result
+    +last_error: NoneType
+    +request
+    +result
+    +last_error: e
+    +process
+    +request_json
+    +response
+    +capabilities
+    +cap_data
+    +capability_indicators
+    +risks
+    +cap_lower
+    +severity
+    +cache_ttl
+    +cache_key
+    --
+    -__init__(config)
+    +assess_capabilities(server_command, server_id): DiscoveryResult
+    -_get_capabilities_with_retry(server_command)
+    -_communicate_with_server(server_command, request)
+    -_convert_capabilities(capabilities_data): MCPCapability
+    -_assess_capability_risks(capability)
+    -_is_cache_valid(result): bool
+    -_create_error_result(server_id, start_time, error_message): DiscoveryResult
+    +clear_cache(server_id)
+  }
+
+  class ResourceDiscoveryConfig {
+    +timeout: float
+    +max_retries: int
+    +retry_delay: float
+    +enable_schema_analysis: bool
+    +enable_risk_assessment: bool
+    +sensitive_patterns
+    --
+    -__post_init__()
+  }
+
+  class ResourceDiscovery {
+    +start_time
+    +cache_key
+    +cached_result
+    +start_discovery
+    +resources_data
+    +mcp_resources
+    +security_risks
+    +mcp_resource
+    +risks
+    +discovery_time
+    +result
+    +last_error: NoneType
+    +request
+    +result
+    +resources
+    +last_error: e
+    +process
+    +request_json
+    +response
+    +risks
+    +uri_lower
+    +name_lower
+    +uri_scheme
+    +mime_lower
+    +executable_types
+    +cache_ttl
+    +cache_key
+    --
+    -__init__(config)
+    +discover_resources(server_command, server_id): DiscoveryResult
+    -_list_resources_with_retry(server_command)
+    -_communicate_with_server(server_command, request)
+    -_convert_resource(resource_data): MCPResource
+    -_extract_uri_scheme(uri): str
+    -_assess_resource_risks(resource)
+    -_is_cache_valid(result): bool
+    -_create_error_result(server_id, start_time, error_message): DiscoveryResult
+    +clear_cache(server_id)
+  }
+
+  class ToolDiscoveryConfig {
+    +timeout: float
+    +max_retries: int
+    +retry_delay: float
+    +enable_schema_analysis: bool
+    +enable_risk_assessment: bool
+    +dangerous_patterns
+    --
+    -__post_init__()
+  }
+
+  class ToolDiscovery {
+    +start_time
+    +cache_key
+    +cached_result
+    +start_discovery
+    +tools_data
+    +mcp_tools
+    +security_risks
+    +mcp_tool
+    +risks
+    +discovery_time
+    +result
+    +last_error: NoneType
+    +request
+    +result
+    +tools
+    +last_error: e
+    +process
+    +request_json
+    +response
+    +parameters
+    +input_schema
+    +parameters
+    +parameters
+    +properties
+    +required
+    +parameter
+    +risks
+    +tool_name_lower
+    +desc_lower
+    +param_name_lower
+    +param_name_lower
+    +cache_ttl
+    +cache_key
+    --
+    -__init__(config)
+    +discover_tools(server_command, server_id): DiscoveryResult
+    -_list_tools_with_retry(server_command)
+    -_communicate_with_server(server_command, request)
+    -_convert_tool(tool_data): MCPTool
+    -_extract_parameters(schema)
+    -_assess_tool_risks(tool)
+    -_is_cache_valid(result): bool
+    -_create_error_result(server_id, start_time, error_message): DiscoveryResult
+    +clear_cache(server_id)
   }
 
 }
@@ -3679,6 +9558,9 @@ package "src.hawkeye.scanner" {
 
   class TargetEnumerator {
     +ports
+    +targets
+    +resolved_ips
+    +ports
     +network
     +scan_types
     +ports
@@ -3701,6 +9583,7 @@ package "src.hawkeye.scanner" {
     +common_ports
     --
     -__init__(settings)
+    +enumerate_targets(target, ports)
     +enumerate_from_cidr(cidr, ports)
     +enumerate_from_range(start_ip, end_ip, ports)
     +enumerate_from_list(hosts, ports)
@@ -3761,7 +9644,7 @@ package "src.hawkeye.config" {
     +enable_udp_scan: bool
     +enable_ipv6: bool
     --
-    +validate_port_range(v, values)
+    +{class} validate_port_range(v, info)
   }
 
   class Config {
@@ -3778,6 +9661,29 @@ package "src.hawkeye.config" {
     +handshake_timeout: int
     +max_depth: int
     +config_file_patterns
+  }
+
+  class MCPIntrospectionSettings {
+    +connection_timeout: float
+    +max_retries: int
+    +retry_delay: float
+    +max_connections: int
+    +max_idle_time: float
+    +cleanup_interval: float
+    +enable_tool_discovery: bool
+    +enable_resource_discovery: bool
+    +enable_capability_assessment: bool
+    +enable_dynamic_risk_analysis: bool
+    +enable_schema_analysis: bool
+    +risk_analysis_timeout: float
+    +enable_result_caching: bool
+    +cache_ttl: int
+    +cache_max_size: int
+    +stdio_timeout: float
+    +sse_timeout: float
+    +http_timeout: float
+    +enable_async_processing: bool
+    +max_concurrent_introspections: int
   }
 
   class AssessmentSettings {
@@ -3815,11 +9721,1110 @@ package "src.hawkeye.config" {
     +debug: bool
     +scan: ScanSettings
     +detection: DetectionSettings
+    +mcp_introspection: MCPIntrospectionSettings
     +assessment: AssessmentSettings
     +reporting: ReportingSettings
     +logging: LoggingSettings
     +require_authorization: bool
     +audit_trail: bool
+  }
+
+}
+
+package "src.hawkeye.reporting" {
+  class XMLReporter {
+    +start_time
+    +success: bool
+    +xml_content
+    +output_file
+    +result
+    +result: xml_content
+    +success: bool
+    +generation_time
+    +root
+    +metadata_elem
+    +summary_elem
+    +stats_elem
+    +scan_summary_elem
+    +detection_summary_elem
+    +risk_summary_elem
+    +introspection_summary_elem
+    +scan_section
+    +scan_elem
+    +target_elem
+    +service_elem
+    +fingerprints_elem
+    +fp_elem
+    +detection_section
+    +detection_elem
+    +server_elem
+    +process_elem
+    +cmdline_elem
+    +data_elem
+    +item_elem
+    +assessment_section
+    +assessment_elem
+    +findings_elem
+    +finding_elem
+    +vulns_elem
+    +vuln_elem
+    +pipeline_section
+    +pipeline_elem
+    +stats_elem
+    +best_server_elem
+    +risk_elem
+    +list_elem
+    +errors_elem
+    +warnings_elem
+    +introspection_section
+    +servers_elem
+    +server_elem
+    +capabilities_elem
+    +cap_elem
+    +cap_dict
+    +cap_dict: capabilities
+    +cap_dict
+    +capability_count: int
+    +capability_count
+    +has_dangerous: bool
+    +has_dangerous
+    +port
+    +transport_type
+    +server_type
+    +version
+    +tool_count: int
+    +tool_count
+    +tool_count
+    +resource_count: int
+    +resource_count
+    +resource_count
+    +capability_count: int
+    +capability_count
+    +capability_count
+    +risk_level
+    +risk_score
+    +security_risks
+    +discovery_timestamp
+    +tools
+    +tools_elem
+    +tool_elem
+    +parameters: NoneType
+    +parameters
+    +parameters
+    +params_elem
+    +param_elem
+    +resources
+    +resources_elem
+    +resource_elem
+    +recommendations_elem
+    +rec_elem
+    +rough_string
+    +reparsed
+    --
+    -__init__(settings, pretty_print, encoding)
+    +get_format(): ReportFormat
+    +generate_report(data, output_path): str
+    -_generate_xml_content(data): str
+    -_add_metadata_section(parent, metadata)
+    -_add_summary_section(parent, data)
+    -_add_scan_results_section(parent, scan_results)
+    -_add_detection_results_section(parent, detection_results)
+    -_add_assessment_results_section(parent, assessment_results)
+    -_add_pipeline_results_section(parent, pipeline_results)
+    -_add_introspection_section(parent, data)
+    -_add_mcp_server_details(parent, server)
+    -_add_recommendations_section(parent, recommendations)
+    -_prettify_xml(element): str
+    -_save_xml_file(content, output_path)
+    +validate_xml_output(xml_content): bool
+  }
+
+  class PipelineToReportConverter {
+    +metadata
+    +detection_results
+    +mcp_servers
+    +introspection_data
+    +introspection_summary
+    +recommendations
+    +report_data
+    +total_introspected
+    +successful_introspections
+    +failed_introspections
+    +total_tools
+    +total_resources
+    +total_capabilities
+    +risk_counts
+    +risk_level
+    +risk_level
+    +tool_categories
+    +tool_dict
+    +name
+    +description
+    +total_duration
+    +recommendations
+    +high_risk_servers
+    +code_execution_tools
+    +tool_dict
+    +file_access_tools
+    +tool_dict
+    +failed_count
+    --
+    -__init__()
+    +convert_pipeline_results(pipeline_results, report_title, report_type, report_format): ReportData
+    -_generate_introspection_summary(pipeline_results, mcp_servers): IntrospectionSummary
+    -_generate_recommendations(pipeline_results, mcp_servers)
+  }
+
+  class ThreatAnalyzer {
+    +ATTACK_SCENARIOS
+    +ATTACK_CHAINS
+    +detection_results
+    +detected_servers
+    +attack_vectors
+    +abuse_scenarios
+    +attack_chains
+    +mitigation_strategies
+    +detection_indicators
+    +threat_levels
+    +compliance_impact
+    +detected_servers
+    +method_str
+    +process_data
+    +cmdline
+    +server_path
+    +attack_vectors
+    +scenario
+    +scenarios
+    +server_scenarios
+    +applicable_chains
+    +required_tools
+    +levels
+    +threat_level
+    +overall: str
+    +overall: str
+    +overall: str
+    +overall: str
+    +strategies
+    +indicators
+    +impact
+    +scenarios
+    +server_info
+    +html: str
+    +html: str
+    +html: str
+    +html: str
+    +html: str
+    +recommendations
+    +html: str
+    +html
+    --
+    +analyze_threats(data)
+    -_identify_detected_servers(detection_results)
+    -_generate_attack_vectors(detected_servers)
+    -_generate_abuse_scenarios(detected_servers)
+    -_generate_attack_chains(detected_servers)
+    -_calculate_threat_levels(detected_servers)
+    -_generate_mitigation_strategies(detected_servers)
+    -_generate_detection_indicators(detected_servers)
+    -_generate_compliance_impact(detected_servers, threat_levels)
+    -_format_key_scenarios(detected_servers): str
+    -_format_attack_vectors(attack_vectors): str
+    -_format_abuse_scenarios(abuse_scenarios): str
+    -_format_attack_chains(attack_chains): str
+    -_format_mitigation_strategies(strategies): str
+    -_format_detection_indicators(indicators): str
+    -_format_security_recommendations(detected_servers): str
+    -_format_compliance_impact(compliance_impact): str
+  }
+
+  class CSVReporter {
+    +start_time
+    +success: bool
+    +csv_content
+    +output_file
+    +result
+    +result: csv_content
+    +success: bool
+    +generation_time
+    +output
+    +writer
+    +writer
+    +writer
+    +headers
+    +row
+    +writer
+    +headers
+    +server
+    +row
+    +writer
+    +summary_headers
+    +row
+    +findings_headers
+    +row
+    +writer
+    +writer
+    +headers
+    +best_server
+    +row
+    +writer
+    +writer
+    +headers
+    +tools_str: str
+    +tool_names
+    +tools_str
+    +resources_str: str
+    +resource_names
+    +resources_str
+    +capabilities_str: str
+    +capabilities_str
+    +capabilities_str
+    +row
+    +writer
+    +headers
+    +cap_dict
+    +cap_dict: capabilities
+    +cap_dict
+    +row
+    +generated_files
+    +base_path
+    +metadata_file
+    +scan_file
+    +detection_file
+    +assessment_file
+    +writer
+    +writer
+    +headers
+    +row
+    +writer
+    +headers
+    +server
+    +row
+    +writer
+    +headers
+    +row
+    --
+    -__init__(settings, delimiter, quoting)
+    +get_format(): ReportFormat
+    +generate_report(data, output_path): str
+    -_generate_csv_content(data): str
+    -_write_metadata_section(output, metadata)
+    -_write_summary_section(output, data)
+    -_write_scan_results_section(output, scan_results)
+    -_write_detection_results_section(output, detection_results)
+    -_write_assessment_results_section(output, assessment_results)
+    -_write_recommendations_section(output, recommendations)
+    -_write_pipeline_results_section(output, pipeline_results)
+    -_write_introspection_summary_section(output, introspection_summary)
+    -_write_mcp_servers_section(output, mcp_servers)
+    -_write_introspection_data_section(output, introspection_data)
+    -_save_csv_file(content, output_path)
+    +generate_separate_files(data, base_path)
+    -_generate_metadata_file(metadata, output_path)
+    -_generate_scan_results_file(scan_results, output_path)
+    -_generate_detection_results_file(detection_results, output_path)
+    -_generate_assessment_results_file(assessment_results, output_path)
+  }
+
+  class HTMLReporter {
+    +templates
+    +start_time
+    +html_content
+    +generation_time
+    +analyzer
+    +analyzed_data
+    +template_vars
+    +analyzed_data
+    +template_vars
+    +results_data
+    +result_dict
+    --
+    -__init__()
+    -_register_default_templates()
+    +generate_report(data, output_file, template_name): str
+    +generate_executive_summary(data, output_file): str
+    +generate_technical_report(data, output_file): str
+    +generate_vulnerability_report(data, output_file): str
+    +generate_compliance_report(data, output_file): str
+    +generate_mcp_summary_report(data, output_file): str
+    +generate_threat_analysis_report(data, output_file): str
+    +list_available_templates()
+    +register_custom_template(template)
+    -_save_to_file(content, output_file)
+    +get_supported_formats()
+    +get_format(): ReportFormat
+    -_prepare_technical_data(data)
+  }
+
+  class ReportFormat {
+    +JSON: str
+    +CSV: str
+    +XML: str
+    +HTML: str
+    +PDF: str
+    +MARKDOWN: str
+  }
+
+  class ReportType {
+    +EXECUTIVE_SUMMARY: str
+    +TECHNICAL_DETAILED: str
+    +VULNERABILITY_REPORT: str
+    +COMPLIANCE_REPORT: str
+    +SCAN_RESULTS: str
+    +DETECTION_RESULTS: str
+    +RISK_ASSESSMENT: str
+    +COMBINED_REPORT: str
+    +THREAT_ANALYSIS: str
+    +INTROSPECTION_REPORT: str
+  }
+
+  class ReportMetadata {
+    +title: str
+    +report_type: ReportType
+    +format: ReportFormat
+    +generated_at: float
+    +generated_by: str
+    +version: str
+    +description
+    +author
+    +organization
+    +classification: str
+    +retention_period
+    --
+    +generated_timestamp(): str
+    +to_dict()
+  }
+
+  class ScanSummary {
+    +total_targets: int
+    +total_ports_scanned: int
+    +open_ports: int
+    +closed_ports: int
+    +filtered_ports: int
+    +services_detected: int
+    +scan_duration
+    +scan_start_time
+    +scan_end_time
+    --
+    +success_rate(): float
+    +to_dict()
+  }
+
+  class DetectionSummary {
+    +total_targets: int
+    +mcp_servers_detected: int
+    +detection_methods_used
+    +transport_types_found
+    +server_types_found
+    +secure_servers: int
+    +insecure_servers: int
+    +authenticated_servers: int
+    +unauthenticated_servers: int
+    +detection_duration
+    --
+    +detection_rate(): float
+    +security_rate(): float
+    +to_dict()
+  }
+
+  class IntrospectionSummary {
+    +total_servers_introspected: int
+    +successful_introspections: int
+    +failed_introspections: int
+    +total_tools_discovered: int
+    +total_resources_discovered: int
+    +total_capabilities_discovered: int
+    +critical_risk_servers: int
+    +high_risk_servers: int
+    +medium_risk_servers: int
+    +low_risk_servers: int
+    +minimal_risk_servers: int
+    +file_access_tools: int
+    +network_tools: int
+    +code_execution_tools: int
+    +data_access_tools: int
+    +system_tools: int
+    +stdio_servers: int
+    +http_servers: int
+    +sse_servers: int
+    +websocket_servers: int
+    +introspection_duration
+    --
+    +success_rate(): float
+    +high_risk_rate(): float
+    +average_tools_per_server(): float
+    +average_resources_per_server(): float
+    +to_dict()
+  }
+
+  class RiskSummary {
+    +total_assessments: int
+    +critical_risk_targets: int
+    +high_risk_targets: int
+    +medium_risk_targets: int
+    +low_risk_targets: int
+    +no_risk_targets: int
+    +total_findings: int
+    +total_vulnerabilities: int
+    +exploitable_vulnerabilities: int
+    +unpatched_vulnerabilities: int
+    +compliance_violations
+    +average_risk_score: float
+    +assessment_duration
+    --
+    +high_risk_rate(): float
+    +vulnerability_rate(): float
+    +to_dict()
+  }
+
+  class ReportData {
+    +metadata: ReportMetadata
+    +scan_results
+    +detection_results
+    +assessment_results
+    +pipeline_results
+    +introspection_data
+    +mcp_servers
+    +scan_summary
+    +detection_summary
+    +risk_summary
+    +introspection_summary
+    +executive_summary
+    +recommendations
+    +raw_data
+    +targets
+    +findings
+    +targets
+    +servers
+    +total: int
+    +total: int
+    +findings
+    +tools
+    --
+    +total_targets(): int
+    +has_scan_data(): bool
+    +has_detection_data(): bool
+    +has_assessment_data(): bool
+    +has_pipeline_data(): bool
+    +has_introspection_data(): bool
+    +critical_findings()
+    +high_risk_targets()
+    +introspected_servers()
+    +total_tools_discovered(): int
+    +total_resources_discovered(): int
+    +get_targets_by_risk_level(risk_level)
+    +get_findings_by_category(category)
+    +get_servers_by_risk_level(risk_level)
+    +get_tools_by_category(category)
+    +to_dict()
+    -_pipeline_result_to_dict(result)
+    -_capabilities_to_dict(capabilities)
+    -_server_info_to_dict(server)
+  }
+
+  class BaseReporter {
+    +stats
+    +timestamp
+    +filename
+    +base_path
+    --
+    -__init__(settings)
+    +generate_report(data, output_path): str
+    +get_format(): ReportFormat
+    +validate_data(data)
+    +get_generation_statistics()
+    +clear_statistics()
+    -_update_statistics(success, generation_time)
+    -_create_output_path(base_path, data): Path
+  }
+
+  class ReportingError {
+  }
+
+  class FormatError {
+  }
+
+  class TemplateError {
+  }
+
+  class ValidationError {
+  }
+
+  class ExecutiveFinding {
+    +title: str
+    +description: str
+    +business_impact: str
+    +risk_level: str
+    +recommendation: str
+    +priority: int
+  }
+
+  class ExecutiveMetrics {
+    +total_systems_scanned: int
+    +mcp_servers_detected: int
+    +critical_vulnerabilities: int
+    +high_risk_systems: int
+    +compliance_issues: int
+    +security_score: float
+    +risk_reduction_potential: float
+  }
+
+  class ExecutiveSummaryGenerator {
+    +metrics
+    +findings
+    +overview
+    +key_findings
+    +risk_assessment
+    +recommendations
+    +conclusion
+    +summary
+    +security_score
+    +risk_reduction
+    +findings
+    +unprotected_count
+    +compliance_issues
+    +findings_text: str
+    +risk_level
+    +recommendations
+    +immediate_actions
+    +tone: str
+    +tone: str
+    +tone: str
+    +header
+    +score: float
+    +critical_penalty
+    +high_risk_penalty
+    +unprotected
+    +unprotected_penalty
+    +critical_reduction
+    +high_risk_reduction
+    +best_practices_reduction: int
+    +total_reduction
+    +issues: int
+    --
+    -__init__()
+    +generate_summary(data): str
+    -_extract_metrics(data): ExecutiveMetrics
+    -_identify_key_findings(data)
+    -_generate_overview(metrics): str
+    -_generate_key_findings(findings): str
+    -_generate_risk_assessment(risk_summary, metrics): str
+    -_generate_recommendations(findings): str
+    -_generate_conclusion(metrics, findings): str
+    -_combine_summary_sections(): str
+    -_calculate_security_score(data): float
+    -_calculate_risk_reduction_potential(data): float
+    -_count_compliance_issues(data): int
+    -_count_unprotected_deployments(data): int
+    -_determine_overall_risk_level(metrics): str
+    -_generate_fallback_summary(data): str
+  }
+
+  class TimeSeriesData {
+    +timestamps
+    +values
+    +labels
+    +first_half
+    +second_half
+    +first_avg
+    +second_avg
+    --
+    +add_point(timestamp, value, label)
+    +get_trend(): str
+    +to_dict()
+  }
+
+  class DistributionData {
+    +categories
+    +total_count: int
+    --
+    +add_item(category, count)
+    +get_percentages()
+    +get_top_categories(n)
+    +to_dict()
+  }
+
+  class DataAggregator {
+    +enhanced_data: data
+    +total_targets
+    +total_ports_scanned
+    +state_counts
+    +open_ports
+    +closed_ports
+    +filtered_ports
+    +services_detected
+    +timestamps
+    +scan_start_time
+    +scan_end_time
+    +scan_duration
+    +total_targets
+    +mcp_servers_detected
+    +detection_methods_used
+    +transport_types_found
+    +server_types_found
+    +secure_servers: int
+    +insecure_servers: int
+    +authenticated_servers: int
+    +unauthenticated_servers: int
+    +server
+    +timestamps
+    +detection_duration: NoneType
+    +detection_duration
+    +total_assessments
+    +risk_level_counts
+    +critical_risk_targets
+    +high_risk_targets
+    +medium_risk_targets
+    +low_risk_targets
+    +no_risk_targets
+    +total_findings
+    +total_vulnerabilities
+    +exploitable_vulnerabilities
+    +unpatched_vulnerabilities
+    +compliance_violations
+    +violations
+    +risk_scores
+    +average_risk_score
+    +durations
+    +assessment_duration
+    +introspected_servers
+    +total_servers_introspected
+    +successful_introspections: total_servers_introspected
+    +failed_introspections: int
+    +total_tools_discovered
+    +total_resources_discovered
+    +total_capabilities_discovered
+    +risk_counts
+    +critical_risk_servers
+    +high_risk_servers
+    +medium_risk_servers
+    +low_risk_servers
+    +minimal_risk_servers
+    +file_access_tools: int
+    +network_tools: int
+    +code_execution_tools: int
+    +data_access_tools: int
+    +system_tools: int
+    +tool_name
+    +tool_desc
+    +stdio_servers: int
+    +http_servers: int
+    +sse_servers: int
+    +websocket_servers: int
+    +server
+    +transport_info
+    +introspection_duration: NoneType
+    +durations
+    +introspection_duration
+    +summary_parts
+    +risk_summary
+    +detection_summary
+    +scan_summary
+    +introspection_summary
+    +dangerous_tools
+    +recommendations
+    +risk_summary
+    +detection_summary
+    +scan_summary
+    +introspection_summary
+    +trends
+    +timestamp
+    +distributions
+    --
+    -__init__(settings)
+    +aggregate_report_data(data): ReportData
+    +generate_scan_summary(scan_results): ScanSummary
+    +generate_detection_summary(detection_results): DetectionSummary
+    +generate_risk_summary(assessment_results): RiskSummary
+    +generate_introspection_summary(data)
+    +generate_executive_summary(data): str
+    +generate_recommendations(data)
+    +generate_trend_analysis(historical_data)
+    +generate_distribution_analysis(data)
+  }
+
+  class MCPDataAnalyzer {
+    +MCP_SERVER_CATALOG
+    +detection_results
+    +stats
+    +mcp_servers
+    +introspected_servers
+    +false_positives
+    +additional_detections
+    +security_assessment
+    +performance_metrics
+    +conclusions
+    +mcp_servers
+    +method_str
+    +process_data
+    +cmdline
+    +server_path
+    +server_info
+    +false_positives
+    +method_str
+    +process_data
+    +cmdline
+    +additional
+    +method_str
+    +method_str
+    +risk_counts
+    +external_access_servers
+    +file_access_servers
+    +server_info
+    +overall_status: str
+    +status_class: str
+    +overall_status: str
+    +status_class: str
+    +overall_status: str
+    +status_class: str
+    +total_processes: int
+    +nodejs_processes: int
+    +mcp_indicators
+    +efficiency
+    +server_count
+    +status
+    +conclusions
+    +methods
+    +method
+    +method_str
+    +method_name
+    +html: str
+    +server_info
+    +security_class
+    +html: str
+    +html: str
+    +method_name
+    +html: str
+    +html: str
+    +methods
+    +used_methods
+    +method_str
+    +html: str
+    +protocols
+    +transport
+    +html: str
+    +count
+    +analysis_parts
+    +tools_count
+    +resources_count
+    +risk_level
+    +notable_tools
+    +risk_class
+    +server_analysis
+    +tool_categories
+    +name_lower
+    +desc_lower
+    +analysis_parts
+    +all_risks
+    +risk_groups
+    +severity
+    +analysis_parts
+    +risk_class
+    +assessment
+    +introspection_risks
+    +risk_level
+    +conclusions
+    +total_tools
+    +total_resources
+    +high_risk_servers
+    +dangerous_tools
+    +level
+    +level
+    +level
+    +name_lower
+    +desc_lower
+    +dangerous_keywords
+    --
+    +analyze_detection_results(data)
+    -_extract_statistics(detection_results)
+    +get_method_str()
+    -_analyze_mcp_servers(detection_results)
+    -_identify_server_type(server_path, cmdline)
+    -_determine_transport(server_info): str
+    -_identify_false_positives(detection_results)
+    -_extract_cursor_extension_name(cmdline): str
+    -_analyze_additional_detections(detection_results)
+    -_extract_additional_details(result): str
+    -_perform_security_assessment(mcp_servers, additional_detections)
+    -_generate_performance_metrics(detection_results, stats)
+    -_generate_conclusions(mcp_servers, security_assessment): str
+    -_format_detection_methods(detection_results): str
+    -_format_mcp_servers_analysis(mcp_servers): str
+    -_format_false_positives_analysis(false_positives): str
+    -_format_additional_detections_analysis(additional_detections): str
+    -_format_security_implications(security_assessment): str
+    -_format_security_recommendations(security_assessment): str
+    -_format_technical_detection_methods(detection_results): str
+    -_format_transport_protocols(mcp_servers, additional_detections): str
+    -_analyze_introspected_servers(data)
+    -_format_introspected_servers_analysis(servers): str
+    -_format_introspection_tools_analysis(servers): str
+    -_format_introspection_security_analysis(servers): str
+    -_perform_enhanced_security_assessment(mcp_servers, additional_detections, introspected_servers)
+    -_generate_enhanced_conclusions(mcp_servers, introspected_servers, security_assessment): str
+    -_get_risk_class(risk_level): str
+    -_get_risk_class_from_string(level): str
+    -_is_dangerous_tool(tool): bool
+  }
+
+  class IntrospectionReporter {
+    +start_time
+    +analysis
+    +report
+    +report_content
+    +output_path
+    +generation_time
+    +generation_time
+    +servers
+    +analysis
+    +total_servers
+    +total_tools
+    +total_resources
+    +risk_distribution
+    +risk_level
+    +high_risk_servers
+    +key_findings
+    +dangerous_tools
+    +security_status: str
+    +security_status: str
+    +security_status: str
+    +security_status: str
+    +server_categories
+    +tool_names
+    +tool_frequency
+    +most_common_tools
+    +all_tools
+    +categories
+    +name_lower
+    +desc_lower
+    +high_risk_tools
+    +all_resources
+    +mime_types
+    +uri_schemes
+    +scheme
+    +capability_counts
+    +all_risks
+    +risk_by_category
+    +risk_by_severity
+    +category
+    +severity
+    +critical_risks
+    +risk_scores
+    +total_score: int
+    +risk_level
+    +average_score
+    +overall_risk: str
+    +overall_risk: str
+    +overall_risk: str
+    +overall_risk: str
+    +risk_factors
+    +dangerous_tool_count
+    +recommendations
+    +high_risk_servers
+    +dangerous_tools
+    +findings
+    +finding
+    +count: int
+    +name_lower
+    +desc_lower
+    +high_risk_keywords
+    +factors
+    +name_lower
+    +desc_lower
+    --
+    -__init__(settings)
+    +get_format(): ReportFormat
+    +generate_report(data, output_path): str
+    -_generate_introspection_analysis(data)
+    -_generate_executive_summary(data, servers)
+    -_analyze_servers(servers)
+    -_analyze_tools(servers)
+    -_analyze_resources(servers)
+    -_analyze_capabilities(servers)
+    -_analyze_security_risks(servers)
+    -_generate_risk_assessment(servers)
+    -_generate_recommendations(servers)
+    -_generate_detailed_findings(servers)
+    -_count_dangerous_tools(servers): int
+    -_is_high_risk_tool(tool): bool
+    -_get_tool_risk_factors(tool)
+  }
+
+  class JSONReporter {
+    +start_time
+    +success: bool
+    +json_content
+    +output_file
+    +result
+    +result: json_content
+    +success: bool
+    +generation_time
+    +report_dict
+    +json_content
+    +report_dict
+    +enhanced_results
+    +enhanced_result
+    +enhanced_results
+    +enhanced_result
+    +enhanced_results
+    +enhanced_result
+    +enhanced_results
+    +enhanced_result
+    +enhanced_results
+    +enhanced_capabilities
+    +enhanced_info
+    +enhanced_tools
+    +tool_dict
+    +tool_dict
+    +tool_dict
+    +tool_dict
+    +enhanced_resources
+    +resource_dict
+    +resource_dict
+    +resource_dict
+    +resource_dict
+    +name
+    +description
+    +category
+    +uri
+    +mime_type
+    +enhanced_data
+    +enhanced_servers
+    +enhanced_server
+    +stats
+    +open_ports
+    +services_detected
+    +mcp_detected
+    +risk_counts
+    +total_findings: int
+    +total_vulnerabilities: int
+    +successful_pipelines
+    +total_detections
+    +successful_detections
+    +total_mcp_servers
+    +total_introspections
+    +total_duration
+    +stats
+    +tool_categories
+    +tool_dict
+    +category
+    +resource_categories
+    +resource_dict
+    +category
+    +risk_distribution
+    +risk_level
+    +risk_level
+    --
+    -__init__(settings, indent, sort_keys)
+    +get_format(): ReportFormat
+    +generate_report(data, output_path): str
+    -_generate_json_content(data): str
+    -_prepare_report_data(data)
+    -_enhance_scan_results(scan_results)
+    -_enhance_detection_results(detection_results)
+    -_enhance_assessment_results(assessment_results)
+    -_enhance_pipeline_results(pipeline_results)
+    -_enhance_introspection_results(introspection_results)
+    -_enhance_server_info(server_info)
+    -_enhance_tools(tools)
+    -_enhance_resources(resources)
+    -_categorize_tool(tool): str
+    -_assess_tool_risk(tool): str
+    -_categorize_resource(resource): str
+    -_enhance_introspection_data(introspection_data)
+    -_enhance_mcp_servers(mcp_servers)
+    -_generate_aggregated_statistics(data)
+    -_calculate_scan_statistics(scan_results)
+    -_calculate_detection_statistics(detection_results)
+    -_calculate_risk_statistics(assessment_results)
+    -_calculate_pipeline_statistics(pipeline_results)
+    -_calculate_introspection_statistics(data)
+    -_save_json_file(content, output_path)
+    -_json_serializer(obj): Any
+    +validate_json_output(json_content): bool
+  }
+
+}
+
+package "src.hawkeye.reporting.templates" {
+  class TemplateError {
+  }
+
+  class BaseTemplate {
+    +template_vars
+    +template_content
+    +rendered_html
+    +variables
+    +template
+    +safe_variables
+    +rendered
+    +safe_vars
+    +html_items
+    +rows
+    +escaped_key
+    +escaped_value
+    --
+    -__init__(template_name)
+    +get_template_content(): str
+    +get_css_content(): str
+    +get_js_content(): str
+    +render(data): str
+    -_prepare_template_variables(data)
+    -_render_template(template_content, variables): str
+    -_make_template_safe(variables)
+    -_render_list(items): str
+    -_render_dict(data): str
+    -_escape_html(text): str
+    -_get_default_css(): str
+    -_get_default_js(): str
+  }
+
+  class TemplateEngine {
+    +template
+    --
+    -__init__()
+    +register_template(template)
+    +get_template(template_name)
+    +list_templates()
+    +render_template(template_name, data): str
+    +clear_templates()
+  }
+
+  class ExecutiveSummaryTemplate {
+    -__init__()
+    +get_template_content(): str
+  }
+
+  class TechnicalReportTemplate {
+    -__init__()
+    +get_template_content(): str
+  }
+
+  class VulnerabilityReportTemplate {
+    -__init__()
+    +get_template_content(): str
+  }
+
+  class ComplianceReportTemplate {
+    +base_css
+    +compliance_css: str
+    --
+    -__init__()
+    +get_template_content(): str
+    +get_css_content(): str
+  }
+
+  class ThreatAnalysisTemplate {
+    -__init__()
+    +get_template_content(): str
+    +get_css_content(): str
+    +get_js_content(): str
+  }
+
+  class MCPSummaryTemplate {
+    -__init__()
+    +get_template_content(): str
+    +get_css_content(): str
+    +get_js_content(): str
   }
 
 }
@@ -3830,6 +10835,27 @@ RiskAssessor <|-- MockRiskAssessor
 unittest.TestCase <|-- TestTransportDetector
 unittest.TestCase <|-- TestProtocolVerifier
 unittest.TestCase <|-- TestProcessEnumerator
+unittest.TestCase <|-- TestToolRiskAnalyzer
+unittest.TestCase <|-- TestRiskCategorizer
+BaseTransportHandler <|-- MockTransportHandler
+unittest.TestCase <|-- TestCompositeRiskScore
+unittest.TestCase <|-- TestRiskScorer
+unittest.TestCase <|-- TestMigrationConfig
+unittest.TestCase <|-- TestLegacyMCPConfig
+unittest.TestCase <|-- TestMigrationResult
+unittest.TestCase <|-- TestConfigurationMigrator
+unittest.TestCase <|-- TestConfigurationValidator
+unittest.TestCase <|-- TestConvenienceFunctions
+unittest.TestCase <|-- TestThreatModel
+unittest.TestCase <|-- TestThreatModelingEngine
+unittest.TestCase <|-- MCPIntrospectionBenchmarks
+BaseTemplate <|-- CustomTemplate
+BaseTemplate <|-- SampleTemplate
+BaseTemplate <|-- TestTemplate
+BaseTemplate <|-- TestTemplate
+BaseTemplate <|-- TestTemplate
+logging.Handler <|-- TestHandler
+unittest.TestCase <|-- TestMCPRiskAnalysisIntegration
 Exception <|-- HawkEyeError
 HawkEyeError <|-- ConfigurationError
 HawkEyeError <|-- NetworkError
@@ -3839,6 +10865,16 @@ HawkEyeError <|-- AssessmentError
 HawkEyeError <|-- ReportingError
 HawkEyeError <|-- ValidationError
 click.Group <|-- HawkEyeGroup
+ProgressTracker <|-- ScanProgressTracker
+ProgressTracker <|-- DetectionProgressTracker
+ProgressTracker <|-- AssessmentProgressTracker
+ProgressTracker <|-- ReportingProgressTracker
+Enum <|-- VerbosityLevel
+click.ParamType <|-- ValidatedIPAddress
+click.ParamType <|-- ValidatedTarget
+click.ParamType <|-- ValidatedPortRange
+click.ParamType <|-- ValidatedTimeout
+click.ParamType <|-- ConfigFileType
 RiskAssessor <|-- AuthenticationAnalyzer
 Enum <|-- RiskLevel
 Enum <|-- VulnerabilityCategory
@@ -3847,6 +10883,18 @@ ABC <|-- RiskAssessor
 Exception <|-- AssessmentError
 AssessmentError <|-- CVSSError
 AssessmentError <|-- ConfigurationError
+AssessmentError <|-- ComplianceError
+Enum <|-- RemediationPriority
+Enum <|-- RemediationComplexity
+Enum <|-- RemediationCategory
+BaseModel <|-- RemediationAction
+BaseModel <|-- RemediationPlan
+Exception <|-- AssessmentError
+AssessmentError <|-- RemediationError
+AssessmentError <|-- InvalidFindingError
+RemediationError <|-- RemediationTemplateError
+RemediationError <|-- PrioritizationError
+AssessmentError <|-- RiskCalculationError
 AssessmentError <|-- ComplianceError
 RiskAssessor <|-- TransportSecurityAssessor
 Enum <|-- ComplianceStatus
@@ -3871,6 +10919,79 @@ MCPDetector <|-- ProcessEnumerator
 MCPDetector <|-- TransportDetector
 MCPDetector <|-- EnvironmentAnalyzer
 MCPDetector <|-- DockerInspector
+BaseModel <|-- MigrationConfig
+BaseModel <|-- LegacyMCPConfig
+BaseModel <|-- MigrationResult
+Enum <|-- FallbackStrategy
+Enum <|-- FailureReason
+str <|-- RiskLevel
+Enum <|-- RiskLevel
+str <|-- TransportType
+Enum <|-- TransportType
+str <|-- RiskCategory
+Enum <|-- RiskCategory
+BaseModel <|-- MCPCapabilities
+BaseModel <|-- MCPToolParameter
+BaseModel <|-- MCPTool
+BaseModel <|-- MCPResource
+BaseModel <|-- MCPServerConfig
+BaseModel <|-- MCPCapability
+BaseModel <|-- SecurityRisk
+BaseModel <|-- MCPServerInfo
+BaseModel <|-- DiscoveryResult
+BaseModel <|-- IntrospectionResult
+BaseModel <|-- MCPIntrospectionResult
+str <|-- ErrorSeverity
+Enum <|-- ErrorSeverity
+str <|-- ErrorCategory
+Enum <|-- ErrorCategory
+Exception <|-- MCPIntrospectionError
+MCPIntrospectionError <|-- ConnectionError
+MCPIntrospectionError <|-- TimeoutError
+MCPIntrospectionError <|-- ProtocolError
+MCPIntrospectionError <|-- ValidationError
+ConnectionPool <|-- OptimizedConnectionPool
+Enum <|-- CacheStrategy
+str <|-- RetryStrategy
+Enum <|-- RetryStrategy
+str <|-- CircuitState
+Enum <|-- CircuitState
+BaseTransportHandler <|-- StdioTransportHandler
+Exception <|-- TransportError
+TransportError <|-- ConnectionTimeoutError
+TransportError <|-- ConnectionFailedError
+ABC <|-- BaseTransportHandler
+BaseTransportHandler <|-- StreamableHTTPTransportHandler
+BaseTransportHandler <|-- SSETransportHandler
+str <|-- ValidationSeverity
+Enum <|-- ValidationSeverity
+str <|-- ErrorSeverity
+Enum <|-- ErrorSeverity
+str <|-- ErrorCategory
+Enum <|-- ErrorCategory
+str <|-- ThreatCategory
+Enum <|-- ThreatCategory
+str <|-- AttackVector
+Enum <|-- AttackVector
+str <|-- ReportFormat
+Enum <|-- ReportFormat
+str <|-- ReportLevel
+Enum <|-- ReportLevel
+Enum <|-- PolicyAction
+Enum <|-- PolicyScope
+Enum <|-- ToolRiskPattern
+str <|-- SchemaRiskType
+Enum <|-- SchemaRiskType
+str <|-- ParameterRiskLevel
+Enum <|-- ParameterRiskLevel
+str <|-- ScoreComponent
+Enum <|-- ScoreComponent
+str <|-- ScoreMethod
+Enum <|-- ScoreMethod
+str <|-- RiskClassification
+Enum <|-- RiskClassification
+str <|-- RiskDomain
+Enum <|-- RiskDomain
 Enum <|-- PortState
 Enum <|-- ScanType
 ABC <|-- BaseScanner
@@ -3881,9 +11002,30 @@ BaseScanner <|-- UDPScanner
 BaseScanner <|-- TCPScanner
 BaseSettings <|-- ScanSettings
 BaseSettings <|-- DetectionSettings
+BaseSettings <|-- MCPIntrospectionSettings
 BaseSettings <|-- AssessmentSettings
 BaseSettings <|-- ReportingSettings
 BaseSettings <|-- LoggingSettings
 BaseSettings <|-- HawkEyeSettings
+BaseReporter <|-- XMLReporter
+BaseReporter <|-- CSVReporter
+BaseReporter <|-- HTMLReporter
+Enum <|-- ReportFormat
+Enum <|-- ReportType
+ABC <|-- BaseReporter
+Exception <|-- ReportingError
+ReportingError <|-- FormatError
+ReportingError <|-- TemplateError
+ReportingError <|-- ValidationError
+BaseReporter <|-- IntrospectionReporter
+BaseReporter <|-- JSONReporter
+ReportingError <|-- TemplateError
+ABC <|-- BaseTemplate
+BaseTemplate <|-- ExecutiveSummaryTemplate
+BaseTemplate <|-- TechnicalReportTemplate
+BaseTemplate <|-- VulnerabilityReportTemplate
+BaseTemplate <|-- ComplianceReportTemplate
+BaseTemplate <|-- ThreatAnalysisTemplate
+BaseTemplate <|-- MCPSummaryTemplate
 
 @enduml

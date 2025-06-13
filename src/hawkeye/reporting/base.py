@@ -15,6 +15,8 @@ from pathlib import Path
 
 from ..assessment.base import AssessmentResult, RiskLevel, VulnerabilityCategory
 from ..detection.base import DetectionResult, TransportType, MCPServerType
+from ..detection.pipeline import PipelineResult
+from ..detection.mcp_introspection.models import MCPServerInfo, MCPTool, MCPResource, MCPCapabilities
 from ..scanner.base import ScanResult, PortState, ScanType
 from ..utils.logging import get_logger
 
@@ -39,6 +41,8 @@ class ReportType(Enum):
     DETECTION_RESULTS = "detection_results"
     RISK_ASSESSMENT = "risk_assessment"
     COMBINED_REPORT = "combined_report"
+    THREAT_ANALYSIS = "threat_analysis"
+    INTROSPECTION_REPORT = "introspection_report"
 
 
 @dataclass
@@ -165,6 +169,98 @@ class DetectionSummary:
 
 
 @dataclass
+class IntrospectionSummary:
+    """Summary statistics for MCP introspection operations."""
+    
+    total_servers_introspected: int = 0
+    successful_introspections: int = 0
+    failed_introspections: int = 0
+    total_tools_discovered: int = 0
+    total_resources_discovered: int = 0
+    total_capabilities_discovered: int = 0
+    
+    # Risk distribution
+    critical_risk_servers: int = 0
+    high_risk_servers: int = 0
+    medium_risk_servers: int = 0
+    low_risk_servers: int = 0
+    minimal_risk_servers: int = 0
+    
+    # Tool categories
+    file_access_tools: int = 0
+    network_tools: int = 0
+    code_execution_tools: int = 0
+    data_access_tools: int = 0
+    system_tools: int = 0
+    
+    # Transport types
+    stdio_servers: int = 0
+    http_servers: int = 0
+    sse_servers: int = 0
+    websocket_servers: int = 0
+    
+    introspection_duration: Optional[float] = None
+    
+    @property
+    def success_rate(self) -> float:
+        """Calculate introspection success rate."""
+        if self.total_servers_introspected == 0:
+            return 0.0
+        return self.successful_introspections / self.total_servers_introspected
+    
+    @property
+    def high_risk_rate(self) -> float:
+        """Calculate high risk server rate."""
+        if self.total_servers_introspected == 0:
+            return 0.0
+        return (self.critical_risk_servers + self.high_risk_servers) / self.total_servers_introspected
+    
+    @property
+    def average_tools_per_server(self) -> float:
+        """Calculate average tools per server."""
+        if self.successful_introspections == 0:
+            return 0.0
+        return self.total_tools_discovered / self.successful_introspections
+    
+    @property
+    def average_resources_per_server(self) -> float:
+        """Calculate average resources per server."""
+        if self.successful_introspections == 0:
+            return 0.0
+        return self.total_resources_discovered / self.successful_introspections
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert summary to dictionary."""
+        return {
+            'total_servers_introspected': self.total_servers_introspected,
+            'successful_introspections': self.successful_introspections,
+            'failed_introspections': self.failed_introspections,
+            'success_rate': self.success_rate,
+            'total_tools_discovered': self.total_tools_discovered,
+            'total_resources_discovered': self.total_resources_discovered,
+            'total_capabilities_discovered': self.total_capabilities_discovered,
+            'average_tools_per_server': self.average_tools_per_server,
+            'average_resources_per_server': self.average_resources_per_server,
+            'critical_risk_servers': self.critical_risk_servers,
+            'high_risk_servers': self.high_risk_servers,
+            'medium_risk_servers': self.medium_risk_servers,
+            'low_risk_servers': self.low_risk_servers,
+            'minimal_risk_servers': self.minimal_risk_servers,
+            'high_risk_rate': self.high_risk_rate,
+            'file_access_tools': self.file_access_tools,
+            'network_tools': self.network_tools,
+            'code_execution_tools': self.code_execution_tools,
+            'data_access_tools': self.data_access_tools,
+            'system_tools': self.system_tools,
+            'stdio_servers': self.stdio_servers,
+            'http_servers': self.http_servers,
+            'sse_servers': self.sse_servers,
+            'websocket_servers': self.websocket_servers,
+            'introspection_duration': self.introspection_duration,
+        }
+
+
+@dataclass
 class RiskSummary:
     """Summary statistics for risk assessment operations."""
     
@@ -225,9 +321,17 @@ class ReportData:
     scan_results: List[ScanResult] = field(default_factory=list)
     detection_results: List[DetectionResult] = field(default_factory=list)
     assessment_results: List[AssessmentResult] = field(default_factory=list)
+    
+    # Enhanced with pipeline results and introspection data
+    pipeline_results: List[PipelineResult] = field(default_factory=list)
+    introspection_data: Dict[str, MCPCapabilities] = field(default_factory=dict)
+    mcp_servers: List[MCPServerInfo] = field(default_factory=list)
+    
     scan_summary: Optional[ScanSummary] = None
     detection_summary: Optional[DetectionSummary] = None
     risk_summary: Optional[RiskSummary] = None
+    introspection_summary: Optional[IntrospectionSummary] = None
+    
     executive_summary: Optional[str] = None
     recommendations: List[str] = field(default_factory=list)
     raw_data: Dict[str, Any] = field(default_factory=dict)
@@ -241,6 +345,8 @@ class ReportData:
         for result in self.detection_results:
             targets.add(result.target_host)
         for result in self.assessment_results:
+            targets.add(result.target_host)
+        for result in self.pipeline_results:
             targets.add(result.target_host)
         return len(targets)
     
@@ -258,6 +364,16 @@ class ReportData:
     def has_assessment_data(self) -> bool:
         """Check if report contains assessment data."""
         return len(self.assessment_results) > 0
+    
+    @property
+    def has_pipeline_data(self) -> bool:
+        """Check if report contains pipeline data."""
+        return len(self.pipeline_results) > 0
+    
+    @property
+    def has_introspection_data(self) -> bool:
+        """Check if report contains introspection data."""
+        return len(self.introspection_data) > 0 or len(self.mcp_servers) > 0
     
     @property
     def critical_findings(self) -> List[Dict[str, Any]]:
@@ -280,6 +396,35 @@ class ReportData:
                 targets.append(assessment.target_host)
         return targets
     
+    @property
+    def introspected_servers(self) -> List[MCPServerInfo]:
+        """Get all introspected MCP servers."""
+        servers = []
+        servers.extend(self.mcp_servers)
+        
+        # Extract servers from pipeline results
+        for pipeline_result in self.pipeline_results:
+            if pipeline_result.best_mcp_server:
+                servers.append(pipeline_result.best_mcp_server)
+        
+        return servers
+    
+    @property
+    def total_tools_discovered(self) -> int:
+        """Get total number of tools discovered across all servers."""
+        total = 0
+        for server in self.introspected_servers:
+            total += server.get_tool_count()
+        return total
+    
+    @property
+    def total_resources_discovered(self) -> int:
+        """Get total number of resources discovered across all servers."""
+        total = 0
+        for server in self.introspected_servers:
+            total += server.get_resource_count()
+        return total
+    
     def get_targets_by_risk_level(self, risk_level: RiskLevel) -> List[str]:
         """Get targets filtered by risk level."""
         return [
@@ -299,6 +444,23 @@ class ReportData:
                 })
         return findings
     
+    def get_servers_by_risk_level(self, risk_level: str) -> List[MCPServerInfo]:
+        """Get MCP servers filtered by risk level."""
+        return [
+            server for server in self.introspected_servers
+            if server.overall_risk_level.value == risk_level
+        ]
+    
+    def get_tools_by_category(self, category: str) -> List[MCPTool]:
+        """Get tools filtered by category."""
+        tools = []
+        for server in self.introspected_servers:
+            for tool in server.tools:
+                # Simple category matching - could be enhanced with proper categorization
+                if category.lower() in tool.name.lower() or category.lower() in tool.description.lower():
+                    tools.append(tool)
+        return tools
+    
     def to_dict(self) -> Dict[str, Any]:
         """Convert report data to dictionary."""
         return {
@@ -308,19 +470,56 @@ class ReportData:
                 'has_scan_data': self.has_scan_data,
                 'has_detection_data': self.has_detection_data,
                 'has_assessment_data': self.has_assessment_data,
+                'has_pipeline_data': self.has_pipeline_data,
+                'has_introspection_data': self.has_introspection_data,
                 'critical_findings_count': len(self.critical_findings),
                 'high_risk_targets_count': len(self.high_risk_targets),
+                'total_tools_discovered': self.total_tools_discovered,
+                'total_resources_discovered': self.total_resources_discovered,
+                'introspected_servers_count': len(self.introspected_servers),
             },
             'scan_summary': self.scan_summary.to_dict() if self.scan_summary else None,
             'detection_summary': self.detection_summary.to_dict() if self.detection_summary else None,
             'risk_summary': self.risk_summary.to_dict() if self.risk_summary else None,
+            'introspection_summary': self.introspection_summary.to_dict() if self.introspection_summary else None,
             'scan_results': [result.to_dict() for result in self.scan_results],
             'detection_results': [result.to_dict() for result in self.detection_results],
             'assessment_results': [result.to_dict() for result in self.assessment_results],
+            'pipeline_results': [self._pipeline_result_to_dict(result) for result in self.pipeline_results],
+            'introspection_data': {k: self._capabilities_to_dict(v) for k, v in self.introspection_data.items()},
+            'mcp_servers': [self._server_info_to_dict(server) for server in self.mcp_servers],
             'executive_summary': self.executive_summary,
             'recommendations': self.recommendations,
             'raw_data': self.raw_data,
         }
+    
+    def _pipeline_result_to_dict(self, result: PipelineResult) -> Dict[str, Any]:
+        """Convert PipelineResult to dictionary."""
+        return {
+            'target_host': result.target_host,
+            'start_time': result.start_time.isoformat(),
+            'end_time': result.end_time.isoformat(),
+            'duration': result.duration,
+            'success': result.success,
+            'total_detections': result.total_detections,
+            'successful_detections': result.successful_detections,
+            'failed_detections': result.failed_detections,
+            'mcp_servers_found': result.mcp_servers_found,
+            'best_mcp_server': self._server_info_to_dict(result.best_mcp_server) if result.best_mcp_server else None,
+            'highest_confidence_result': result.highest_confidence_result.to_dict() if result.highest_confidence_result else None,
+            'risk_assessment': result.risk_assessment,
+            'errors': result.errors,
+            'warnings': result.warnings,
+            'introspection_results_count': len(result.introspection_results),
+        }
+    
+    def _capabilities_to_dict(self, capabilities: MCPCapabilities) -> Dict[str, Any]:
+        """Convert MCPCapabilities to dictionary."""
+        return capabilities.dict() if hasattr(capabilities, 'dict') else capabilities.__dict__
+    
+    def _server_info_to_dict(self, server: MCPServerInfo) -> Dict[str, Any]:
+        """Convert MCPServerInfo to dictionary."""
+        return server.dict() if hasattr(server, 'dict') else server.__dict__
 
 
 class BaseReporter(ABC):
@@ -378,7 +577,8 @@ class BaseReporter(ABC):
         if not data.metadata:
             raise ReportingError("Report metadata is required")
         
-        if not (data.has_scan_data or data.has_detection_data or data.has_assessment_data):
+        if not (data.has_scan_data or data.has_detection_data or data.has_assessment_data or 
+                data.has_pipeline_data or data.has_introspection_data):
             raise ReportingError("Report must contain at least one type of data")
     
     def get_generation_statistics(self) -> Dict[str, Any]:

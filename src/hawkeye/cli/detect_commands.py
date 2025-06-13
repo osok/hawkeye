@@ -9,6 +9,7 @@ import sys
 from pathlib import Path
 from typing import Optional, List
 import ipaddress
+from datetime import datetime
 
 import click
 from rich.console import Console
@@ -24,8 +25,11 @@ from ..detection.transport_detect import TransportDetector
 from ..detection.npx_detect import NPXDetector
 from ..detection.docker_inspect import DockerInspector
 from ..detection.env_analysis import EnvironmentAnalyzer
+from ..detection.pipeline import DetectionPipeline, PipelineConfig, create_detection_pipeline
 from ..exceptions import HawkEyeError, DetectionError
 from ..utils import get_logger
+from ..reporting.pipeline_converter import convert_pipeline_results_to_report
+from ..reporting import IntrospectionReporter, JSONReporter, CSVReporter, XMLReporter, HTMLReporter
 
 console = Console()
 logger = get_logger(__name__)
@@ -35,6 +39,171 @@ logger = get_logger(__name__)
 def detect():
     """MCP-specific detection and analysis operations."""
     pass
+
+
+@detect.command()
+@click.option(
+    "--target", "-t",
+    required=True,
+    help="Target IP address or hostname"
+)
+@click.option(
+    "--enable-introspection/--disable-introspection",
+    default=True,
+    help="Enable enhanced MCP introspection (default: enabled)"
+)
+@click.option(
+    "--introspection-timeout",
+    type=int,
+    default=180,
+    help="Timeout for MCP introspection in seconds (default: 180)"
+)
+@click.option(
+    "--enable-risk-assessment/--disable-risk-assessment",
+    default=True,
+    help="Enable risk assessment of discovered servers (default: enabled)"
+)
+@click.option(
+    "--confidence-threshold",
+    type=float,
+    default=0.3,
+    help="Minimum confidence threshold for results (default: 0.3)"
+)
+@click.option(
+    "--output", "-o",
+    type=click.Path(),
+    help="Output file path for comprehensive results"
+)
+@click.option(
+    "--format", "-f",
+    type=click.Choice(["json", "csv", "xml", "html"]),
+    default="json",
+    help="Output format (default: json)"
+)
+@click.option(
+    "--generate-introspection-report/--no-introspection-report",
+    default=False,
+    help="Generate detailed introspection report (default: disabled)"
+)
+@click.option(
+    "--introspection-report-path",
+    type=click.Path(),
+    help="Path for introspection report (default: auto-generated)"
+)
+@click.pass_context
+def comprehensive(ctx, target: str, enable_introspection: bool, introspection_timeout: int,
+                 enable_risk_assessment: bool, confidence_threshold: float, output: Optional[str], 
+                 format: str, generate_introspection_report: bool, introspection_report_path: Optional[str]):
+    """
+    Comprehensive MCP detection using integrated pipeline.
+    
+    Performs complete MCP detection including traditional methods and
+    enhanced introspection with risk assessment.
+    
+    Examples:
+    \b
+        hawkeye detect comprehensive -t 192.168.1.100
+        hawkeye detect comprehensive -t localhost --disable-introspection
+        hawkeye detect comprehensive -t example.com --confidence-threshold 0.5
+    """
+    try:
+        console.print(f"[bold blue]🦅 HawkEye Comprehensive MCP Detection[/bold blue]")
+        console.print(f"Target: {target}")
+        console.print(f"Enhanced Introspection: {'Enabled' if enable_introspection else 'Disabled'}")
+        console.print(f"Risk Assessment: {'Enabled' if enable_risk_assessment else 'Disabled'}")
+        console.print(f"Confidence Threshold: {confidence_threshold}")
+        console.print()
+        
+        # Create pipeline configuration
+        pipeline_config = PipelineConfig(
+            enable_mcp_introspection=enable_introspection,
+            introspection_timeout=float(introspection_timeout),
+            enable_risk_assessment=enable_risk_assessment,
+            min_confidence_threshold=confidence_threshold
+        )
+        
+        # Create and execute pipeline
+        pipeline = create_detection_pipeline(pipeline_config, ctx.obj.settings)
+        
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            console=console
+        ) as progress:
+            
+            task = progress.add_task("Executing comprehensive detection...", total=None)
+            
+            # Execute the pipeline
+            result = pipeline.execute_pipeline(target)
+            
+            progress.update(task, description="Detection complete", total=1, completed=1)
+        
+        # Display comprehensive results
+        display_comprehensive_results(result)
+        
+        # Display pipeline statistics
+        stats = pipeline.get_pipeline_statistics()
+        display_pipeline_statistics(stats)
+        
+        # Generate and save reports if requested
+        if output or generate_introspection_report:
+            # Convert pipeline result to report data
+            report_data = convert_pipeline_results_to_report(
+                [result],
+                report_title=f"MCP Detection Report - {target}",
+                report_format=format
+            )
+            
+            # Save main report if output specified
+            if output:
+                output_path = Path(output)
+                
+                # Select appropriate reporter based on format
+                if format == "json":
+                    reporter = JSONReporter(ctx.obj.settings)
+                elif format == "csv":
+                    reporter = CSVReporter(ctx.obj.settings)
+                elif format == "xml":
+                    reporter = XMLReporter(ctx.obj.settings)
+                elif format == "html":
+                    reporter = HTMLReporter(ctx.obj.settings)
+                else:
+                    reporter = JSONReporter(ctx.obj.settings)  # Default fallback
+                
+                # Generate and save report
+                report_content = reporter.generate_report(report_data, output_path)
+                console.print(f"\n[green]Main report saved to {output_path}[/green]")
+            
+            # Generate introspection report if requested
+            if generate_introspection_report and report_data.has_introspection_data:
+                introspection_reporter = IntrospectionReporter(ctx.obj.settings)
+                
+                # Determine introspection report path
+                if introspection_report_path:
+                    introspection_path = Path(introspection_report_path)
+                else:
+                    # Auto-generate path based on target and timestamp
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    introspection_path = Path(f"hawkeye_introspection_{target}_{timestamp}.json")
+                
+                # Generate introspection report
+                introspection_content = introspection_reporter.generate_report(report_data, introspection_path)
+                console.print(f"[green]Introspection report saved to {introspection_path}[/green]")
+                
+                # Display summary of introspection findings
+                if report_data.introspection_summary:
+                    console.print(f"\n[bold cyan]Introspection Summary:[/bold cyan]")
+                    console.print(f"  Servers Introspected: {report_data.introspection_summary.total_servers_introspected}")
+                    console.print(f"  Success Rate: {report_data.introspection_summary.success_rate:.1%}")
+                    console.print(f"  Tools Discovered: {report_data.introspection_summary.total_tools_discovered}")
+                    console.print(f"  Resources Discovered: {report_data.introspection_summary.total_resources_discovered}")
+                    console.print(f"  High Risk Servers: {report_data.introspection_summary.high_risk_servers}")
+            elif generate_introspection_report and not report_data.has_introspection_data:
+                console.print("[yellow]No introspection data available for detailed report generation[/yellow]")
+        
+    except Exception as e:
+        logger.error(f"Comprehensive detection failed: {e}")
+        raise click.ClickException(f"Comprehensive detection failed: {e}")
 
 
 @detect.command()
@@ -649,3 +818,164 @@ def save_detection_results(results, output_path: str, format: str):
         raise ValueError(f"Unsupported format: {format}")
     
     reporter.generate_report(report_data, Path(output_path))
+
+
+def display_comprehensive_results(result):
+    """Display comprehensive detection pipeline results."""
+    from ..detection.pipeline import PipelineResult
+    
+    console.print(f"\n[bold green]🔍 Comprehensive Detection Results[/bold green]")
+    console.print(f"Target: {result.target_host}")
+    console.print(f"Duration: {result.duration:.2f} seconds")
+    console.print(f"Success: {'✅' if result.success else '❌'}")
+    console.print()
+    
+    # Summary statistics
+    console.print("[bold cyan]📊 Detection Summary[/bold cyan]")
+    summary_table = Table(show_header=True, header_style="bold magenta")
+    summary_table.add_column("Metric", style="cyan")
+    summary_table.add_column("Value", style="green")
+    
+    summary_table.add_row("Total Detections", str(result.total_detections))
+    summary_table.add_row("Successful Detections", str(result.successful_detections))
+    summary_table.add_row("Failed Detections", str(result.failed_detections))
+    summary_table.add_row("MCP Servers Found", str(result.mcp_servers_found))
+    summary_table.add_row("Servers Introspected", str(len(result.introspection_results)))
+    
+    console.print(summary_table)
+    console.print()
+    
+    # Detection results by method
+    if result.detection_results:
+        console.print("[bold cyan]🔍 Detection Results by Method[/bold cyan]")
+        method_table = Table(show_header=True, header_style="bold magenta")
+        method_table.add_column("Detection Method", style="cyan")
+        method_table.add_column("Results", style="green")
+        method_table.add_column("Success Rate", style="yellow")
+        
+        for method, results in result.detection_results.items():
+            successful = sum(1 for r in results if r.success)
+            total = len(results)
+            success_rate = f"{(successful/max(total,1)*100):.1f}%" if total > 0 else "N/A"
+            
+            method_table.add_row(
+                method.value.replace('_', ' ').title(),
+                f"{successful}/{total}",
+                success_rate
+            )
+        
+        console.print(method_table)
+        console.print()
+    
+    # Introspection results
+    if result.introspection_results:
+        console.print("[bold cyan]🔬 MCP Server Introspection Results[/bold cyan]")
+        introspection_table = Table(show_header=True, header_style="bold magenta")
+        introspection_table.add_column("Server ID", style="cyan")
+        introspection_table.add_column("Tools", style="green")
+        introspection_table.add_column("Resources", style="blue")
+        introspection_table.add_column("Risk Level", style="red")
+        introspection_table.add_column("Capabilities", style="yellow")
+        
+        for server_id, capabilities in result.introspection_results.items():
+            risk_color = {
+                "low": "green",
+                "medium": "yellow", 
+                "high": "orange",
+                "critical": "red"
+            }.get(capabilities.highest_risk_level, "white")
+            
+            capability_flags = []
+            if capabilities.has_file_access:
+                capability_flags.append("📁 File")
+            if capabilities.has_external_access:
+                capability_flags.append("🌐 Network")
+            if capabilities.has_code_execution:
+                capability_flags.append("⚡ Code")
+            
+            introspection_table.add_row(
+                server_id,
+                str(capabilities.tool_count),
+                str(capabilities.resource_count),
+                f"[{risk_color}]{capabilities.highest_risk_level.upper()}[/{risk_color}]",
+                " ".join(capability_flags) if capability_flags else "None"
+            )
+        
+        console.print(introspection_table)
+        console.print()
+    
+    # Risk assessment
+    if result.risk_assessment:
+        console.print("[bold cyan]⚠️  Risk Assessment[/bold cyan]")
+        risk = result.risk_assessment
+        
+        risk_color = {
+            "low": "green",
+            "medium": "yellow",
+            "high": "orange", 
+            "critical": "red"
+        }.get(risk.get("overall_risk_level", "low"), "white")
+        
+        console.print(f"Overall Risk Level: [{risk_color}]{risk.get('overall_risk_level', 'Unknown').upper()}[/{risk_color}]")
+        
+        if risk.get("risk_factors"):
+            console.print("\n[yellow]Risk Factors:[/yellow]")
+            for factor in risk["risk_factors"]:
+                console.print(f"  • {factor}")
+        
+        if risk.get("security_concerns"):
+            console.print("\n[red]Security Concerns:[/red]")
+            for concern in risk["security_concerns"]:
+                console.print(f"  ⚠️  {concern}")
+        
+        if risk.get("recommendations"):
+            console.print("\n[blue]Recommendations:[/blue]")
+            for rec in risk["recommendations"]:
+                console.print(f"  💡 {rec}")
+        
+        console.print()
+    
+    # Best findings
+    if result.best_mcp_server:
+        console.print("[bold cyan]🎯 Best MCP Server Found[/bold cyan]")
+        server = result.best_mcp_server
+        console.print(f"Name: {server.name}")
+        console.print(f"Host: {server.host}")
+        if hasattr(server, 'port') and server.port:
+            console.print(f"Port: {server.port}")
+        console.print()
+    
+    # Errors and warnings
+    if result.errors:
+        console.print("[bold red]❌ Errors[/bold red]")
+        for error in result.errors:
+            console.print(f"  • {error}")
+        console.print()
+    
+    if result.warnings:
+        console.print("[bold yellow]⚠️  Warnings[/bold yellow]")
+        for warning in result.warnings:
+            console.print(f"  • {warning}")
+        console.print()
+
+
+def display_pipeline_statistics(stats):
+    """Display pipeline execution statistics."""
+    console.print("[bold cyan]📈 Pipeline Statistics[/bold cyan]")
+    
+    stats_table = Table(show_header=True, header_style="bold magenta")
+    stats_table.add_column("Metric", style="cyan")
+    stats_table.add_column("Value", style="green")
+    
+    stats_table.add_row("Total Pipelines Executed", str(stats.get("total_pipelines_executed", 0)))
+    stats_table.add_row("Successful Pipelines", str(stats.get("successful_pipelines", 0)))
+    stats_table.add_row("Failed Pipelines", str(stats.get("failed_pipelines", 0)))
+    stats_table.add_row("Success Rate", f"{stats.get('success_rate', 0):.1f}%")
+    stats_table.add_row("Total Introspections", str(stats.get("total_introspections", 0)))
+    stats_table.add_row("Successful Introspections", str(stats.get("successful_introspections", 0)))
+    stats_table.add_row("Introspection Success Rate", f"{stats.get('introspection_success_rate', 0):.1f}%")
+    stats_table.add_row("Average Duration", f"{stats.get('average_pipeline_duration', 0):.2f}s")
+    stats_table.add_row("Introspection Enabled", "✅" if stats.get("introspection_enabled", False) else "❌")
+    
+    console.print(stats_table)
+    console.print()

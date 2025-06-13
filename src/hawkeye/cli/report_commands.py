@@ -151,18 +151,40 @@ def generate(ctx, input: str, output: str, format: str, title: str, author: str,
             
             if format == "json":
                 reporter = JSONReporter()
+                reporter.generate_report(report_data, Path(output))
             elif format == "csv":
                 reporter = CSVReporter()
+                reporter.generate_report(report_data, Path(output))
             elif format == "xml":
                 reporter = XMLReporter()
+                reporter.generate_report(report_data, Path(output))
             elif format == "html":
                 reporter = HTMLReporter()
                 if template:
                     reporter.set_template(Path(template))
+                
+                # Check if this is MCP detection data and use appropriate template
+                has_mcp_detection = False
+                if report_data.detection_results:
+                    for r in report_data.detection_results:
+                        method = getattr(r, 'detection_method', None)
+                        # Handle both enum values and string values
+                        method_str = method.value if hasattr(method, 'value') else str(method)
+                        if method_str in ["process_enumeration", "config_file_discovery", 
+                                         "docker_inspection", "environment_analysis"]:
+                            has_mcp_detection = True
+                            break
+                
+                if has_mcp_detection:
+                    # Use MCP summary template for MCP detection results
+                    console.print("[info]Using MCP Summary template for detection results[/info]")
+                    reporter.generate_mcp_summary_report(report_data, Path(output))
+                else:
+                    # Use default technical report template
+                    console.print("[info]Using Technical Report template[/info]")
+                    reporter.generate_technical_report(report_data, Path(output))
             else:
                 raise ValueError(f"Unsupported format: {format}")
-            
-            reporter.generate_report(report_data, Path(output))
             progress.advance(task, 1)
         
         # Display generation summary
@@ -173,6 +195,128 @@ def generate(ctx, input: str, output: str, format: str, title: str, author: str,
     except Exception as e:
         logger.error(f"Report generation failed: {e}")
         raise click.ClickException(f"Report generation failed: {e}")
+
+
+@report.command()
+@click.option(
+    "--input", "-i",
+    type=click.Path(exists=True),
+    required=True,
+    help="Input file containing MCP detection results"
+)
+@click.option(
+    "--output", "-o",
+    type=click.Path(),
+    required=True,
+    help="Output file path for threat analysis report"
+)
+@click.option(
+    "--title",
+    default="HawkEye Security Threat Analysis Report",
+    help="Report title (default: HawkEye Security Threat Analysis Report)"
+)
+@click.option(
+    "--author",
+    default="HawkEye Security Team",
+    help="Report author (default: HawkEye Security Team)"
+)
+@click.option(
+    "--organization",
+    default="Security Assessment Team",
+    help="Organization name (default: Security Assessment Team)"
+)
+@click.option(
+    "--classification",
+    type=click.Choice(["Public", "Internal", "Confidential", "Restricted"]),
+    default="Confidential",
+    help="Report classification level (default: Confidential)"
+)
+@click.pass_context
+def threat_analysis(ctx, input: str, output: str, title: str, author: str,
+                   organization: str, classification: str):
+    """
+    Generate threat analysis report showing attack scenarios and abuse cases.
+    
+    Analyzes detected MCP tools and generates detailed threat analysis including
+    attack vectors, abuse scenarios, mitigation strategies, and compliance impact.
+    
+    Examples:
+    \b
+        hawkeye report threat-analysis -i mcp_results.json -o threat_report.html
+        hawkeye report threat-analysis -i detection.json -o threats.html --classification Restricted
+    """
+    try:
+        console.print(f"[bold red]🚨 HawkEye Threat Analysis Report Generation[/bold red]")
+        console.print(f"Input: {input}")
+        console.print(f"Output: {output}")
+        console.print(f"Title: {title}")
+        console.print(f"Classification: {classification}")
+        console.print()
+        
+        # Load input data
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(),
+            TaskProgressColumn(),
+            console=console
+        ) as progress:
+            
+            task = progress.add_task("Loading MCP detection data...", total=4)
+            
+            # Load and parse input file
+            input_data = load_input_data(input)
+            progress.advance(task, 1)
+            
+            # Convert dictionary data to objects
+            converted_data = convert_dict_data_to_objects(input_data)
+            
+            # Create report metadata
+            metadata = ReportMetadata(
+                title=title,
+                report_type=ReportType.THREAT_ANALYSIS,
+                format=ReportFormat.HTML,
+                generated_by="hawkeye-cli",
+                version="1.0.0",
+                description=f"Security threat analysis report generated from {input}",
+                author=author,
+                organization=organization,
+                classification=classification
+            )
+            progress.advance(task, 1)
+            
+            # Create report data
+            report_data = ReportData(
+                metadata=metadata,
+                scan_results=converted_data.get('scan_results', []),
+                detection_results=converted_data.get('detection_results', []),
+                assessment_results=converted_data.get('assessment_results', []),
+                recommendations=converted_data.get('recommendations', [])
+            )
+            progress.advance(task, 1)
+            
+            # Generate threat analysis report
+            progress.update(task, description="Generating threat analysis report...")
+            
+            reporter = HTMLReporter()
+            reporter.generate_threat_analysis_report(report_data, Path(output))
+            progress.advance(task, 1)
+        
+        # Display generation summary
+        console.print(f"\n[bold green]✅ Threat Analysis Report Generated Successfully[/bold green]")
+        console.print(f"[green]Report saved to: {output}[/green]")
+        
+        # Display threat summary
+        if report_data.detection_results:
+            mcp_count = sum(1 for r in report_data.detection_results 
+                          if hasattr(r, 'raw_data') and r.raw_data and 
+                          r.raw_data.get('process_data', {}).get('has_mcp_indicators', False))
+            console.print(f"[yellow]⚠️  Analyzed {mcp_count} MCP server detections for threat scenarios[/yellow]")
+            console.print(f"[red]🔥 Report includes attack vectors, abuse scenarios, and mitigation strategies[/red]")
+        
+    except Exception as e:
+        logger.error(f"Threat analysis report generation failed: {e}")
+        raise click.ClickException(f"Threat analysis report generation failed: {e}")
 
 
 @report.command()
@@ -605,9 +749,17 @@ def convert_dict_data_to_objects(input_data: dict) -> dict:
     # Convert detection results
     for detection_dict in input_data.get('detection_results', []):
         try:
+            # Handle detection method conversion
+            method_str = detection_dict['detection_method']
+            if isinstance(method_str, str):
+                # Convert string to enum value
+                method = DetectionMethod(method_str)
+            else:
+                method = method_str
+            
             detection_result = DetectionResult(
                 target_host=detection_dict['target_host'],
-                detection_method=DetectionMethod(detection_dict['detection_method']),
+                detection_method=method,
                 timestamp=detection_dict['timestamp'],
                 success=detection_dict.get('success', False),
                 confidence=detection_dict.get('confidence', 0.0),
@@ -617,6 +769,18 @@ def convert_dict_data_to_objects(input_data: dict) -> dict:
             converted_data['detection_results'].append(detection_result)
         except Exception as e:
             logger.warning(f"Failed to convert detection result: {e}")
+            # Create a simple object with the detection method as string for template checking
+            class SimpleDetectionResult:
+                def __init__(self, method_str):
+                    self.detection_method = method_str
+                    self.target_host = detection_dict.get('target_host', 'unknown')
+                    self.timestamp = detection_dict.get('timestamp', 0)
+                    self.success = detection_dict.get('success', False)
+                    self.confidence = detection_dict.get('confidence', 0.0)
+                    self.error = detection_dict.get('error')
+                    self.raw_data = detection_dict.get('raw_data', {})
+            
+            converted_data['detection_results'].append(SimpleDetectionResult(method_str))
     
     # Convert assessment results
     for assessment_dict in input_data.get('assessment_results', []):

@@ -318,41 +318,37 @@ tests = ["B201", "B301", "B302", "B303", "B304", "B305", "B306", "B307", "B308",
 skips = ["B101", "B601"]
 
 # Pre-commit hooks configuration
-[tool.pre-commit]
-repos = [
-    {
-        repo = "https://github.com/pre-commit/pre-commit-hooks",
-        rev = "v4.4.0",
-        hooks = [
-            {id = "trailing-whitespace"},
-            {id = "end-of-file-fixer"},
-            {id = "check-yaml"},
-            {id = "check-added-large-files"},
-            {id = "check-merge-conflict"},
-            {id = "debug-statements"},
-        ]
-    },
-    {
-        repo = "https://github.com/psf/black",
-        rev = "23.7.0",
-        hooks = [
-            {id = "black"}
-        ]
-    },
-    {
-        repo = "https://github.com/charliermarsh/ruff-pre-commit",
-        rev = "v0.0.287",
-        hooks = [
-            {id = "ruff", args = ["--fix"]}
-        ]
-    },
-    {
-        repo = "https://github.com/pre-commit/mirrors-mypy",
-        rev = "v1.5.1",
-        hooks = [
-            {id = "mypy", additional_dependencies = ["types-all"]}
-        ]
-    },
+[[tool.pre-commit.repos]]
+repo = "https://github.com/pre-commit/pre-commit-hooks"
+rev = "v4.4.0"
+hooks = [
+    {id = "trailing-whitespace"},
+    {id = "end-of-file-fixer"},
+    {id = "check-yaml"},
+    {id = "check-added-large-files"},
+    {id = "check-merge-conflict"},
+    {id = "debug-statements"},
+]
+
+[[tool.pre-commit.repos]]
+repo = "https://github.com/psf/black"
+rev = "23.7.0"
+hooks = [
+    {id = "black"}
+]
+
+[[tool.pre-commit.repos]]
+repo = "https://github.com/charliermarsh/ruff-pre-commit"
+rev = "v0.0.287"
+hooks = [
+    {id = "ruff", args = ["--fix"]}
+]
+
+[[tool.pre-commit.repos]]
+repo = "https://github.com/pre-commit/mirrors-mypy"
+rev = "v1.5.1"
+hooks = [
+    {id = "mypy", additional_dependencies = ["types-all"]}
 ]
 
 # Semantic versioning

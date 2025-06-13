@@ -24,6 +24,7 @@ from .transport_detect import TransportDetector
 from .npx_detect import NPXDetector
 from .docker_inspect import DockerInspector
 from .env_analysis import EnvironmentAnalyzer
+from .pipeline import DetectionPipeline, PipelineConfig, PipelineResult, create_detection_pipeline
 
 __all__ = [
     'MCPDetector',
@@ -43,4 +44,8 @@ __all__ = [
     'NPXDetector',
     'DockerInspector',
     'EnvironmentAnalyzer',
+    'DetectionPipeline',
+    'PipelineConfig',
+    'PipelineResult',
+    'create_detection_pipeline',
 ] 

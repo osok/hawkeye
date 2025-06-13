@@ -140,6 +140,10 @@ class DataAggregator:
             if data.has_assessment_data:
                 enhanced_data.risk_summary = self.generate_risk_summary(data.assessment_results)
             
+            # Generate introspection summary if introspection data exists
+            if data.has_introspection_data:
+                enhanced_data.introspection_summary = self.generate_introspection_summary(data)
+            
             # Generate executive summary
             enhanced_data.executive_summary = self.generate_executive_summary(enhanced_data)
             
@@ -309,6 +313,117 @@ class DataAggregator:
             assessment_duration=assessment_duration,
         )
     
+    def generate_introspection_summary(self, data: ReportData):
+        """Generate summary statistics for introspection data."""
+        from .base import IntrospectionSummary
+        from ..detection.mcp_introspection.models import RiskLevel
+        
+        if not data.has_introspection_data:
+            return IntrospectionSummary()
+        
+        # Get all introspected servers
+        introspected_servers = data.introspected_servers
+        total_servers_introspected = len(introspected_servers)
+        
+        if total_servers_introspected == 0:
+            return IntrospectionSummary()
+        
+        # Calculate success/failure rates
+        successful_introspections = total_servers_introspected  # All servers in the list are successful
+        failed_introspections = 0  # Failed ones wouldn't be in the list
+        
+        # Count tools and resources
+        total_tools_discovered = sum(server.get_tool_count() for server in introspected_servers)
+        total_resources_discovered = sum(server.get_resource_count() for server in introspected_servers)
+        total_capabilities_discovered = sum(server.get_capability_count() for server in introspected_servers)
+        
+        # Count risk distribution
+        risk_counts = Counter(server.overall_risk_level for server in introspected_servers)
+        critical_risk_servers = risk_counts.get(RiskLevel.CRITICAL, 0)
+        high_risk_servers = risk_counts.get(RiskLevel.HIGH, 0)
+        medium_risk_servers = risk_counts.get(RiskLevel.MEDIUM, 0)
+        low_risk_servers = risk_counts.get(RiskLevel.LOW, 0)
+        minimal_risk_servers = risk_counts.get(RiskLevel.MINIMAL, 0)
+        
+        # Count tool categories
+        file_access_tools = 0
+        network_tools = 0
+        code_execution_tools = 0
+        data_access_tools = 0
+        system_tools = 0
+        
+        for server in introspected_servers:
+            for tool in server.tools:
+                tool_name = tool.name.lower()
+                tool_desc = tool.description.lower()
+                
+                if any(keyword in tool_name or keyword in tool_desc 
+                       for keyword in ['file', 'read', 'write', 'directory', 'path']):
+                    file_access_tools += 1
+                elif any(keyword in tool_name or keyword in tool_desc 
+                         for keyword in ['http', 'request', 'url', 'web', 'api']):
+                    network_tools += 1
+                elif any(keyword in tool_name or keyword in tool_desc 
+                         for keyword in ['execute', 'run', 'command', 'shell', 'script']):
+                    code_execution_tools += 1
+                elif any(keyword in tool_name or keyword in tool_desc 
+                         for keyword in ['database', 'sql', 'query', 'db']):
+                    data_access_tools += 1
+                elif any(keyword in tool_name or keyword in tool_desc 
+                         for keyword in ['system', 'process', 'service', 'config']):
+                    system_tools += 1
+        
+        # Count transport types (from pipeline results if available)
+        stdio_servers = 0
+        http_servers = 0
+        sse_servers = 0
+        websocket_servers = 0
+        
+        if data.has_pipeline_data:
+            for pipeline_result in data.pipeline_results:
+                if pipeline_result.best_mcp_server:
+                    server = pipeline_result.best_mcp_server
+                    # Check transport type from metadata or other fields
+                    transport_info = getattr(server, 'metadata', {}).get('transport_type', '')
+                    if 'stdio' in transport_info.lower():
+                        stdio_servers += 1
+                    elif 'http' in transport_info.lower():
+                        http_servers += 1
+                    elif 'sse' in transport_info.lower():
+                        sse_servers += 1
+                    elif 'websocket' in transport_info.lower():
+                        websocket_servers += 1
+        
+        # Calculate timing
+        introspection_duration = None
+        if data.has_pipeline_data:
+            durations = [result.duration for result in data.pipeline_results if result.duration]
+            introspection_duration = sum(durations) if durations else None
+        
+        return IntrospectionSummary(
+            total_servers_introspected=total_servers_introspected,
+            successful_introspections=successful_introspections,
+            failed_introspections=failed_introspections,
+            total_tools_discovered=total_tools_discovered,
+            total_resources_discovered=total_resources_discovered,
+            total_capabilities_discovered=total_capabilities_discovered,
+            critical_risk_servers=critical_risk_servers,
+            high_risk_servers=high_risk_servers,
+            medium_risk_servers=medium_risk_servers,
+            low_risk_servers=low_risk_servers,
+            minimal_risk_servers=minimal_risk_servers,
+            file_access_tools=file_access_tools,
+            network_tools=network_tools,
+            code_execution_tools=code_execution_tools,
+            data_access_tools=data_access_tools,
+            system_tools=system_tools,
+            stdio_servers=stdio_servers,
+            http_servers=http_servers,
+            sse_servers=sse_servers,
+            websocket_servers=websocket_servers,
+            introspection_duration=introspection_duration,
+        )
+    
     def generate_executive_summary(self, data: ReportData) -> str:
         """Generate executive summary text."""
         summary_parts = []
@@ -358,6 +473,24 @@ class DataAggregator:
             summary_parts.append(f"• {scan_summary.total_ports_scanned} ports scanned")
             summary_parts.append(f"• {scan_summary.open_ports} open ports discovered")
             summary_parts.append(f"• {scan_summary.services_detected} services identified")
+            summary_parts.append("")
+        
+        # Introspection results
+        if data.has_introspection_data and data.introspection_summary:
+            introspection_summary = data.introspection_summary
+            summary_parts.append(f"MCP Introspection Results:")
+            summary_parts.append(f"• {introspection_summary.total_servers_introspected} MCP servers introspected")
+            summary_parts.append(f"• {introspection_summary.total_tools_discovered} tools discovered")
+            summary_parts.append(f"• {introspection_summary.total_resources_discovered} resources discovered")
+            summary_parts.append(f"• {introspection_summary.critical_risk_servers + introspection_summary.high_risk_servers} high-risk servers identified")
+            
+            # Highlight dangerous tool categories
+            dangerous_tools = (introspection_summary.file_access_tools + 
+                             introspection_summary.code_execution_tools + 
+                             introspection_summary.system_tools)
+            if dangerous_tools > 0:
+                summary_parts.append(f"• {dangerous_tools} potentially dangerous tools detected")
+            
             summary_parts.append("")
         
         # Recommendations
@@ -428,6 +561,40 @@ class DataAggregator:
                 recommendations.append(
                     f"Review and secure {scan_summary.open_ports} open ports, "
                     f"closing unnecessary services"
+                )
+        
+        # Introspection-specific recommendations
+        if data.has_introspection_data and data.introspection_summary:
+            introspection_summary = data.introspection_summary
+            
+            if introspection_summary.critical_risk_servers > 0:
+                recommendations.append(
+                    f"CRITICAL: Immediately review {introspection_summary.critical_risk_servers} "
+                    f"MCP server(s) with critical risk levels"
+                )
+            
+            if introspection_summary.file_access_tools > 0:
+                recommendations.append(
+                    f"Review and restrict {introspection_summary.file_access_tools} file access tools "
+                    f"to prevent unauthorized data access"
+                )
+            
+            if introspection_summary.code_execution_tools > 0:
+                recommendations.append(
+                    f"Secure {introspection_summary.code_execution_tools} code execution tools "
+                    f"with proper sandboxing and access controls"
+                )
+            
+            if introspection_summary.system_tools > 0:
+                recommendations.append(
+                    f"Implement strict access controls for {introspection_summary.system_tools} "
+                    f"system-level tools"
+                )
+            
+            if introspection_summary.network_tools > 0:
+                recommendations.append(
+                    f"Monitor and restrict network access for {introspection_summary.network_tools} "
+                    f"network-enabled tools"
                 )
         
         # General security recommendations

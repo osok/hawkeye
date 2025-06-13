@@ -13,6 +13,7 @@ from .base import (
     ScanSummary,
     DetectionSummary,
     RiskSummary,
+    IntrospectionSummary,
     ReportData,
     BaseReporter,
     ReportingError,
@@ -23,6 +24,7 @@ from .json_reporter import JSONReporter
 from .csv_reporter import CSVReporter
 from .xml_reporter import XMLReporter
 from .html_reporter import HTMLReporter
+from .introspection_reporter import IntrospectionReporter
 from .aggregation import DataAggregator, TimeSeriesData, DistributionData
 from .executive_summary import ExecutiveSummaryGenerator, ExecutiveFinding, ExecutiveMetrics
 
@@ -34,6 +36,7 @@ __all__ = [
     'ScanSummary',
     'DetectionSummary',
     'RiskSummary',
+    'IntrospectionSummary',
     'ReportData',
     'BaseReporter',
     
@@ -47,6 +50,7 @@ __all__ = [
     'CSVReporter',
     'XMLReporter',
     'HTMLReporter',
+    'IntrospectionReporter',
     
     # Data Analysis
     'DataAggregator',

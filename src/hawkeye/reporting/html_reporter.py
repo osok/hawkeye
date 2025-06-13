@@ -6,6 +6,8 @@ system for creating professional, formatted HTML reports with interactive elemen
 """
 
 import time
+import json
+from datetime import datetime
 from pathlib import Path
 from typing import Optional, Dict, Any
 
@@ -15,8 +17,12 @@ from .templates import (
     ExecutiveSummaryTemplate,
     TechnicalReportTemplate,
     VulnerabilityReportTemplate,
-    ComplianceReportTemplate
+    ComplianceReportTemplate,
+    MCPSummaryTemplate
 )
+from .templates.threat_analysis_template import ThreatAnalysisTemplate
+from .mcp_analyzer import MCPDataAnalyzer
+from .threat_analyzer import ThreatAnalyzer
 from ..utils.logging import get_logger
 
 
@@ -29,6 +35,13 @@ class HTMLReporter(BaseReporter):
         self.logger = get_logger(self.__class__.__name__)
         self.template_engine = TemplateEngine()
         self._register_default_templates()
+        self.templates = {
+            "technical": TechnicalReportTemplate(),
+            "mcp_summary": MCPSummaryTemplate(),
+            "threat_analysis": ThreatAnalysisTemplate()
+        }
+        self.mcp_analyzer = MCPDataAnalyzer()
+        self.threat_analyzer = ThreatAnalyzer()
     
     def _register_default_templates(self) -> None:
         """Register default HTML templates."""
@@ -36,7 +49,9 @@ class HTMLReporter(BaseReporter):
             ExecutiveSummaryTemplate(),
             TechnicalReportTemplate(),
             VulnerabilityReportTemplate(),
-            ComplianceReportTemplate()
+            ComplianceReportTemplate(),
+            MCPSummaryTemplate(),
+            ThreatAnalysisTemplate()
         ]
         
         for template in templates:
@@ -157,6 +172,55 @@ class HTMLReporter(BaseReporter):
             data, output_file, "compliance_report", **kwargs
         )
     
+    def generate_mcp_summary_report(self, data: ReportData, 
+                                  output_file: Optional[Path] = None, **kwargs) -> str:
+        """
+        Generate MCP-specific summary HTML report.
+        
+        Args:
+            data: Report data to include
+            output_file: Optional file path to save report
+            **kwargs: Additional template variables
+            
+        Returns:
+            str: Generated HTML content
+        """
+        # Use MCP analyzer to process the data
+        analyzer = MCPDataAnalyzer()
+        analyzed_data = analyzer.analyze_detection_results(data)
+        
+        # Merge with any additional kwargs (but remove template_name if present to avoid conflict)
+        template_vars = {**analyzed_data, **kwargs}
+        template_vars.pop('template_name', None)  # Remove to avoid conflict
+        
+        return self.generate_report(
+            data, output_file, template_name="mcp_summary", **template_vars
+        )
+    
+    def generate_threat_analysis_report(self, data: ReportData, 
+                                      output_file: Optional[Path] = None, **kwargs) -> str:
+        """
+        Generate threat analysis report showing attack scenarios and abuse cases.
+        
+        Args:
+            data: Report data containing MCP detection results
+            output_file: Optional file path to save report
+            **kwargs: Additional template variables
+            
+        Returns:
+            str: Generated HTML content
+        """
+        # Use threat analyzer to process the data
+        analyzed_data = self.threat_analyzer.analyze_threats(data)
+        
+        # Merge with any additional kwargs
+        template_vars = {**analyzed_data, **kwargs}
+        template_vars.pop('template_name', None)  # Remove to avoid conflict
+        
+        return self.generate_report(
+            data, output_file, template_name="threat_analysis", **template_vars
+        )
+    
     def list_available_templates(self) -> list[str]:
         """
         Get list of available templates.
@@ -196,3 +260,27 @@ class HTMLReporter(BaseReporter):
     def get_format(self) -> ReportFormat:
         """Get the report format supported by this reporter."""
         return ReportFormat.HTML 
+
+    def _prepare_technical_data(self, data: ReportData) -> Dict[str, Any]:
+        """Prepare data for technical template."""
+        # Convert detection results to serializable format
+        results_data = []
+        for result in data.detection_results:
+            result_dict = {
+                "detection_method": result.detection_method.value if hasattr(result.detection_method, 'value') else str(result.detection_method),
+                "confidence": result.confidence,
+                "details": result.details,
+                "timestamp": result.timestamp.isoformat() if result.timestamp else None,
+                "raw_data": result.raw_data
+            }
+            results_data.append(result_dict)
+        
+        return {
+            "scan_target": data.target or "Unknown",
+            "scan_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC"),
+            "total_detections": len(data.detection_results),
+            "detection_results": results_data,
+            "detection_results_json": json.dumps(results_data, indent=2),
+            "template_name": "technical",
+            "render_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC")
+        } 

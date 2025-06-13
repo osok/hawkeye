@@ -148,6 +148,15 @@ class JSONReporter(BaseReporter):
         if data.has_assessment_data:
             report_dict['assessment_results'] = self._enhance_assessment_results(data.assessment_results)
         
+        # Enhance pipeline results with additional metadata
+        if data.has_pipeline_data:
+            report_dict['pipeline_results'] = self._enhance_pipeline_results(data.pipeline_results)
+        
+        # Enhance introspection data with additional metadata
+        if data.has_introspection_data:
+            report_dict['introspection_data'] = self._enhance_introspection_data(data.introspection_data)
+            report_dict['mcp_servers'] = self._enhance_mcp_servers(data.mcp_servers)
+        
         # Add aggregated statistics
         report_dict['aggregated_statistics'] = self._generate_aggregated_statistics(data)
         
@@ -201,23 +210,263 @@ class JSONReporter(BaseReporter):
         for result in assessment_results:
             enhanced_result = result.to_dict()
             
+            # Add computed fields
+            enhanced_result['is_high_risk'] = result.overall_risk_level in ['high', 'critical']
+            enhanced_result['has_critical_findings'] = len(result.critical_findings) > 0
+            
             # Add formatted timestamp
             enhanced_result['formatted_timestamp'] = time.strftime(
                 "%Y-%m-%d %H:%M:%S UTC", 
-                time.gmtime(result.assessment_timestamp)
+                time.gmtime(result.timestamp)
             )
             
-            # Add computed statistics
-            enhanced_result['statistics'] = {
-                'critical_findings_count': len(result.critical_findings),
-                'high_findings_count': len(result.high_findings),
-                'exploitable_vulnerabilities_count': len(result.exploitable_vulnerabilities),
-                'unpatched_vulnerabilities_count': len(result.unpatched_vulnerabilities),
+            enhanced_results.append(enhanced_result)
+        
+        return enhanced_results
+    
+    def _enhance_pipeline_results(self, pipeline_results) -> List[Dict[str, Any]]:
+        """Enhance pipeline results with additional JSON-specific data."""
+        enhanced_results = []
+        
+        for result in pipeline_results:
+            enhanced_result = {
+                'target_host': result.target_host,
+                'start_time': result.start_time.isoformat(),
+                'end_time': result.end_time.isoformat(),
+                'duration': result.duration,
+                'success': result.success,
+                'total_detections': result.total_detections,
+                'successful_detections': result.successful_detections,
+                'failed_detections': result.failed_detections,
+                'mcp_servers_found': result.mcp_servers_found,
+                'errors': result.errors,
+                'warnings': result.warnings,
+                
+                # Computed fields
+                'detection_success_rate': (
+                    result.successful_detections / result.total_detections 
+                    if result.total_detections > 0 else 0.0
+                ),
+                'has_introspection_data': len(result.introspection_results) > 0,
+                'introspection_count': len(result.introspection_results),
+                'has_risk_assessment': result.risk_assessment is not None,
+                'has_errors': len(result.errors) > 0,
+                'has_warnings': len(result.warnings) > 0,
+                
+                # Formatted timestamps
+                'formatted_start_time': result.start_time.strftime("%Y-%m-%d %H:%M:%S UTC"),
+                'formatted_end_time': result.end_time.strftime("%Y-%m-%d %H:%M:%S UTC"),
+                'duration_formatted': f"{result.duration:.2f}s",
+                
+                # Enhanced data
+                'best_mcp_server': self._enhance_server_info(result.best_mcp_server) if result.best_mcp_server else None,
+                'highest_confidence_result': result.highest_confidence_result.to_dict() if result.highest_confidence_result else None,
+                'risk_assessment': result.risk_assessment,
+                'introspection_results': self._enhance_introspection_results(result.introspection_results),
             }
             
             enhanced_results.append(enhanced_result)
         
         return enhanced_results
+    
+    def _enhance_introspection_results(self, introspection_results: Dict[str, Any]) -> Dict[str, Any]:
+        """Enhance introspection results with additional metadata."""
+        enhanced_results = {}
+        
+        for server_id, capabilities in introspection_results.items():
+            enhanced_capabilities = {
+                'server_id': server_id,
+                'capabilities': capabilities.dict() if hasattr(capabilities, 'dict') else capabilities.__dict__,
+                
+                # Computed fields
+                'capability_count': capabilities.get_capability_count() if hasattr(capabilities, 'get_capability_count') else 0,
+                'has_dangerous_capabilities': capabilities.has_dangerous_capabilities() if hasattr(capabilities, 'has_dangerous_capabilities') else False,
+                'supports_tools': getattr(capabilities, 'supports_tools', False),
+                'supports_resources': getattr(capabilities, 'supports_resources', False),
+                'supports_prompts': getattr(capabilities, 'supports_prompts', False),
+                'protocol_version': getattr(capabilities, 'protocol_version', None),
+                'server_version': getattr(capabilities, 'server_version', None),
+            }
+            
+            enhanced_results[server_id] = enhanced_capabilities
+        
+        return enhanced_results
+    
+    def _enhance_server_info(self, server_info) -> Dict[str, Any]:
+        """Enhance MCP server info with additional metadata."""
+        if not server_info:
+            return None
+        
+        enhanced_info = server_info.dict() if hasattr(server_info, 'dict') else server_info.__dict__
+        
+        # Add computed fields
+        enhanced_info.update({
+            'tool_count': server_info.get_tool_count() if hasattr(server_info, 'get_tool_count') else len(enhanced_info.get('tools', [])),
+            'resource_count': server_info.get_resource_count() if hasattr(server_info, 'get_resource_count') else len(enhanced_info.get('resources', [])),
+            'capability_count': server_info.get_capability_count() if hasattr(server_info, 'get_capability_count') else len(enhanced_info.get('capabilities', [])),
+            'has_security_risks': len(enhanced_info.get('security_risks', [])) > 0,
+            'risk_level': enhanced_info.get('overall_risk_level', 'unknown'),
+            'discovery_timestamp_formatted': enhanced_info.get('discovery_timestamp', ''),
+        })
+        
+        # Enhance tools with categorization
+        if 'tools' in enhanced_info:
+            enhanced_info['tools'] = self._enhance_tools(enhanced_info['tools'])
+        
+        # Enhance resources with metadata
+        if 'resources' in enhanced_info:
+            enhanced_info['resources'] = self._enhance_resources(enhanced_info['resources'])
+        
+        return enhanced_info
+    
+    def _enhance_tools(self, tools) -> List[Dict[str, Any]]:
+        """Enhance tool information with categorization."""
+        enhanced_tools = []
+        
+        for tool in tools:
+            # Handle different tool formats
+            if isinstance(tool, dict):
+                tool_dict = tool.copy()
+            elif hasattr(tool, 'dict'):
+                tool_dict = tool.dict()
+            elif hasattr(tool, '__dict__'):
+                tool_dict = tool.__dict__.copy()
+            else:
+                # Fallback for unknown types
+                tool_dict = {'name': str(tool), 'description': ''}
+            
+            # Add tool categorization
+            tool_dict.update({
+                'category': self._categorize_tool(tool_dict),
+                'risk_level': self._assess_tool_risk(tool_dict),
+                'parameter_count': len(tool_dict.get('parameters', [])),
+                'has_required_params': any(
+                    param.get('required', False) 
+                    for param in tool_dict.get('parameters', [])
+                ),
+            })
+            
+            enhanced_tools.append(tool_dict)
+        
+        return enhanced_tools
+    
+    def _enhance_resources(self, resources) -> List[Dict[str, Any]]:
+        """Enhance resource information with metadata."""
+        enhanced_resources = []
+        
+        for resource in resources:
+            # Handle different resource formats
+            if isinstance(resource, dict):
+                resource_dict = resource.copy()
+            elif hasattr(resource, 'dict'):
+                resource_dict = resource.dict()
+            elif hasattr(resource, '__dict__'):
+                resource_dict = resource.__dict__.copy()
+            else:
+                # Fallback for unknown types
+                resource_dict = {'uri': str(resource), 'name': str(resource)}
+            
+            # Add resource categorization
+            resource_dict.update({
+                'category': self._categorize_resource(resource_dict),
+                'is_file_resource': resource_dict.get('uri', '').startswith('file://'),
+                'is_http_resource': resource_dict.get('uri', '').startswith('http'),
+                'has_mime_type': resource_dict.get('mime_type') is not None,
+            })
+            
+            enhanced_resources.append(resource_dict)
+        
+        return enhanced_resources
+    
+    def _categorize_tool(self, tool: Dict[str, Any]) -> str:
+        """Categorize a tool based on its name and description."""
+        name = tool.get('name', '').lower()
+        description = tool.get('description', '').lower()
+        
+        # File system operations
+        if any(keyword in name or keyword in description for keyword in ['file', 'read', 'write', 'directory', 'path']):
+            return 'file_system'
+        
+        # Network operations
+        if any(keyword in name or keyword in description for keyword in ['http', 'request', 'url', 'web', 'api']):
+            return 'network'
+        
+        # Code execution
+        if any(keyword in name or keyword in description for keyword in ['execute', 'run', 'command', 'shell', 'script']):
+            return 'code_execution'
+        
+        # Database operations
+        if any(keyword in name or keyword in description for keyword in ['database', 'sql', 'query', 'db']):
+            return 'database'
+        
+        # System operations
+        if any(keyword in name or keyword in description for keyword in ['system', 'process', 'service', 'config']):
+            return 'system'
+        
+        return 'other'
+    
+    def _assess_tool_risk(self, tool: Dict[str, Any]) -> str:
+        """Assess the risk level of a tool."""
+        category = self._categorize_tool(tool)
+        
+        # High-risk categories
+        if category in ['code_execution', 'file_system', 'system']:
+            return 'high'
+        
+        # Medium-risk categories
+        if category in ['network', 'database']:
+            return 'medium'
+        
+        # Low-risk by default
+        return 'low'
+    
+    def _categorize_resource(self, resource: Dict[str, Any]) -> str:
+        """Categorize a resource based on its URI and type."""
+        uri = resource.get('uri', '').lower()
+        mime_type = resource.get('mime_type', '').lower()
+        
+        # File resources
+        if uri.startswith('file://'):
+            return 'file'
+        
+        # Web resources
+        if uri.startswith('http'):
+            return 'web'
+        
+        # Database resources
+        if any(keyword in uri for keyword in ['database', 'db', 'sql']):
+            return 'database'
+        
+        # Based on MIME type
+        if mime_type:
+            if mime_type.startswith('text/'):
+                return 'text'
+            elif mime_type.startswith('image/'):
+                return 'image'
+            elif mime_type.startswith('application/'):
+                return 'application'
+        
+        return 'other'
+    
+    def _enhance_introspection_data(self, introspection_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Enhance introspection data with additional metadata."""
+        enhanced_data = {}
+        
+        for server_id, capabilities in introspection_data.items():
+            enhanced_data[server_id] = self._enhance_introspection_results({server_id: capabilities})[server_id]
+        
+        return enhanced_data
+    
+    def _enhance_mcp_servers(self, mcp_servers) -> List[Dict[str, Any]]:
+        """Enhance MCP server list with additional metadata."""
+        enhanced_servers = []
+        
+        for server in mcp_servers:
+            enhanced_server = self._enhance_server_info(server)
+            if enhanced_server:
+                enhanced_servers.append(enhanced_server)
+        
+        return enhanced_servers
     
     def _generate_aggregated_statistics(self, data: ReportData) -> Dict[str, Any]:
         """Generate aggregated statistics across all data types."""
@@ -243,6 +492,14 @@ class JSONReporter(BaseReporter):
         if data.has_assessment_data:
             stats['overview']['data_types_present'].append('assessment_results')
             stats['risk_statistics'] = self._calculate_risk_statistics(data.assessment_results)
+        
+        if data.has_pipeline_data:
+            stats['overview']['data_types_present'].append('pipeline_results')
+            stats['pipeline_statistics'] = self._calculate_pipeline_statistics(data.pipeline_results)
+        
+        if data.has_introspection_data:
+            stats['overview']['data_types_present'].append('introspection_data')
+            stats['introspection_statistics'] = self._calculate_introspection_statistics(data)
         
         return stats
     
@@ -299,6 +556,81 @@ class JSONReporter(BaseReporter):
             'average_findings_per_target': total_findings / len(assessment_results) if assessment_results else 0.0,
             'average_vulnerabilities_per_target': total_vulnerabilities / len(assessment_results) if assessment_results else 0.0,
         }
+    
+    def _calculate_pipeline_statistics(self, pipeline_results) -> Dict[str, Any]:
+        """Calculate statistics for pipeline results."""
+        if not pipeline_results:
+            return {}
+        
+        successful_pipelines = sum(1 for r in pipeline_results if r.success)
+        total_detections = sum(r.total_detections for r in pipeline_results)
+        successful_detections = sum(r.successful_detections for r in pipeline_results)
+        total_mcp_servers = sum(r.mcp_servers_found for r in pipeline_results)
+        total_introspections = sum(len(r.introspection_results) for r in pipeline_results)
+        total_duration = sum(r.duration for r in pipeline_results)
+        
+        return {
+            'total_pipelines': len(pipeline_results),
+            'successful_pipelines': successful_pipelines,
+            'pipeline_success_rate': successful_pipelines / len(pipeline_results) if pipeline_results else 0.0,
+            'total_detections': total_detections,
+            'successful_detections': successful_detections,
+            'detection_success_rate': successful_detections / total_detections if total_detections > 0 else 0.0,
+            'total_mcp_servers_found': total_mcp_servers,
+            'total_introspections': total_introspections,
+            'average_duration': total_duration / len(pipeline_results) if pipeline_results else 0.0,
+            'average_servers_per_pipeline': total_mcp_servers / len(pipeline_results) if pipeline_results else 0.0,
+            'average_introspections_per_pipeline': total_introspections / len(pipeline_results) if pipeline_results else 0.0,
+        }
+    
+    def _calculate_introspection_statistics(self, data: ReportData) -> Dict[str, Any]:
+        """Calculate statistics for introspection data."""
+        stats = {
+            'total_servers_introspected': len(data.introspected_servers),
+            'total_tools_discovered': data.total_tools_discovered,
+            'total_resources_discovered': data.total_resources_discovered,
+            'tool_categories': {},
+            'resource_categories': {},
+            'risk_distribution': {},
+            'transport_distribution': {},
+        }
+        
+        if not data.introspected_servers:
+            return stats
+        
+        # Analyze tools by category
+        tool_categories = {}
+        for server in data.introspected_servers:
+            for tool in getattr(server, 'tools', []):
+                tool_dict = tool.dict() if hasattr(tool, 'dict') else tool.__dict__
+                category = self._categorize_tool(tool_dict)
+                tool_categories[category] = tool_categories.get(category, 0) + 1
+        
+        # Analyze resources by category
+        resource_categories = {}
+        for server in data.introspected_servers:
+            for resource in getattr(server, 'resources', []):
+                resource_dict = resource.dict() if hasattr(resource, 'dict') else resource.__dict__
+                category = self._categorize_resource(resource_dict)
+                resource_categories[category] = resource_categories.get(category, 0) + 1
+        
+        # Analyze risk distribution
+        risk_distribution = {}
+        for server in data.introspected_servers:
+            risk_level = getattr(server, 'overall_risk_level', 'unknown')
+            if hasattr(risk_level, 'value'):
+                risk_level = risk_level.value
+            risk_distribution[risk_level] = risk_distribution.get(risk_level, 0) + 1
+        
+        stats.update({
+            'tool_categories': tool_categories,
+            'resource_categories': resource_categories,
+            'risk_distribution': risk_distribution,
+            'average_tools_per_server': data.total_tools_discovered / len(data.introspected_servers),
+            'average_resources_per_server': data.total_resources_discovered / len(data.introspected_servers),
+        })
+        
+        return stats
     
     def _save_json_file(self, content: str, output_path: Path) -> None:
         """

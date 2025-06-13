@@ -115,6 +115,16 @@ class CSVReporter(BaseReporter):
         if data.has_assessment_data:
             self._write_assessment_results_section(output, data.assessment_results)
         
+        # Write pipeline results if available
+        if data.has_pipeline_data:
+            self._write_pipeline_results_section(output, data.pipeline_results)
+        
+        # Write introspection data if available
+        if data.has_introspection_data:
+            self._write_introspection_summary_section(output, data.introspection_summary)
+            self._write_mcp_servers_section(output, data.mcp_servers)
+            self._write_introspection_data_section(output, data.introspection_data)
+        
         # Write recommendations if available
         if data.recommendations:
             self._write_recommendations_section(output, data.recommendations)
@@ -155,6 +165,8 @@ class CSVReporter(BaseReporter):
         writer.writerow(["Has Scan Data", data.has_scan_data])
         writer.writerow(["Has Detection Data", data.has_detection_data])
         writer.writerow(["Has Assessment Data", data.has_assessment_data])
+        writer.writerow(["Has Pipeline Data", data.has_pipeline_data])
+        writer.writerow(["Has Introspection Data", data.has_introspection_data])
         writer.writerow(["Critical Findings", len(data.critical_findings)])
         writer.writerow(["High Risk Targets", len(data.high_risk_targets)])
         
@@ -174,6 +186,18 @@ class CSVReporter(BaseReporter):
             writer.writerow(["Critical Risk Targets", data.risk_summary.critical_risk_targets])
             writer.writerow(["High Risk Targets", data.risk_summary.high_risk_targets])
             writer.writerow(["Average Risk Score", f"{data.risk_summary.average_risk_score:.2f}"])
+        
+        # Add introspection summary statistics if available
+        if data.introspection_summary:
+            writer.writerow(["Total Servers Introspected", data.introspection_summary.total_servers_introspected])
+            writer.writerow(["Successful Introspections", data.introspection_summary.successful_introspections])
+            writer.writerow(["Failed Introspections", data.introspection_summary.failed_introspections])
+            writer.writerow(["Success Rate", f"{data.introspection_summary.success_rate:.2%}"])
+            writer.writerow(["Total Tools Discovered", data.introspection_summary.total_tools_discovered])
+            writer.writerow(["Total Resources Discovered", data.introspection_summary.total_resources_discovered])
+            writer.writerow(["Total Capabilities Discovered", data.introspection_summary.total_capabilities_discovered])
+            writer.writerow(["Average Tools per Server", f"{data.introspection_summary.average_tools_per_server:.2f}"])
+            writer.writerow(["Average Resources per Server", f"{data.introspection_summary.average_resources_per_server:.2f}"])
         
         output.write("\n")
     
@@ -323,6 +347,208 @@ class CSVReporter(BaseReporter):
         
         for i, recommendation in enumerate(recommendations, 1):
             writer.writerow([i, recommendation])
+        
+        output.write("\n")
+    
+    def _write_pipeline_results_section(self, output: StringIO, pipeline_results) -> None:
+        """Write pipeline results section to CSV."""
+        output.write("# PIPELINE EXECUTION RESULTS\n")
+        
+        writer = csv.writer(output, delimiter=self.delimiter, quoting=self.quoting)
+        
+        # Write headers
+        headers = [
+            "Target Host", "Start Time", "End Time", "Duration (s)", "Success",
+            "Total Detections", "Successful Detections", "Failed Detections",
+            "MCP Servers Found", "Best Server Host", "Best Server Port",
+            "Best Server Transport", "Highest Confidence", "Risk Assessment",
+            "Introspection Count", "Errors", "Warnings"
+        ]
+        writer.writerow(headers)
+        
+        # Write data rows
+        for result in pipeline_results:
+            best_server = result.best_mcp_server
+            row = [
+                result.target_host,
+                result.start_time.strftime("%Y-%m-%d %H:%M:%S UTC"),
+                result.end_time.strftime("%Y-%m-%d %H:%M:%S UTC"),
+                f"{result.duration:.2f}",
+                result.success,
+                result.total_detections,
+                result.successful_detections,
+                result.failed_detections,
+                result.mcp_servers_found,
+                best_server.host if best_server else "",
+                best_server.port if best_server else "",
+                best_server.transport_type.value if best_server else "",
+                f"{result.highest_confidence_result.confidence:.2f}" if result.highest_confidence_result else "",
+                result.risk_assessment or "",
+                len(result.introspection_results),
+                "; ".join(result.errors) if result.errors else "",
+                "; ".join(result.warnings) if result.warnings else ""
+            ]
+            writer.writerow(row)
+        
+        output.write("\n")
+    
+    def _write_introspection_summary_section(self, output: StringIO, introspection_summary) -> None:
+        """Write introspection summary section to CSV."""
+        if not introspection_summary:
+            return
+            
+        output.write("# INTROSPECTION SUMMARY\n")
+        
+        writer = csv.writer(output, delimiter=self.delimiter, quoting=self.quoting)
+        writer.writerow(["Metric", "Value"])
+        writer.writerow(["Total Servers Introspected", introspection_summary.total_servers_introspected])
+        writer.writerow(["Successful Introspections", introspection_summary.successful_introspections])
+        writer.writerow(["Failed Introspections", introspection_summary.failed_introspections])
+        writer.writerow(["Success Rate", f"{introspection_summary.success_rate:.2%}"])
+        writer.writerow(["Total Tools Discovered", introspection_summary.total_tools_discovered])
+        writer.writerow(["Total Resources Discovered", introspection_summary.total_resources_discovered])
+        writer.writerow(["Total Capabilities Discovered", introspection_summary.total_capabilities_discovered])
+        writer.writerow(["Average Tools per Server", f"{introspection_summary.average_tools_per_server:.2f}"])
+        writer.writerow(["Average Resources per Server", f"{introspection_summary.average_resources_per_server:.2f}"])
+        
+        # Risk distribution
+        writer.writerow(["Critical Risk Servers", introspection_summary.critical_risk_servers])
+        writer.writerow(["High Risk Servers", introspection_summary.high_risk_servers])
+        writer.writerow(["Medium Risk Servers", introspection_summary.medium_risk_servers])
+        writer.writerow(["Low Risk Servers", introspection_summary.low_risk_servers])
+        writer.writerow(["Minimal Risk Servers", introspection_summary.minimal_risk_servers])
+        writer.writerow(["High Risk Rate", f"{introspection_summary.high_risk_rate:.2%}"])
+        
+        # Tool categories
+        writer.writerow(["File Access Tools", introspection_summary.file_access_tools])
+        writer.writerow(["Network Tools", introspection_summary.network_tools])
+        writer.writerow(["Code Execution Tools", introspection_summary.code_execution_tools])
+        writer.writerow(["Data Access Tools", introspection_summary.data_access_tools])
+        writer.writerow(["System Tools", introspection_summary.system_tools])
+        
+        # Transport distribution
+        writer.writerow(["STDIO Servers", introspection_summary.stdio_servers])
+        writer.writerow(["HTTP Servers", introspection_summary.http_servers])
+        writer.writerow(["SSE Servers", introspection_summary.sse_servers])
+        writer.writerow(["WebSocket Servers", introspection_summary.websocket_servers])
+        
+        if introspection_summary.introspection_duration:
+            writer.writerow(["Total Introspection Duration (s)", f"{introspection_summary.introspection_duration:.2f}"])
+        
+        output.write("\n")
+    
+    def _write_mcp_servers_section(self, output: StringIO, mcp_servers) -> None:
+        """Write MCP servers section to CSV."""
+        if not mcp_servers:
+            return
+            
+        output.write("# MCP SERVERS DISCOVERED\n")
+        
+        writer = csv.writer(output, delimiter=self.delimiter, quoting=self.quoting)
+        
+        # Write headers
+        headers = [
+            "Host", "Port", "Transport Type", "Server Type", "Version",
+            "Tool Count", "Resource Count", "Capability Count",
+            "Overall Risk Level", "Risk Score", "Has Security Risks",
+            "Discovery Timestamp", "Capabilities", "Tools", "Resources"
+        ]
+        writer.writerow(headers)
+        
+        # Write data rows
+        for server in mcp_servers:
+            # Extract tools and resources as strings
+            tools_str = ""
+            if hasattr(server, 'tools') and server.tools:
+                tool_names = []
+                for tool in server.tools:
+                    if hasattr(tool, 'name'):
+                        tool_names.append(tool.name)
+                    elif isinstance(tool, dict):
+                        tool_names.append(tool.get('name', 'unknown'))
+                    else:
+                        tool_names.append(str(tool))
+                tools_str = "; ".join(tool_names)
+            
+            resources_str = ""
+            if hasattr(server, 'resources') and server.resources:
+                resource_names = []
+                for resource in server.resources:
+                    if hasattr(resource, 'uri'):
+                        resource_names.append(resource.uri)
+                    elif isinstance(resource, dict):
+                        resource_names.append(resource.get('uri', 'unknown'))
+                    else:
+                        resource_names.append(str(resource))
+                resources_str = "; ".join(resource_names)
+            
+            capabilities_str = ""
+            if hasattr(server, 'capabilities') and server.capabilities:
+                if isinstance(server.capabilities, list):
+                    capabilities_str = "; ".join(str(cap) for cap in server.capabilities)
+                else:
+                    capabilities_str = str(server.capabilities)
+            
+            row = [
+                getattr(server, 'host', ''),
+                getattr(server, 'port', ''),
+                getattr(server, 'transport_type', ''),
+                getattr(server, 'server_type', ''),
+                getattr(server, 'version', ''),
+                server.get_tool_count() if hasattr(server, 'get_tool_count') else len(getattr(server, 'tools', [])),
+                server.get_resource_count() if hasattr(server, 'get_resource_count') else len(getattr(server, 'resources', [])),
+                server.get_capability_count() if hasattr(server, 'get_capability_count') else len(getattr(server, 'capabilities', [])),
+                getattr(server, 'overall_risk_level', ''),
+                getattr(server, 'risk_score', ''),
+                len(getattr(server, 'security_risks', [])) > 0,
+                getattr(server, 'discovery_timestamp', ''),
+                capabilities_str,
+                tools_str,
+                resources_str
+            ]
+            writer.writerow(row)
+        
+        output.write("\n")
+    
+    def _write_introspection_data_section(self, output: StringIO, introspection_data: Dict[str, Any]) -> None:
+        """Write introspection data section to CSV."""
+        if not introspection_data:
+            return
+            
+        output.write("# INTROSPECTION CAPABILITIES\n")
+        
+        writer = csv.writer(output, delimiter=self.delimiter, quoting=self.quoting)
+        
+        # Write headers
+        headers = [
+            "Server ID", "Protocol Version", "Server Version", "Supports Tools",
+            "Supports Resources", "Supports Prompts", "Capability Count",
+            "Has Dangerous Capabilities", "Capabilities"
+        ]
+        writer.writerow(headers)
+        
+        # Write data rows
+        for server_id, capabilities in introspection_data.items():
+            # Handle both dict and object capabilities
+            if hasattr(capabilities, 'dict'):
+                cap_dict = capabilities.dict()
+            elif isinstance(capabilities, dict):
+                cap_dict = capabilities
+            else:
+                cap_dict = capabilities.__dict__ if hasattr(capabilities, '__dict__') else {}
+            
+            row = [
+                server_id,
+                cap_dict.get('protocol_version', ''),
+                cap_dict.get('server_version', ''),
+                cap_dict.get('supports_tools', False),
+                cap_dict.get('supports_resources', False),
+                cap_dict.get('supports_prompts', False),
+                capabilities.get_capability_count() if hasattr(capabilities, 'get_capability_count') else 0,
+                capabilities.has_dangerous_capabilities() if hasattr(capabilities, 'has_dangerous_capabilities') else False,
+                str(cap_dict.get('capabilities', ''))
+            ]
+            writer.writerow(row)
         
         output.write("\n")
     

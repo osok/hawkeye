@@ -4,6 +4,11 @@ pydantic-settings>=2.0.0
 click>=8.0.0
 rich>=13.0.0
 
+# MCP (Model Context Protocol) dependencies
+mcp>=1.0.0
+aiofiles>=0.8.0
+async-timeout>=4.0.0
+
 # Network and scanning
 aiohttp>=3.8.0
 asyncio-throttle>=1.0.0

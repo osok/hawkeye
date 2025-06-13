@@ -13,6 +13,8 @@ from .html_templates import (
     VulnerabilityReportTemplate,
     ComplianceReportTemplate
 )
+from .mcp_summary_template import MCPSummaryTemplate
+from .threat_analysis_template import ThreatAnalysisTemplate
 
 __all__ = [
     # Base Template Classes
@@ -25,4 +27,6 @@ __all__ = [
     'TechnicalReportTemplate',
     'VulnerabilityReportTemplate',
     'ComplianceReportTemplate',
+    'MCPSummaryTemplate',
+    'ThreatAnalysisTemplate',
 ] 

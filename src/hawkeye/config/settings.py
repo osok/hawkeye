@@ -67,6 +67,47 @@ class DetectionSettings(BaseSettings):
         env_prefix = "HAWKEYE_DETECT_"
 
 
+class MCPIntrospectionSettings(BaseSettings):
+    """Configuration for MCP introspection operations."""
+    
+    # Connection settings
+    connection_timeout: float = Field(default=30.0, ge=1.0, le=300.0, description="Connection timeout in seconds")
+    max_retries: int = Field(default=3, ge=0, le=10, description="Maximum connection retry attempts")
+    retry_delay: float = Field(default=1.0, ge=0.1, le=60.0, description="Base delay between retries in seconds")
+    
+    # Connection pooling
+    max_connections: int = Field(default=10, ge=1, le=100, description="Maximum concurrent connections")
+    max_idle_time: float = Field(default=300.0, ge=60.0, le=3600.0, description="Maximum idle time for connections")
+    cleanup_interval: float = Field(default=60.0, ge=10.0, le=600.0, description="Connection cleanup interval")
+    
+    # Discovery settings
+    enable_tool_discovery: bool = Field(default=True, description="Enable tool discovery via tools/list")
+    enable_resource_discovery: bool = Field(default=True, description="Enable resource discovery via resources/list")
+    enable_capability_assessment: bool = Field(default=True, description="Enable capability assessment")
+    
+    # Risk analysis
+    enable_dynamic_risk_analysis: bool = Field(default=True, description="Enable dynamic tool risk analysis")
+    enable_schema_analysis: bool = Field(default=True, description="Enable schema-based security analysis")
+    risk_analysis_timeout: float = Field(default=10.0, ge=1.0, le=60.0, description="Risk analysis timeout")
+    
+    # Caching
+    enable_result_caching: bool = Field(default=True, description="Enable introspection result caching")
+    cache_ttl: int = Field(default=3600, ge=60, le=86400, description="Cache TTL in seconds")
+    cache_max_size: int = Field(default=1000, ge=10, le=10000, description="Maximum cache entries")
+    
+    # Transport-specific settings
+    stdio_timeout: float = Field(default=30.0, ge=1.0, le=300.0, description="Stdio transport timeout")
+    sse_timeout: float = Field(default=45.0, ge=1.0, le=300.0, description="SSE transport timeout")
+    http_timeout: float = Field(default=60.0, ge=1.0, le=300.0, description="HTTP transport timeout")
+    
+    # Performance settings
+    enable_async_processing: bool = Field(default=True, description="Enable async processing")
+    max_concurrent_introspections: int = Field(default=5, ge=1, le=50, description="Max concurrent introspections")
+    
+    class Config:
+        env_prefix = "HAWKEYE_MCP_"
+
+
 class AssessmentSettings(BaseSettings):
     """Configuration for risk assessment operations."""
     
@@ -135,6 +176,7 @@ class HawkEyeSettings(BaseSettings):
     # Component settings
     scan: ScanSettings = Field(default_factory=ScanSettings)
     detection: DetectionSettings = Field(default_factory=DetectionSettings)
+    mcp_introspection: MCPIntrospectionSettings = Field(default_factory=MCPIntrospectionSettings)
     assessment: AssessmentSettings = Field(default_factory=AssessmentSettings)
     reporting: ReportingSettings = Field(default_factory=ReportingSettings)
     logging: LoggingSettings = Field(default_factory=LoggingSettings)
