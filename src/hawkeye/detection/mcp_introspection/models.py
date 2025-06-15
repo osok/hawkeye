@@ -48,6 +48,35 @@ class RiskCategory(str, Enum):
     UNKNOWN = "unknown"
 
 
+class SecurityCategory(str, Enum):
+    """Security category enumeration."""
+    FILE_SYSTEM = "file_system"
+    NETWORK_ACCESS = "network_access"
+    CODE_EXECUTION = "code_execution"
+    DATA_ACCESS = "data_access"
+    SYSTEM_ACCESS = "system_access"
+    AUTHENTICATION = "authentication"
+    ENCRYPTION = "encryption"
+    EXTERNAL_API = "external_api"
+    DATABASE = "database"
+    CLOUD_SERVICES = "cloud_services"
+    UNKNOWN = "unknown"
+
+
+class ComplianceStatus(str, Enum):
+    """Compliance status enumeration."""
+    COMPLIANT = "compliant"
+    NON_COMPLIANT = "non_compliant"
+    PARTIALLY_COMPLIANT = "partially_compliant"
+    NOT_APPLICABLE = "not_applicable"
+    UNKNOWN = "unknown"
+
+
+class ValidationError(Exception):
+    """Custom validation error for MCP models."""
+    pass
+
+
 class MCPCapabilities(BaseModel):
     """
     Server capabilities discovered via initialize response.
@@ -93,6 +122,23 @@ class MCPCapabilities(BaseModel):
         # Tools and code execution are generally higher risk
         return self.supports_tools or "code_execution" in self.experimental_capabilities
 
+    def has_capability(self, capability: str) -> bool:
+        """Check if server has specific capability."""
+        if capability == "tools":
+            return self.supports_tools
+        elif capability == "resources":
+            return self.supports_resources
+        elif capability == "prompts":
+            return self.supports_prompts
+        elif capability == "logging":
+            return self.supports_logging
+        elif capability == "completion":
+            return self.supports_completion
+        elif capability == "sampling":
+            return self.supports_sampling
+        else:
+            return capability in self.experimental_capabilities
+
 
 class MCPToolParameter(BaseModel):
     """Parameter information for MCP tools."""
@@ -116,6 +162,23 @@ class MCPTool(BaseModel):
     parameters: List[MCPToolParameter] = Field(default_factory=list, description="Tool parameters")
     input_schema: Dict[str, Any] = Field(default_factory=dict, description="JSON schema for tool input")
     metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
+    risk_categories: List[SecurityCategory] = Field(default_factory=list, description="Risk categories")
+    risk_level: RiskLevel = Field(default=RiskLevel.UNKNOWN, description="Risk level")
+    security_notes: List[str] = Field(default_factory=list, description="Security notes")
+
+    def has_risk_category(self, category: SecurityCategory) -> bool:
+        """Check if tool has specific risk category."""
+        return category in self.risk_categories
+
+    def get_required_parameters(self) -> List[str]:
+        """Get required parameters from schema."""
+        return self.input_schema.get("required", [])
+
+    def get_optional_parameters(self) -> List[str]:
+        """Get optional parameters from schema."""
+        properties = self.input_schema.get("properties", {})
+        required = set(self.input_schema.get("required", []))
+        return [prop for prop in properties.keys() if prop not in required]
 
 
 class MCPResource(BaseModel):
@@ -129,6 +192,20 @@ class MCPResource(BaseModel):
     description: str = Field(description="Resource description")
     mime_type: Optional[str] = Field(default=None, description="MIME type of resource")
     metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
+    risk_categories: List[SecurityCategory] = Field(default_factory=list, description="Risk categories")
+    risk_level: RiskLevel = Field(default=RiskLevel.UNKNOWN, description="Risk level")
+    security_notes: List[str] = Field(default_factory=list, description="Security notes")
+
+    def get_uri_scheme(self) -> str:
+        """Get URI scheme."""
+        if "://" in self.uri:
+            return self.uri.split("://")[0]
+        return ""
+
+    def is_local_resource(self) -> bool:
+        """Check if resource is local."""
+        scheme = self.get_uri_scheme()
+        return scheme in ["file", ""]
 
 
 class MCPServerConfig(BaseModel):
@@ -170,6 +247,96 @@ class SecurityRisk(BaseModel):
     mitigation: str = Field(default="", description="Suggested mitigation")
 
 
+class SecurityFinding(BaseModel):
+    """Security finding from risk assessment."""
+    id: str = Field(description="Finding identifier")
+    title: str = Field(description="Finding title")
+    description: str = Field(description="Finding description")
+    severity: RiskLevel = Field(description="Finding severity")
+    category: SecurityCategory = Field(description="Security category")
+    affected_components: List[str] = Field(default_factory=list, description="Affected components")
+    mitigation: str = Field(default="", description="Suggested mitigation")
+    metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
+
+    def is_high_severity(self) -> bool:
+        """Check if finding is high severity."""
+        return self.severity in [RiskLevel.CRITICAL, RiskLevel.HIGH]
+
+
+class ComplianceCheck(BaseModel):
+    """Compliance check result."""
+    check_id: str = Field(description="Check identifier")
+    name: str = Field(description="Check name")
+    description: str = Field(description="Check description")
+    status: ComplianceStatus = Field(description="Compliance status")
+    framework: str = Field(description="Compliance framework")
+    control_id: str = Field(description="Control identifier")
+    evidence: List[str] = Field(default_factory=list, description="Evidence")
+    metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
+
+    def is_compliant(self) -> bool:
+        """Check if compliant."""
+        return self.status == ComplianceStatus.COMPLIANT
+
+
+class PerformanceMetrics(BaseModel):
+    """Performance metrics for MCP operations."""
+    operation: str = Field(description="Operation name")
+    duration: float = Field(description="Operation duration in seconds")
+    memory_usage: int = Field(description="Memory usage in bytes")
+    cpu_usage: float = Field(description="CPU usage percentage")
+    network_io: int = Field(description="Network I/O in bytes")
+    disk_io: int = Field(description="Disk I/O in bytes")
+    metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
+
+    def is_performant(self, max_duration: float = 10.0) -> bool:
+        """Check if operation is performant."""
+        return self.duration <= max_duration
+
+
+class TransportConfig(BaseModel):
+    """Transport configuration for MCP connections."""
+    transport_type: TransportType = Field(description="Transport type")
+    command: Optional[List[str]] = Field(default=None, description="Command for stdio transport")
+    args: Optional[List[str]] = Field(default=None, description="Arguments")
+    env: Dict[str, str] = Field(default_factory=dict, description="Environment variables")
+    url: Optional[str] = Field(default=None, description="URL for network transport")
+    timeout: float = Field(default=30.0, description="Connection timeout")
+    metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
+
+    def validate_stdio_config(self) -> bool:
+        """Validate stdio transport configuration."""
+        if self.transport_type == TransportType.STDIO:
+            return self.command is not None and len(self.command) > 0
+        return True
+
+    def validate_sse_config(self) -> bool:
+        """Validate SSE transport configuration."""
+        if self.transport_type == TransportType.SSE:
+            return self.url is not None
+        return True
+
+
+class RiskAssessment(BaseModel):
+    """Risk assessment for MCP server or component."""
+    target_id: str = Field(description="Target identifier")
+    target_type: str = Field(description="Target type (server, tool, resource)")
+    overall_risk: RiskLevel = Field(description="Overall risk level")
+    findings: List[SecurityFinding] = Field(default_factory=list, description="Security findings")
+    compliance_checks: List[ComplianceCheck] = Field(default_factory=list, description="Compliance checks")
+    assessment_date: datetime = Field(default_factory=datetime.now, description="Assessment date")
+    assessor: str = Field(default="HawkEye", description="Assessor name")
+    metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
+
+    def get_findings_by_severity(self, severity: RiskLevel) -> List[SecurityFinding]:
+        """Get findings by severity level."""
+        return [f for f in self.findings if f.severity == severity]
+
+    def get_findings_by_category(self, category: SecurityCategory) -> List[SecurityFinding]:
+        """Get findings by security category."""
+        return [f for f in self.findings if f.category == category]
+
+
 class MCPServerInfo(BaseModel):
     """
     Enhanced server information with introspection data.
@@ -199,6 +366,11 @@ class MCPServerInfo(BaseModel):
     def get_resource_count(self) -> int:
         """Get the number of resources exposed by this server."""
         return len(self.resources)
+
+    def get_high_risk_tools(self) -> List[MCPTool]:
+        """Get high risk tools."""
+        return [tool for tool in self.tools 
+                if tool.risk_level in [RiskLevel.HIGH, RiskLevel.CRITICAL]]
     
     def get_capability_count(self) -> int:
         """Get the number of capabilities exposed by this server."""
@@ -281,4 +453,18 @@ class MCPIntrospectionResult(BaseModel):
         categories = set()
         for server in self.servers:
             categories.update(server.get_risk_categories())
-        return categories 
+        return categories
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary representation."""
+        return {
+            "scan_timestamp": self.scan_timestamp.isoformat(),
+            "scan_duration": self.scan_duration,
+            "total_servers": self.total_servers,
+            "successful_introspections": self.successful_introspections,
+            "failed_introspections": self.failed_introspections,
+            "critical_risk_servers": self.critical_risk_servers,
+            "high_risk_servers": self.high_risk_servers,
+            "medium_risk_servers": self.medium_risk_servers,
+            "servers": [server.dict() for server in self.servers]
+        } 

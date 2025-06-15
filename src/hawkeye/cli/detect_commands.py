@@ -979,3 +979,6 @@ def display_pipeline_statistics(stats):
     
     console.print(stats_table)
     console.print()
+
+# Alias for backward compatibility
+detect_group = detect

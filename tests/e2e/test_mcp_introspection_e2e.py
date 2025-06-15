@@ -23,7 +23,7 @@ from src.hawkeye.detection.mcp_introspection.optimization import (
     create_memory_optimizer, MemoryConfig, MemoryOptimizationLevel
 )
 from src.hawkeye.detection.mcp_introspection.migration import (
-    ConfigMigrator, LegacyConfig, ModernConfig
+    ConfigurationMigrator, LegacyMCPConfig, MigrationConfig
 )
 from src.hawkeye.detection.pipeline import DetectionPipeline, PipelineConfig
 from src.hawkeye.reporting.json_reporter import JSONReporter
@@ -359,7 +359,7 @@ class TestMCPIntrospectionE2E:
             json.dump(legacy_config_data, f)
         
         # Migrate configuration
-        migrator = ConfigMigrator()
+        migrator = ConfigurationMigrator()
         modern_config = migrator.migrate_from_file(str(legacy_config_file))
         
         # Verify migration

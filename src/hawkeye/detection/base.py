@@ -385,4 +385,10 @@ class ProtocolDetectionError(DetectionError):
 
 class DockerDetectionError(DetectionError):
     """Exception raised during Docker container detection operations."""
-    pass 
+    pass
+
+
+# Aliases for backward compatibility
+MCPDetectionResult = DetectionResult
+MCPProcess = ProcessInfo  
+MCPConfig = ConfigFileInfo 

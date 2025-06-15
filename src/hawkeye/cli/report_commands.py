@@ -898,3 +898,6 @@ def deduplicate_data(data1: dict, data2: dict) -> dict:
         else:
             merged[key] = data2[key]
     return merged
+
+# Alias for backward compatibility
+report_group = report

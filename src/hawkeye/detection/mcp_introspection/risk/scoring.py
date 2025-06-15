@@ -40,6 +40,10 @@ class ScoreMethod(str, Enum):
     CUSTOM = "custom"
 
 
+# Alias for backward compatibility
+ScoringMethodology = ScoreMethod
+
+
 @dataclass
 class ScoreBreakdown:
     """Detailed breakdown of risk score components."""

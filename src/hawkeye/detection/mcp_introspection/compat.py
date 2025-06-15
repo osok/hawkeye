@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from ..base import MCPServerInfo, ProcessInfo
 from .introspection import MCPIntrospection, IntrospectionConfig
 from .models import MCPServerConfig, MCPServerInfo as NewMCPServerInfo
-from ..utils.logging import get_logger
+from ...utils.logging import get_logger
 
 
 logger = get_logger(__name__)

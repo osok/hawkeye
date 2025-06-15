@@ -113,13 +113,19 @@ source venv/bin/activate
 # 3. Upgrade pip
 pip install --upgrade pip setuptools wheel
 
-# 4. Install HawkEye
+# 4. Install core dependencies
 pip install -r requirements.txt
 
-# 5. Create configuration directory
+# 5. Install MCP SDK dependencies (NEW)
+pip install "mcp>=1.0.0" "aiofiles>=0.8.0" "async-timeout>=4.0.0"
+
+# 6. Verify MCP SDK installation
+python -c "import mcp; print(f'✅ MCP SDK version: {mcp.__version__}')"
+
+# 7. Create configuration directory
 mkdir -p ~/.hawkeye
 
-# 6. Set up initial configuration
+# 8. Set up initial configuration
 python application.py config init
 ```
 

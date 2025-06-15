@@ -455,7 +455,7 @@ class MCPIntrospector:
             self.logger.error(f"Transport connectivity test failed for {transport_type}: {e}")
             return False
     
-            def introspect_with_specific_transport(
+    def introspect_with_specific_transport(
         self, 
         server_info: MCPServerInfo, 
         process_info: ProcessInfo, 

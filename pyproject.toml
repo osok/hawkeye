@@ -273,6 +273,12 @@ markers = [
     "unit: marks tests as unit tests",
     "network: marks tests that require network access",
     "privileged: marks tests that require elevated privileges",
+    "performance: marks tests as performance tests",
+    "security: marks tests as security tests",
+    "compatibility: marks tests as compatibility tests",
+    "memory_leak: marks tests as memory leak tests",
+    "e2e: marks tests as end-to-end tests",
+    "error_scenarios: marks tests that test error handling scenarios",
 ]
 filterwarnings = [
     "error",

@@ -275,6 +275,114 @@ python application.py detect config
 python application.py detect config --path /opt/mcp --include-hidden --max-depth 10
 ```
 
+##### `detect introspect` - MCP Introspection
+
+Performs comprehensive introspection of discovered MCP servers using the Python-based introspection system. This command directly communicates with MCP servers to discover their capabilities, tools, resources, and security implications.
+
+```bash
+python application.py detect introspect [OPTIONS]
+```
+
+**Required Options:**
+- `--target <IP|hostname>`: Target MCP server address
+- `--server-id <id>`: Unique identifier for the server (if known)
+
+**Optional Parameters:**
+- `--transport <stdio|sse|http>`: Force specific transport type (default: auto-detect)
+- `--timeout <seconds>`: Connection timeout (default: 30)
+- `--max-retries <count>`: Maximum retry attempts (default: 3)
+- `--enable-caching/--no-caching`: Enable result caching (default: enabled)
+- `--cache-ttl <seconds>`: Cache time-to-live (default: 300)
+- `--risk-analysis/--no-risk-analysis`: Enable comprehensive risk analysis (default: enabled)
+- `--concurrent-limit <count>`: Maximum concurrent connections (default: 5)
+- `--output <path>`: Output file path
+- `--format <json|html|markdown|csv>`: Output format (default: json)
+- `--include-tools/--no-tools`: Include tool discovery (default: enabled)
+- `--include-resources/--no-resources`: Include resource discovery (default: enabled)
+- `--include-capabilities/--no-capabilities`: Include capability discovery (default: enabled)
+
+**Examples:**
+```bash
+# Basic server introspection
+python application.py detect introspect --target 192.168.1.100 --server-id mcp-server-1
+
+# Introspection with specific transport
+python application.py detect introspect --target localhost:3000 --transport stdio --server-id local-server
+
+# Full introspection with risk analysis
+python application.py detect introspect --target api.example.com --risk-analysis --format html
+
+# Batch introspection with caching disabled
+python application.py detect introspect --target 192.168.1.100 --no-caching --concurrent-limit 10
+```
+
+**Output Includes:**
+- **Server Information**: Name, version, protocol details
+- **Tool Inventory**: Available tools with descriptions and schemas
+- **Resource Catalog**: Accessible resources and their types
+- **Capability Assessment**: Supported MCP features and extensions
+- **Risk Analysis**: Security assessment and threat modeling
+- **Performance Metrics**: Connection statistics and timing information
+
+**Security Features:**
+- **521+ Risk Patterns**: Comprehensive security pattern matching
+- **CWE Mapping**: Common Weakness Enumeration integration
+- **CVSS-like Scoring**: Industry-standard risk scoring
+- **Threat Modeling**: Capability-based security assessment
+- **Attack Vector Analysis**: Potential security vulnerabilities
+
+##### `detect introspect-batch` - Batch MCP Introspection
+
+Performs introspection on multiple MCP servers concurrently for efficiency in large deployments.
+
+```bash
+python application.py detect introspect-batch [OPTIONS]
+```
+
+**Required Options:**
+- `--servers-file <path>`: JSON file containing server configurations
+- OR `--targets <targets>`: Comma-separated list of server addresses
+
+**Optional Parameters:**
+- `--max-concurrent <count>`: Maximum concurrent introspections (default: 10)
+- `--timeout <seconds>`: Per-server timeout (default: 30)
+- `--output <path>`: Output file path
+- `--format <json|html|csv>`: Output format (default: json)
+- `--continue-on-error/--stop-on-error`: Error handling strategy (default: continue)
+- `--progress/--no-progress`: Show progress indicators (default: enabled)
+
+**Server Configuration File Format:**
+```json
+{
+  "servers": [
+    {
+      "server_id": "production-mcp-1",
+      "target": "192.168.1.100:3000",
+      "transport": "stdio",
+      "timeout": 45
+    },
+    {
+      "server_id": "api-gateway",
+      "target": "api.example.com",
+      "transport": "http",
+      "timeout": 30
+    }
+  ]
+}
+```
+
+**Examples:**
+```bash
+# Batch introspection from configuration file
+python application.py detect introspect-batch --servers-file mcp_servers.json --format html
+
+# Quick batch introspection of multiple targets
+python application.py detect introspect-batch --targets "192.168.1.100,192.168.1.101,192.168.1.102"
+
+# Large-scale batch with custom concurrency
+python application.py detect introspect-batch --servers-file large_deployment.json --max-concurrent 20
+```
+
 #### `report` - Report Generation
 
 Generates formatted reports from scan results.
@@ -465,6 +573,183 @@ HawkEye uses CVSS-based scoring with contextual adjustments:
 - Development configurations in production
 - Missing security headers
 - Inadequate logging
+
+### MCP Introspection Results
+
+The new Python-based MCP introspection system provides comprehensive analysis of discovered MCP servers. Understanding these results is crucial for effective security assessment.
+
+#### Introspection Report Structure
+
+**Server Information Section:**
+```json
+{
+  "server_info": {
+    "server_id": "production-mcp-1",
+    "server_name": "File Management Server",
+    "server_version": "1.2.3",
+    "protocol_version": "2024-11-05",
+    "discovery_timestamp": "2024-12-28T10:30:00Z",
+    "transport_type": "stdio",
+    "overall_risk_level": "high"
+  }
+}
+```
+
+**Tools Analysis:**
+```json
+{
+  "tools": [
+    {
+      "name": "read_file",
+      "description": "Read contents of a file",
+      "risk_level": "high",
+      "risk_categories": ["file_system", "data_access"],
+      "security_implications": [
+        "Potential for unauthorized file access",
+        "Risk of sensitive data exposure"
+      ],
+      "parameters": [
+        {
+          "name": "path",
+          "type": "string",
+          "required": true,
+          "description": "File path to read"
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Risk Assessment Summary:**
+```json
+{
+  "risk_summary": {
+    "overall_risk": "high",
+    "cvss_score": 7.8,
+    "risk_factors": {
+      "file_system_access": true,
+      "network_access": true,
+      "code_execution": false,
+      "data_modification": true
+    },
+    "threat_vectors": [
+      "Unauthorized file system access",
+      "Data exfiltration via network tools",
+      "Configuration manipulation"
+    ]
+  }
+}
+```
+
+#### Risk Categories Explained
+
+**File System Access (HIGH RISK)**
+- Tools that can read, write, or modify files
+- Risk of unauthorized data access or system modification
+- Examples: `read_file`, `write_file`, `list_directory`
+
+**Network Access (HIGH RISK)**
+- Tools that can make external network connections
+- Risk of data exfiltration or external system compromise
+- Examples: `web_search`, `http_request`, `api_call`
+
+**Code Execution (CRITICAL RISK)**
+- Tools that can execute arbitrary code or commands
+- Maximum security risk requiring immediate attention
+- Examples: `execute_command`, `run_script`, `eval_code`
+
+**Data Access (MEDIUM RISK)**
+- Tools that can access databases or structured data
+- Risk depends on sensitivity of accessible data
+- Examples: `database_query`, `csv_read`, `json_parse`
+
+**System Modification (HIGH RISK)**
+- Tools that can modify system configuration
+- Risk of system compromise or denial of service
+- Examples: `modify_config`, `install_package`, `restart_service`
+
+**Authentication (MEDIUM RISK)**
+- Tools that handle authentication or credentials
+- Risk of credential exposure or bypass
+- Examples: `authenticate_user`, `store_credentials`
+
+#### Threat Modeling Results
+
+**Attack Vector Analysis:**
+- **Direct Access**: Tools accessible without authentication
+- **Privilege Escalation**: Tools that can increase access levels
+- **Lateral Movement**: Tools that can access other systems
+- **Data Exfiltration**: Tools that can extract sensitive information
+- **System Disruption**: Tools that can cause service interruption
+
+**Capability Mapping:**
+- **Read Operations**: What data can be accessed
+- **Write Operations**: What can be modified or created
+- **Execute Operations**: What commands or code can be run
+- **Network Operations**: What external connections are possible
+
+#### Security Recommendations
+
+**Immediate Actions (Critical/High Risk):**
+1. **Disable unnecessary tools** with code execution capabilities
+2. **Implement authentication** for all tool access
+3. **Restrict file system access** to necessary directories only
+4. **Monitor network connections** from MCP servers
+5. **Review tool permissions** and implement least privilege
+
+**Medium-Term Actions (Medium Risk):**
+1. **Implement input validation** for all tool parameters
+2. **Add audit logging** for all tool usage
+3. **Set up monitoring** for unusual activity patterns
+4. **Create backup policies** for systems with write access
+5. **Document security controls** and review regularly
+
+**Long-Term Actions (Low Risk/Informational):**
+1. **Regular security assessments** using HawkEye introspection
+2. **Security awareness training** for MCP administrators
+3. **Incident response procedures** for MCP-related security events
+4. **Policy development** for MCP deployment and usage
+
+#### Performance Metrics
+
+The introspection system provides performance insights:
+
+```json
+{
+  "performance_metrics": {
+    "introspection_duration": 12.5,
+    "tools_discovered": 15,
+    "resources_discovered": 8,
+    "transport_efficiency": 0.95,
+    "cache_hit_rate": 0.65,
+    "connection_success_rate": 1.0
+  }
+}
+```
+
+**Key Performance Indicators:**
+- **Introspection Duration**: Time taken for complete analysis
+- **Discovery Success Rate**: Percentage of successful component discoveries
+- **Transport Efficiency**: Connection utilization effectiveness
+- **Cache Hit Rate**: Efficiency of result caching
+- **Error Rate**: Frequency of connection or protocol errors
+
+#### Interpreting Risk Scores
+
+**CVSS-like Scoring (0.0-10.0):**
+- **9.0-10.0 (Critical)**: Immediate remediation required
+- **7.0-8.9 (High)**: High priority, remediate within 24-48 hours
+- **4.0-6.9 (Medium)**: Moderate priority, remediate within 1-2 weeks
+- **0.1-3.9 (Low)**: Low priority, monitor and plan remediation
+- **0.0 (Informational)**: No immediate security risk
+
+**Composite Scoring Factors:**
+- **Tool Risk Level**: Based on capability analysis
+- **Access Control**: Authentication and authorization presence
+- **Network Exposure**: Public accessibility and transport security
+- **Data Sensitivity**: Type and classification of accessible data
+- **System Criticality**: Importance of the affected system
 
 ### Report Sections
 
@@ -825,6 +1110,318 @@ echo "10.0.1.0/24" >> targets.txt
 
 # Set up cron job for hourly monitoring
 echo "0 * * * * /path/to/monitor.sh" | crontab -
+```
+
+### Example 5: MCP Server Introspection
+
+**Scenario**: Comprehensive security analysis of discovered MCP servers using the new Python-based introspection system
+
+```bash
+# Basic MCP server introspection
+python application.py detect introspect \
+    --target 192.168.1.100:3000 \
+    --server-id production-mcp-1 \
+    --risk-analysis \
+    --format html \
+    --output mcp_introspection_report.html
+
+# Introspection with specific transport
+python application.py detect introspect \
+    --target localhost:3000 \
+    --transport stdio \
+    --server-id local-dev-server \
+    --timeout 60 \
+    --format json
+
+# Detailed introspection with caching disabled for fresh analysis
+python application.py detect introspect \
+    --target api.example.com \
+    --server-id api-gateway \
+    --no-caching \
+    --concurrent-limit 1 \
+    --format markdown \
+    --output detailed_analysis.md
+```
+
+### Example 6: Batch MCP Introspection
+
+**Scenario**: Analyze multiple MCP servers across the enterprise infrastructure
+
+```bash
+# Create server configuration file
+cat > mcp_servers.json << 'EOF'
+{
+  "servers": [
+    {
+      "server_id": "production-fileserver",
+      "target": "192.168.1.100:3000",
+      "transport": "stdio",
+      "timeout": 45
+    },
+    {
+      "server_id": "api-gateway",
+      "target": "api.internal.company.com",
+      "transport": "http",
+      "timeout": 30
+    },
+    {
+      "server_id": "development-server",
+      "target": "dev.company.com:8080",
+      "transport": "sse",
+      "timeout": 60
+    },
+    {
+      "server_id": "data-processor",
+      "target": "192.168.2.50:9000",
+      "transport": "stdio",
+      "timeout": 40
+    }
+  ]
+}
+EOF
+
+# Run batch introspection
+python application.py detect introspect-batch \
+    --servers-file mcp_servers.json \
+    --max-concurrent 5 \
+    --format html \
+    --output batch_introspection_report.html \
+    --progress
+
+# Alternative: Quick batch introspection from command line
+python application.py detect introspect-batch \
+    --targets "192.168.1.100,192.168.1.101,192.168.1.102" \
+    --max-concurrent 3 \
+    --format csv \
+    --output quick_batch_results.csv
+```
+
+### Example 7: Security-Focused Introspection
+
+**Scenario**: Security assessment focusing on high-risk tools and capabilities
+
+```bash
+# High-security introspection with detailed risk analysis
+python application.py detect introspect \
+    --target secure.company.com \
+    --server-id security-critical-server \
+    --risk-analysis \
+    --timeout 90 \
+    --max-retries 5 \
+    --format json \
+    --output security_assessment.json
+
+# Parse and analyze security results
+cat security_assessment.json | jq '.risk_summary.threat_vectors'
+cat security_assessment.json | jq '.tools[] | select(.risk_level == "critical" or .risk_level == "high")'
+
+# Generate security-focused report
+python application.py report \
+    --input security_assessment.json \
+    --format html \
+    --template security \
+    --risk-threshold 7.0 \
+    --output security_report.html
+```
+
+### Example 8: Performance Monitoring and Optimization
+
+**Scenario**: Monitor introspection performance and optimize for large deployments
+
+```bash
+# Performance-optimized introspection
+python application.py detect introspect \
+    --target large-deployment.company.com \
+    --server-id large-scale-server \
+    --enable-caching \
+    --cache-ttl 600 \
+    --concurrent-limit 15 \
+    --format json \
+    --output performance_test.json
+
+# Extract performance metrics
+cat performance_test.json | jq '.performance_metrics'
+
+# Batch introspection with performance monitoring
+python application.py detect introspect-batch \
+    --servers-file large_servers.json \
+    --max-concurrent 20 \
+    --format json \
+    --output performance_batch.json \
+    --progress
+
+# Analyze batch performance
+cat performance_batch.json | jq '.performance_summary'
+```
+
+### Example 9: Automated Introspection Pipeline
+
+**Scenario**: Create an automated pipeline for regular MCP security assessment
+
+```bash
+# Create automated introspection script
+cat > automated_introspection.sh << 'EOF'
+#!/bin/bash
+
+# Configuration
+DATE=$(date +%Y%m%d_%H%M%S)
+SERVERS_CONFIG="mcp_servers.json"
+OUTPUT_DIR="introspection_results"
+REPORT_DIR="reports"
+ARCHIVE_DIR="archive"
+
+# Create directories
+mkdir -p "$OUTPUT_DIR" "$REPORT_DIR" "$ARCHIVE_DIR"
+
+echo "🦅 HawkEye Automated MCP Introspection - $DATE"
+
+# Step 1: Discovery scan to find new MCP servers
+echo "Step 1: Network discovery..."
+python application.py scan \
+    --target 192.168.0.0/16 \
+    --ports 3000,8000,8080,9000 \
+    --output "$OUTPUT_DIR/discovery_$DATE.json"
+
+# Step 2: Extract MCP servers from discovery results
+echo "Step 2: Processing discovery results..."
+# (This would typically involve parsing discovery results to update servers config)
+
+# Step 3: Comprehensive introspection
+echo "Step 3: MCP server introspection..."
+python application.py detect introspect-batch \
+    --servers-file "$SERVERS_CONFIG" \
+    --max-concurrent 10 \
+    --format json \
+    --output "$OUTPUT_DIR/introspection_$DATE.json" \
+    --progress
+
+# Step 4: Generate reports
+echo "Step 4: Generating reports..."
+
+# Executive summary
+python application.py report \
+    --input "$OUTPUT_DIR/introspection_$DATE.json" \
+    --format html \
+    --template executive \
+    --output "$REPORT_DIR/executive_summary_$DATE.html"
+
+# Technical report
+python application.py report \
+    --input "$OUTPUT_DIR/introspection_$DATE.json" \
+    --format html \
+    --template technical \
+    --output "$REPORT_DIR/technical_report_$DATE.html"
+
+# Security-focused report
+python application.py report \
+    --input "$OUTPUT_DIR/introspection_$DATE.json" \
+    --format html \
+    --template security \
+    --risk-threshold 4.0 \
+    --output "$REPORT_DIR/security_assessment_$DATE.html"
+
+# CSV export for analysis
+python application.py report \
+    --input "$OUTPUT_DIR/introspection_$DATE.json" \
+    --format csv \
+    --output "$REPORT_DIR/data_export_$DATE.csv"
+
+# Step 5: Security analysis
+echo "Step 5: Security analysis..."
+
+# Extract high-risk findings
+jq '.servers[] | select(.overall_risk_level == "critical" or .overall_risk_level == "high")' \
+    "$OUTPUT_DIR/introspection_$DATE.json" > "$OUTPUT_DIR/high_risk_servers_$DATE.json"
+
+# Count findings by risk level
+echo "Risk Level Summary:"
+jq -r '.servers[].overall_risk_level' "$OUTPUT_DIR/introspection_$DATE.json" | sort | uniq -c
+
+# Step 6: Archive old results
+echo "Step 6: Archiving old results..."
+find "$OUTPUT_DIR" -name "*.json" -mtime +30 -exec mv {} "$ARCHIVE_DIR/" \;
+find "$REPORT_DIR" -name "*.html" -mtime +30 -exec mv {} "$ARCHIVE_DIR/" \;
+
+echo "✅ Automated introspection completed successfully!"
+echo "📊 Reports available in: $REPORT_DIR"
+echo "📁 Raw data available in: $OUTPUT_DIR"
+
+# Send notification (optional)
+if command -v mail &> /dev/null; then
+    echo "MCP introspection completed for $DATE. Reports available at $REPORT_DIR" | \
+        mail -s "HawkEye MCP Introspection Report - $DATE" security-team@company.com
+fi
+EOF
+
+# Make script executable
+chmod +x automated_introspection.sh
+
+# Set up daily automated introspection
+echo "0 6 * * * /path/to/automated_introspection.sh" | crontab -
+
+# Run manually
+./automated_introspection.sh
+```
+
+### Example 10: Integration with Security Tools
+
+**Scenario**: Integrate MCP introspection results with other security tools and workflows
+
+```bash
+# Export to SIEM format
+python application.py detect introspect \
+    --target critical.company.com \
+    --server-id critical-server \
+    --format json \
+    --output introspection_results.json
+
+# Convert to SIEM-compatible format
+jq '.tools[] | {
+    timestamp: .discovery_timestamp,
+    source: "hawkeye-mcp",
+    severity: .risk_level,
+    category: .risk_categories[0],
+    message: ("MCP tool " + .name + " has " + .risk_level + " risk"),
+    tool_name: .name,
+    description: .description,
+    server_id: "critical-server"
+}' introspection_results.json > siem_events.json
+
+# Send to vulnerability management system
+# (Example integration - adapt to your VM system API)
+curl -X POST https://vm.company.com/api/vulnerabilities \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer $VM_API_TOKEN" \
+    -d @introspection_results.json
+
+# Generate tickets for high-risk findings
+jq -r '.tools[] | select(.risk_level == "critical" or .risk_level == "high") | 
+    "Title: Critical MCP Tool: " + .name + "\n" +
+    "Description: " + .description + "\n" +
+    "Risk Level: " + .risk_level + "\n" +
+    "Categories: " + (.risk_categories | join(", ")) + "\n" +
+    "Server: critical-server\n\n"' introspection_results.json > security_tickets.txt
+
+# Integration with Slack notifications
+SLACK_WEBHOOK_URL="https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
+CRITICAL_COUNT=$(jq '[.tools[] | select(.risk_level == "critical")] | length' introspection_results.json)
+HIGH_COUNT=$(jq '[.tools[] | select(.risk_level == "high")] | length' introspection_results.json)
+
+if [ "$CRITICAL_COUNT" -gt 0 ] || [ "$HIGH_COUNT" -gt 0 ]; then
+    curl -X POST "$SLACK_WEBHOOK_URL" \
+        -H 'Content-type: application/json' \
+        --data "{
+            \"text\": \"🚨 HawkEye MCP Security Alert\",
+            \"attachments\": [{
+                \"color\": \"danger\",
+                \"fields\": [
+                    {\"title\": \"Critical Risk Tools\", \"value\": \"$CRITICAL_COUNT\", \"short\": true},
+                    {\"title\": \"High Risk Tools\", \"value\": \"$HIGH_COUNT\", \"short\": true},
+                    {\"title\": \"Server\", \"value\": \"critical-server\", \"short\": true}
+                ]
+            }]
+        }"
+fi
 ```
 
 ---

@@ -14,9 +14,10 @@
 5. [Performance Problems](#performance-problems)
 6. [Configuration Issues](#configuration-issues)
 7. [Reporting Problems](#reporting-problems)
-8. [Error Messages](#error-messages)
-9. [Log Analysis](#log-analysis)
-10. [Advanced Diagnostics](#advanced-diagnostics)
+8. [MCP Introspection Issues](#mcp-introspection-issues)
+9. [Error Messages](#error-messages)
+10. [Log Analysis](#log-analysis)
+11. [Advanced Diagnostics](#advanced-diagnostics)
 
 ---
 
@@ -628,6 +629,480 @@ python application.py report --input scan_results.json --template default
 2. **Reinstall templates:**
 ```bash
 python application.py install-templates --force
+```
+
+---
+
+## MCP Introspection Issues
+
+The new Python-based MCP introspection system replaces the legacy Node.js approach with improved reliability and performance. This section covers troubleshooting specific to MCP introspection functionality.
+
+### Problem: MCP Server Connection Failures
+
+**Symptoms:**
+- "Failed to connect to MCP server" errors
+- Connection timeouts during introspection
+- Transport-specific connection errors
+
+**Diagnosis:**
+```bash
+# Test basic connectivity
+python application.py detect introspect \
+    --target 192.168.1.100:3000 \
+    --server-id test-server \
+    --debug
+
+# Check transport auto-detection
+python application.py detect introspect \
+    --target 192.168.1.100:3000 \
+    --server-id test-server \
+    --transport stdio \
+    --debug
+
+# Verify server is running
+telnet 192.168.1.100 3000
+netstat -tulpn | grep 3000
+```
+
+**Solutions:**
+
+1. **Try different transport types:**
+```bash
+# Try stdio transport
+python application.py detect introspect \
+    --target localhost:3000 \
+    --transport stdio \
+    --server-id local-server
+
+# Try HTTP transport
+python application.py detect introspect \
+    --target api.example.com \
+    --transport http \
+    --server-id api-server
+
+# Try SSE transport
+python application.py detect introspect \
+    --target sse.example.com \
+    --transport sse \
+    --server-id sse-server
+```
+
+2. **Increase timeout and retries:**
+```bash
+python application.py detect introspect \
+    --target slow-server.com \
+    --timeout 90 \
+    --max-retries 5 \
+    --server-id slow-server
+```
+
+3. **Check server configuration:**
+```bash
+# Verify server process
+ps aux | grep mcp
+lsof -i :3000
+
+# Check server logs
+journalctl -u mcp-server -f
+tail -f /var/log/mcp-server.log
+```
+
+### Problem: MCP Protocol Errors
+
+**Symptoms:**
+- "Invalid MCP response" errors
+- Protocol version mismatches
+- JSON-RPC communication failures
+
+**Diagnosis:**
+```bash
+# Enable protocol debugging
+export HAWKEYE_DEBUG_MCP_PROTOCOL=1
+python application.py detect introspect \
+    --target 192.168.1.100:3000 \
+    --server-id debug-server \
+    --debug
+
+# Check protocol version compatibility
+python application.py detect introspect \
+    --target 192.168.1.100:3000 \
+    --server-id version-check \
+    --include-capabilities \
+    --no-tools \
+    --no-resources
+```
+
+**Solutions:**
+
+1. **Verify MCP protocol support:**
+```bash
+# Test with minimal introspection
+python application.py detect introspect \
+    --target 192.168.1.100:3000 \
+    --server-id minimal-test \
+    --no-risk-analysis \
+    --no-tools \
+    --no-resources
+```
+
+2. **Update MCP SDK:**
+```bash
+pip install --upgrade mcp
+pip install --upgrade aiofiles async-timeout
+```
+
+3. **Check server MCP implementation:**
+```bash
+# Manual MCP protocol test
+python -c "
+import json
+from hawkeye.detection.mcp_introspection.transport.stdio import StdioTransportHandler
+# Test basic MCP initialize call
+"
+```
+
+### Problem: Tool and Resource Discovery Issues
+
+**Symptoms:**
+- "No tools discovered" warnings
+- Incomplete resource lists
+- Discovery timeouts
+
+**Diagnosis:**
+```bash
+# Test individual discovery components
+python application.py detect introspect \
+    --target 192.168.1.100:3000 \
+    --server-id discovery-test \
+    --include-tools \
+    --no-resources \
+    --no-capabilities \
+    --debug
+
+# Test resource discovery only
+python application.py detect introspect \
+    --target 192.168.1.100:3000 \
+    --server-id resource-test \
+    --no-tools \
+    --include-resources \
+    --no-capabilities \
+    --debug
+```
+
+**Solutions:**
+
+1. **Test discovery components separately:**
+```bash
+# Tools only
+python application.py detect introspect \
+    --target 192.168.1.100:3000 \
+    --server-id tools-only \
+    --include-tools \
+    --no-resources \
+    --no-capabilities
+
+# Resources only
+python application.py detect introspect \
+    --target 192.168.1.100:3000 \
+    --server-id resources-only \
+    --no-tools \
+    --include-resources \
+    --no-capabilities
+
+# Capabilities only
+python application.py detect introspect \
+    --target 192.168.1.100:3000 \
+    --server-id capabilities-only \
+    --no-tools \
+    --no-resources \
+    --include-capabilities
+```
+
+2. **Check server implementation:**
+```python
+# Test MCP server manually
+python3 -c "
+import subprocess
+import json
+
+# Test tools/list endpoint
+result = subprocess.run([
+    'node', '-e', 
+    'const client = require(\\"@modelcontextprotocol/sdk\\"); console.log(\\"testing\\");'
+], capture_output=True, text=True)
+print('Node.js test:', result.stdout, result.stderr)
+"
+```
+
+### Problem: Risk Analysis Failures
+
+**Symptoms:**
+- "Risk analysis failed" errors
+- Missing security assessments
+- Incomplete threat modeling
+
+**Diagnosis:**
+```bash
+# Test without risk analysis
+python application.py detect introspect \
+    --target 192.168.1.100:3000 \
+    --server-id no-risk-test \
+    --no-risk-analysis \
+    --debug
+
+# Test risk analysis components
+export HAWKEYE_DEBUG_RISK_ANALYSIS=1
+python application.py detect introspect \
+    --target 192.168.1.100:3000 \
+    --server-id risk-debug \
+    --risk-analysis \
+    --debug
+```
+
+**Solutions:**
+
+1. **Disable risk analysis temporarily:**
+```bash
+python application.py detect introspect \
+    --target 192.168.1.100:3000 \
+    --server-id basic-introspection \
+    --no-risk-analysis
+```
+
+2. **Update risk analysis patterns:**
+```bash
+# Check risk analysis configuration
+python -c "
+from hawkeye.detection.mcp_introspection.risk.tool_analyzer import ToolRiskAnalyzer
+analyzer = ToolRiskAnalyzer()
+print(f'Risk patterns loaded: {len(analyzer.risk_patterns)}')
+"
+```
+
+### Problem: Performance Issues
+
+**Symptoms:**
+- Slow introspection operations
+- High memory usage
+- Connection pool exhaustion
+
+**Diagnosis:**
+```bash
+# Monitor performance
+python application.py detect introspect \
+    --target 192.168.1.100:3000 \
+    --server-id performance-test \
+    --debug | grep -E "(duration|memory|connections)"
+
+# Test with different concurrency settings
+python application.py detect introspect-batch \
+    --targets "192.168.1.100,192.168.1.101" \
+    --max-concurrent 1 \
+    --debug
+```
+
+**Solutions:**
+
+1. **Optimize connection settings:**
+```bash
+# Reduce concurrency
+python application.py detect introspect \
+    --target 192.168.1.100:3000 \
+    --server-id optimized \
+    --concurrent-limit 1 \
+    --timeout 60
+
+# Enable caching
+python application.py detect introspect \
+    --target 192.168.1.100:3000 \
+    --server-id cached \
+    --enable-caching \
+    --cache-ttl 600
+```
+
+2. **Monitor resource usage:**
+```bash
+# Monitor during introspection
+top -p $(pgrep -f "python.*application.py")
+htop -p $(pgrep -f "python.*application.py")
+
+# Memory profiling
+python -m memory_profiler application.py detect introspect \
+    --target 192.168.1.100:3000 \
+    --server-id memory-profile
+```
+
+### Problem: Batch Introspection Issues
+
+**Symptoms:**
+- Batch operations failing
+- Partial results
+- Concurrency errors
+
+**Diagnosis:**
+```bash
+# Test with single server first
+python application.py detect introspect \
+    --target 192.168.1.100:3000 \
+    --server-id single-test \
+    --debug
+
+# Test batch with minimal concurrency
+python application.py detect introspect-batch \
+    --targets "192.168.1.100" \
+    --max-concurrent 1 \
+    --debug
+```
+
+**Solutions:**
+
+1. **Reduce batch size and concurrency:**
+```bash
+# Small batch
+python application.py detect introspect-batch \
+    --targets "192.168.1.100,192.168.1.101" \
+    --max-concurrent 2 \
+    --continue-on-error
+
+# Process servers individually on failure
+python application.py detect introspect \
+    --target 192.168.1.100:3000 \
+    --server-id individual-1
+
+python application.py detect introspect \
+    --target 192.168.1.101:3000 \
+    --server-id individual-2
+```
+
+2. **Check server configuration file:**
+```bash
+# Validate JSON syntax
+python -m json.tool mcp_servers.json
+
+# Test with minimal configuration
+cat > test_servers.json << 'EOF'
+{
+  "servers": [
+    {
+      "server_id": "test-1",
+      "target": "192.168.1.100:3000",
+      "transport": "stdio",
+      "timeout": 30
+    }
+  ]
+}
+EOF
+
+python application.py detect introspect-batch \
+    --servers-file test_servers.json
+```
+
+### Problem: Migration from Node.js Issues
+
+**Symptoms:**
+- Legacy Node.js scripts still being generated
+- Inconsistent results between old and new system
+- Performance regressions
+
+**Diagnosis:**
+```bash
+# Verify Python implementation is being used
+python -c "
+from hawkeye.detection.mcp_introspection import MCPIntrospector
+introspector = MCPIntrospector()
+print(f'Implementation: {introspector.__class__.__module__}')
+"
+
+# Check for Node.js artifacts
+find /tmp -name "*mcp*" -name "*.js" -type f
+ps aux | grep node | grep mcp
+```
+
+**Solutions:**
+
+1. **Ensure Python implementation is active:**
+```bash
+# Clear any cached modules
+python -c "
+import sys
+modules = [m for m in sys.modules.keys() if 'mcp_introspection' in m]
+for m in modules:
+    del sys.modules[m]
+"
+
+# Reinstall fresh
+pip uninstall -y hawkeye
+pip install -e .
+```
+
+2. **Clean up legacy artifacts:**
+```bash
+# Remove temporary Node.js scripts
+find /tmp -name "*mcp*" -name "*.js" -type f -delete
+
+# Clear process cache
+pkill -f "node.*mcp"
+```
+
+3. **Run migration validation:**
+```bash
+# Test both approaches (if available)
+python tests/compatibility/test_migration_validation.py
+
+# Compare results
+python application.py detect introspect \
+    --target 192.168.1.100:3000 \
+    --server-id migration-test \
+    --format json \
+    --output new_approach.json
+
+# Analyze differences
+diff old_approach.json new_approach.json
+```
+
+### MCP Introspection Debug Commands
+
+```bash
+# Enable comprehensive debugging
+export HAWKEYE_DEBUG_MCP=1
+export HAWKEYE_DEBUG_TRANSPORT=1
+export HAWKEYE_DEBUG_DISCOVERY=1
+export HAWKEYE_DEBUG_RISK=1
+
+# Test connectivity only
+python application.py test-mcp-connectivity --target 192.168.1.100:3000
+
+# Validate MCP server
+python application.py validate-mcp-server --target 192.168.1.100:3000
+
+# Performance benchmark
+python application.py benchmark-introspection --target 192.168.1.100:3000
+
+# Export debug logs
+python application.py detect introspect \
+    --target 192.168.1.100:3000 \
+    --server-id debug-export \
+    --debug \
+    --output debug_introspection.json 2> debug_introspection.log
+```
+
+### Common Introspection Log Patterns
+
+```bash
+# Transport issues
+grep -E "(Transport|Connection|Protocol)" hawkeye.log
+
+# Discovery problems
+grep -E "(Discovery|Tool|Resource|Capability)" hawkeye.log
+
+# Risk analysis issues
+grep -E "(Risk|Threat|Security|Analysis)" hawkeye.log
+
+# Performance problems
+grep -E "(Timeout|Memory|Performance|Cache)" hawkeye.log
+
+# Python/MCP SDK issues
+grep -E "(MCP|SDK|Python|Import)" hawkeye.log
 ```
 
 ---

@@ -59,6 +59,10 @@ class ThreatVector:
     references: List[str] = field(default_factory=list)
 
 
+# Alias for backward compatibility
+Threat = ThreatVector
+
+
 @dataclass
 class ThreatModel:
     """Complete threat model for an MCP server."""

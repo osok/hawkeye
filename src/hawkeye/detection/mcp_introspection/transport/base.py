@@ -30,6 +30,16 @@ class ConnectionFailedError(TransportError):
     pass
 
 
+class ConnectionError(TransportError):
+    """Raised when there are connection-related issues."""
+    pass
+
+
+class TimeoutError(ConnectionTimeoutError):
+    """Alias for ConnectionTimeoutError for backward compatibility."""
+    pass
+
+
 class BaseTransportHandler(ABC):
     """
     Abstract base class for MCP transport handlers.

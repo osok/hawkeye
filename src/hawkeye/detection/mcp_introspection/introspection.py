@@ -34,6 +34,9 @@ class IntrospectionConfig:
     enable_detailed_analysis: bool = True
     enable_risk_assessment: bool = True
     aggregator_config: Optional[AggregatorConfig] = None
+    max_retries: int = 3  # Maximum number of retry attempts
+    enable_caching: bool = True  # Enable caching of introspection results
+    enable_fallback: bool = True  # Enable fallback mechanisms
     
     def __post_init__(self):
         if self.aggregator_config is None:
