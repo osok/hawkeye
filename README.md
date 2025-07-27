@@ -28,6 +28,7 @@ HawkEye combines advanced network scanning capabilities with specialized MCP det
 - Python 3.8 or higher
 - Virtual environment (recommended)
 - Network access to target infrastructure
+- **Optional**: OpenAI/Anthropic API keys for AI-powered threat analysis
 
 ### Installation
 
@@ -42,22 +43,48 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
+
+# Configure API keys for AI analysis (optional)
+cp env.example .env
+# Edit .env file with your API keys
 ```
 
 ### Basic Usage
 
 ```bash
-# Scan a single IP address
-python application.py scan --target 192.168.1.100
+# Quick scan for MCP services
+python application.py quick-scan --target 192.168.1.100
 
-# Scan a CIDR range
+# Comprehensive MCP detection with AI analysis
+python application.py detect comprehensive --target 192.168.1.100
+
+# Local system MCP detection
+python application.py detect local
+
+# Network scanning with MCP identification
 python application.py scan --target 192.168.1.0/24
 
-# Scan with custom port range
-python application.py scan --target 192.168.1.0/24 --ports 3000-9000
+# Generate AI-powered threat analysis
+python demo_ai_threat_analysis.py
 
 # Generate detailed report
-python application.py report --input scan_results.json --format html
+python application.py report generate --input scan_results.json --format html
+```
+
+### 🤖 AI-Powered Threat Analysis
+
+HawkEye now includes sophisticated AI-powered threat analysis capabilities:
+
+```bash
+# Run the AI threat analysis demo
+python demo_ai_threat_analysis.py
+
+# The demo showcases:
+# - Dynamic MCP tool capability analysis
+# - AI-powered threat assessment
+# - Attack vector identification
+# - Risk scoring and mitigation strategies
+# - Multi-provider AI support (OpenAI, Anthropic, Local LLM)
 ```
 
 ## 📖 Complete Workflow Guide
@@ -96,7 +123,68 @@ python application.py detect local --output local_audit.json
 
 ## 📋 Features
 
-### Network Scanning Engine
+### 🚀 Advanced MCP Detection & Analysis
+
+- **Comprehensive Detection Pipeline**
+  - Multi-method MCP server discovery (7 detection methods)
+  - Process-based detection with Node.js/NPX identification
+  - Network scanning with MCP protocol verification
+  - Configuration file discovery and analysis
+  - Docker container inspection for MCP services
+  - Environment variable analysis
+  - Transport layer detection (stdio, HTTP, WebSocket, SSE)
+
+- **Python-Based MCP Introspection**
+  - Direct MCP server communication using Python MCP SDK
+  - Real-time tool and resource discovery
+  - Capability assessment via MCP protocol
+  - Transport handler implementations (Stdio, SSE, HTTP)
+  - Connection pooling and retry logic with exponential backoff
+  - Advanced risk analysis with 521+ security patterns
+
+### 🤖 AI-Powered Threat Analysis
+
+- **Dynamic Threat Assessment**
+  - AI-powered analysis of MCP tool capabilities
+  - Multi-provider support (OpenAI, Anthropic, Local LLM)
+  - Context-aware threat modeling
+  - Attack vector identification and feasibility assessment
+  - Attack chain detection across multiple tools
+  - Intelligent caching with learning capabilities
+
+- **Advanced AI Features**
+  - ThreatIntelligenceDB with pattern recognition
+  - Multi-stage threat analysis pipeline
+  - Dynamic confidence scoring (9-factor system)
+  - Provider failover with health monitoring
+  - Cost optimization and budget controls
+  - Parallel processing with streaming results
+
+- **Sophisticated Analysis Components**
+  - Environment context detection (cloud, container, virtualization)
+  - Security posture assessment (EDR, SIEM detection)
+  - Compliance framework mapping (PCI-DSS, HIPAA, GDPR, NIST)
+  - Attack chain visualization and risk scoring
+  - Threat intelligence learning from historical analyses
+
+### 🛡️ Security Assessment Engine
+
+- **Advanced Risk Analysis**
+  - 521+ comprehensive security risk patterns
+  - CWE (Common Weakness Enumeration) mapping
+  - Multi-dimensional risk categorization
+  - CVSS-like scoring with contextual adjustments
+  - Schema-based parameter validation analysis
+  - Capability-based threat modeling
+
+- **Risk Scoring & Reporting**
+  - Composite risk scoring (weighted average, maximum, CVSS-like)
+  - Multi-format reporting (JSON, HTML, Markdown, CSV)
+  - Configurable risk policies and thresholds
+  - Executive summary generation
+  - Attack vector prioritization
+
+### 🌐 Network Scanning Engine
 
 - **Target Specification**
   - CIDR notation support (e.g., `192.168.1.0/24`)
@@ -116,69 +204,49 @@ python application.py detect local --output local_audit.json
   - WebSocket endpoint detection
   - Custom MCP protocol detection
 
-### MCP Detection Engine
-
-- **Process Analysis**
-  - Node.js process enumeration
-  - Command-line argument inspection
-  - Environment variable analysis
-  - Working directory examination
-
-- **Configuration Discovery**
-  - Package.json file analysis
-  - MCP server configuration files
-  - Environment configuration detection
-  - Docker container inspection
-
-- **Protocol Verification**
-  - MCP handshake simulation
-  - Transport layer identification (stdio, HTTP, WebSocket)
-  - Authentication mechanism detection
-  - API endpoint enumeration
-
-### Security Assessment
-
-- **Vulnerability Detection**
-  - Default configuration identification
-  - Weak authentication mechanisms
-  - Unencrypted transport protocols
-  - Public accessibility assessment
-
-- **Risk Scoring**
-  - CVSS-based scoring methodology
-  - Context-aware risk assessment
-  - Business impact consideration
-  - Remediation priority ranking
-
-- **Compliance Checking**
-  - Security best practice validation
-  - Organizational policy compliance
-  - Industry standard alignment
-  - Regulatory requirement assessment
-
 ## 🛠️ Command Reference
 
-### Scanning Commands
+### Core Commands
 
 ```bash
-# Network scanning
-hawkeye scan --target <CIDR|IP> [options]
-hawkeye quick-scan --target <CIDR|IP> [options]
+# Quick MCP service discovery
+python application.py quick-scan --target <CIDR|IP> [options]
 
-# MCP detection
-hawkeye detect target --target <IP> [options]
-hawkeye detect local [options]
-hawkeye detect process --pid <PID> [options]
-hawkeye detect config [options]
+# Network scanning operations
+python application.py scan --target <CIDR|IP> [options]
 
-# Reporting
-hawkeye report generate --input <scan_results> --format <json|csv|xml|html> [options]
-hawkeye report aggregate --input <scan_results> [options]
-hawkeye report combine --input-dir <results_dir> [options]
+# MCP-specific detection and analysis
+python application.py detect comprehensive --target <IP> [options]
+python application.py detect target --target <IP> [options]
+python application.py detect local [options]
+python application.py detect process --pid <PID> [options]
+python application.py detect config [options]
 
-# Configuration and utilities
-hawkeye config show [options]
-hawkeye info
+# Security assessment and risk analysis
+python application.py assess [options]
+
+# Report generation and formatting
+python application.py report generate --input <results> --format <json|csv|xml|html> [options]
+
+# Configuration management
+python application.py config [options]
+
+# System information
+python application.py info
+```
+
+### AI-Powered Analysis
+
+```bash
+# Run AI threat analysis demonstration
+python demo_ai_threat_analysis.py
+
+# The demo includes:
+# - Individual MCP server analysis
+# - Batch processing of multiple servers
+# - Rule-based fallback when AI unavailable
+# - Attack chain detection
+# - Cost optimization
 ```
 
 ### Configuration Options
@@ -289,12 +357,23 @@ pytest --cov=src/hawkeye --cov-report=html
 
 ## 📚 Documentation
 
+### Core Documentation
+- **[User Manual](docs/user_manual.md)** - Comprehensive usage guide with AI analysis features
 - **[Complete Workflow Guide](docs/workflow_guide.md)** - 15 step-by-step scenarios for all use cases
-- [User Manual](docs/user_manual.md) - Comprehensive usage guide
-- [API Documentation](docs/api/) - Developer reference
 - [Security Guidelines](docs/security_guidelines.md) - Security best practices
 - [Troubleshooting](docs/troubleshooting.md) - Common issues and solutions
 - [Installation Guide](docs/installation.md) - Detailed setup instructions
+
+### Advanced Features Documentation
+- **[AI Threat Analysis README](AI_THREAT_ANALYSIS_README.md)** - Comprehensive AI analysis system guide
+- [API Documentation](docs/api/) - Developer reference including MCP introspection APIs
+- [MCP Introspection Guide](docs/api/mcp_introspection.md) - Python-based introspection system
+- [Migration Guide](docs/migration/nodejs_to_python.md) - Node.js to Python transition guide
+
+### Implementation Status
+- **[Threat Analysis Task List](docs/task-list-threat-analysis.md)** - AI system implementation status (Phase 3 Complete)
+- **[MCP Introspection Task List](docs/task_list-inspect-mcp.md)** - Introspection system status (99% Complete)
+- [Design Documents](docs/Design-Threat-Analysis.md) - System architecture and design decisions
 
 ## 🤝 Contributing
 

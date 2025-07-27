@@ -347,6 +347,10 @@ class MCPServerInfo(BaseModel):
     # Basic server information
     server_id: str = Field(description="Unique server identifier")
     server_url: Optional[str] = Field(default=None, description="Server URL if applicable")
+    host: Optional[str] = Field(default="localhost", description="Server host")
+    port: Optional[int] = Field(default=None, description="Server port")
+    is_secure: bool = Field(default=False, description="Whether connection is secure (HTTPS/WSS)")
+    has_authentication: bool = Field(default=False, description="Whether server requires authentication")
     discovery_timestamp: datetime = Field(default_factory=datetime.now, description="When server was discovered")
     
     # Introspection data

@@ -1,12 +1,14 @@
 **NEVER** modify this document, this is for the human to edit to guide the work to be done.
 
+**Do NOT** worry about keeping the git repo up top date.  I'll take care of that offline.
+
 ## Instructions 
 - Use the `docs/Design.md` as the authoritative source for the original project. **Complete**
-- Use the `docs/Design-inspect-mcp.md` as the design guide for the current phase of work. **In progress**
-- Use the `docs/Design-Threat-Analysis.md` as future work, currently not implementing. **On Hold**
+- Use the `docs/Design-inspect-mcp.md` as the design guide for the current phase of work. **Complete**
+- Use the `docs/Design-Threat-Analysis.md` for threat analysis system design. **in progress**
 - Use the `docs/task_list.md` previously used for the project development. **Complete**
-- Use the `docs/task_list-inspect-mcp.md` current task_list to guide work **in progress**
-- Use the `docs/task-list-threat-analysis.md` as future work, currently not implementing. **On Hold**
+- Use the `docs/task_list-inspect-mcp.md` current task_list to guide work **Complete**
+- Use the `docs/task-list-threat-analysis.md` for threat analysis implementation status. **in progress**
 - Use the `docs/notes.md` for notable aspects of the project.
 - Use the `docs/uml.txt` for reference for the code that exists in classes.
 - Use the `docs/module-functions.txt`  for code that is not in classes.

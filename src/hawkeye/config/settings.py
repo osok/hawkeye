@@ -144,6 +144,43 @@ class ReportingSettings(BaseSettings):
         env_prefix = "HAWKEYE_REPORT_"
 
 
+class AISettings(BaseSettings):
+    """Configuration for AI-powered threat analysis."""
+    
+    # Provider selection
+    provider: str = Field(default="anthropic", pattern="^(openai|anthropic|local)$", description="AI provider to use")
+    fallback_provider: str = Field(default="openai", pattern="^(openai|anthropic|local)$", description="Fallback AI provider")
+    
+    # OpenAI configuration
+    openai_api_key: Optional[str] = Field(default=None, description="OpenAI API key")
+    openai_model: str = Field(default="gpt-4", description="OpenAI model to use")
+    openai_max_tokens: int = Field(default=4000, ge=100, le=8000, description="OpenAI max tokens per request")
+    openai_temperature: float = Field(default=0.1, ge=0.0, le=2.0, description="OpenAI temperature setting")
+    openai_timeout: int = Field(default=30, ge=5, le=300, description="OpenAI request timeout in seconds")
+    
+    # Anthropic configuration
+    anthropic_api_key: Optional[str] = Field(default=None, description="Anthropic API key")
+    anthropic_model: str = Field(default="claude-3-sonnet-20240229", description="Anthropic model to use")
+    anthropic_max_tokens: int = Field(default=4000, ge=100, le=8000, description="Anthropic max tokens per request")
+    anthropic_temperature: float = Field(default=0.1, ge=0.0, le=2.0, description="Anthropic temperature setting")
+    anthropic_timeout: int = Field(default=30, ge=5, le=300, description="Anthropic request timeout in seconds")
+    
+    # Local LLM configuration
+    local_llm_endpoint: str = Field(default="http://localhost:11434", description="Local LLM endpoint URL")
+    local_llm_model: str = Field(default="llama2", description="Local LLM model to use")
+    local_llm_timeout: int = Field(default=60, ge=10, le=600, description="Local LLM request timeout in seconds")
+    
+    # Analysis settings
+    cache_enabled: bool = Field(default=True, description="Enable caching of AI analysis results")
+    cache_ttl: int = Field(default=3600, ge=300, le=86400, description="Cache TTL in seconds")
+    max_cost_per_analysis: float = Field(default=0.50, ge=0.01, le=10.0, description="Maximum cost per analysis in USD")
+    debug_logging: bool = Field(default=False, description="Enable detailed AI interaction logging")
+    
+    class Config:
+        env_prefix = "AI_"
+        env_file = ".env"
+
+
 class LoggingSettings(BaseSettings):
     """Configuration for logging operations."""
     
@@ -179,6 +216,7 @@ class HawkEyeSettings(BaseSettings):
     mcp_introspection: MCPIntrospectionSettings = Field(default_factory=MCPIntrospectionSettings)
     assessment: AssessmentSettings = Field(default_factory=AssessmentSettings)
     reporting: ReportingSettings = Field(default_factory=ReportingSettings)
+    ai: AISettings = Field(default_factory=AISettings)
     logging: LoggingSettings = Field(default_factory=LoggingSettings)
     
     # Security settings
@@ -189,6 +227,8 @@ class HawkEyeSettings(BaseSettings):
         env_prefix = "HAWKEYE_"
         case_sensitive = False
         env_nested_delimiter = "__"
+        env_file = ".env"
+        extra = "ignore"  # Ignore extra fields from .env file
 
 
 @lru_cache()

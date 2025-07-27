@@ -38,6 +38,8 @@ HawkEye is a specialized security reconnaissance tool designed to identify and a
 - System administrators managing MCP deployments
 - Compliance officers conducting security audits
 - DevOps teams implementing security controls
+- AI/ML engineers assessing MCP tool security
+- Threat researchers studying MCP attack vectors
 
 ---
 
@@ -128,6 +130,292 @@ HawkEye provides real-time feedback during scanning:
 3. **Analyze Results**: Review findings and risk assessments
 4. **Generate Reports**: Create documentation for stakeholders
 5. **Take Action**: Implement remediation recommendations
+
+---
+
+## 🤖 AI-Powered Threat Analysis
+
+HawkEye now includes sophisticated AI-powered threat analysis capabilities that provide dynamic, context-aware security assessment of MCP tools and servers.
+
+### What is AI Threat Analysis?
+
+The AI threat analysis system uses advanced language models to:
+
+- **Analyze MCP Tool Capabilities**: Dynamically assess the security implications of discovered MCP tools
+- **Generate Attack Vectors**: Identify potential attack paths and exploitation scenarios
+- **Assess Risk Context**: Consider deployment environment, security posture, and compliance requirements
+- **Provide Mitigation Strategies**: Recommend specific security controls and remediation steps
+- **Learn from Patterns**: Build threat intelligence from previous analyses
+
+### Key Features
+
+#### 🧠 **Multi-Provider AI Support**
+- **OpenAI Integration**: GPT-4 and GPT-3.5 models for threat analysis
+- **Anthropic Integration**: Claude models for alternative AI perspectives
+- **Local LLM Support**: Privacy-focused analysis using local language models
+- **Intelligent Failover**: Automatic provider switching based on availability and performance
+
+#### 🔍 **Advanced Analysis Capabilities**
+- **Capability Categorization**: Automatic classification of MCP tools by risk category
+- **Attack Chain Detection**: Identification of multi-tool attack scenarios
+- **Context-Aware Assessment**: Environment-specific threat modeling
+- **Confidence Scoring**: Dynamic confidence assessment with 9-factor analysis
+- **Cost Optimization**: Intelligent AI usage optimization to minimize costs
+
+#### 🛡️ **Threat Intelligence Database**
+- **Learning System**: Pattern recognition from historical analyses
+- **Similarity Matching**: Cost-effective analysis using similar tool patterns
+- **Threat Pattern Discovery**: Automatic identification of common attack patterns
+- **Performance Optimization**: Caching and optimization for large-scale analysis
+
+### Getting Started with AI Analysis
+
+#### Prerequisites
+
+To use AI-powered threat analysis, you'll need API keys for one or more AI providers:
+
+1. **OpenAI API Key** (recommended)
+   - Sign up at https://platform.openai.com/
+   - Generate an API key with appropriate credits
+
+2. **Anthropic API Key** (optional)
+   - Sign up at https://console.anthropic.com/
+   - Generate an API key for Claude models
+
+#### Configuration
+
+1. **Copy the environment template:**
+   ```bash
+   cp env.example .env
+   ```
+
+2. **Edit the .env file with your API keys:**
+   ```bash
+   # AI Provider Configuration
+   OPENAI_API_KEY=sk-proj-your-openai-key-here
+   ANTHROPIC_API_KEY=sk-ant-api03-your-anthropic-key-here
+   
+   # Optional: Custom model configurations
+   OPENAI_MODEL=gpt-4
+   ANTHROPIC_MODEL=claude-3-sonnet-20240229
+   ```
+
+3. **Verify configuration:**
+   ```bash
+   python demo_ai_threat_analysis.py
+   ```
+
+#### Basic AI Analysis Workflow
+
+1. **Run the Demonstration Script**
+   ```bash
+   python demo_ai_threat_analysis.py
+   ```
+   This script demonstrates:
+   - Individual MCP server analysis
+   - Batch processing of multiple servers
+   - Rule-based fallback when AI providers are unavailable
+   - Attack chain detection across tools
+   - Cost optimization strategies
+
+2. **Integrate with Detection Pipeline**
+   ```bash
+   # Comprehensive detection with AI analysis
+   python application.py detect comprehensive --target 192.168.1.100 \
+     --enable-risk-assessment
+   ```
+
+3. **Batch Analysis of Multiple Servers**
+   The AI system can efficiently analyze multiple MCP servers:
+   - Intelligent caching reduces redundant analyses
+   - Similarity matching optimizes costs
+   - Parallel processing improves performance
+
+### Understanding AI Analysis Results
+
+#### Analysis Components
+
+**Tool Capabilities Assessment:**
+```json
+{
+  "tool_name": "read_file",
+  "categories": ["file_system", "data_access"],
+  "risk_level": "high",
+  "confidence": 0.92,
+  "analysis_metadata": {
+    "ai_provider": "openai",
+    "model": "gpt-4",
+    "analysis_time": "2024-12-28T10:30:00Z"
+  }
+}
+```
+
+**Threat Analysis:**
+```json
+{
+  "threat_level": "high",
+  "attack_vectors": [
+    {
+      "name": "Unauthorized File Access",
+      "description": "Tool can read sensitive system files",
+      "likelihood": "high",
+      "impact": "high",
+      "attack_steps": [
+        "Gain access to MCP server",
+        "Use read_file tool with sensitive paths",
+        "Extract confidential information"
+      ]
+    }
+  ],
+  "abuse_scenarios": [
+    {
+      "scenario": "Data Exfiltration",
+      "description": "Attacker uses file access to steal data",
+      "prerequisites": ["Server access", "Knowledge of file paths"],
+      "impact": "Confidentiality breach, regulatory violations"
+    }
+  ]
+}
+```
+
+#### Risk Scoring
+
+The AI system uses sophisticated risk scoring methodology:
+
+- **Threat Level**: Critical, High, Medium, Low, Info
+- **Confidence Score**: 0.0-1.0 indicating analysis confidence
+- **Context Factors**: Environment, security posture, compliance requirements
+- **Attack Feasibility**: Likelihood and impact of identified attack vectors
+
+#### Attack Chain Analysis
+
+Advanced analysis includes multi-tool attack chain detection:
+
+```json
+{
+  "attack_chains": [
+    {
+      "chain_id": "data-exfiltration-chain-1",
+      "tools": ["list_directory", "read_file", "web_request"],
+      "feasibility_score": 0.85,
+      "attack_path": [
+        "Use list_directory to discover sensitive files",
+        "Use read_file to access confidential data",
+        "Use web_request to exfiltrate data"
+      ],
+      "risk_factors": {
+        "tool_availability": 1.0,
+        "access_requirements": 0.7,
+        "technical_complexity": 0.4,
+        "detection_difficulty": 0.9,
+        "impact_severity": 0.9
+      }
+    }
+  ]
+}
+```
+
+### Advanced AI Features
+
+#### Cost Optimization
+
+The AI system includes several cost optimization strategies:
+
+1. **Similarity-Based Analysis**: Reuse analysis for similar tools
+2. **Intelligent Caching**: Cache results with appropriate TTL
+3. **Provider Selection**: Choose optimal AI provider based on cost and performance
+4. **Batch Processing**: Process multiple tools efficiently
+
+#### Performance Monitoring
+
+Real-time monitoring of AI analysis performance:
+
+```bash
+# Performance metrics are included in analysis results
+{
+  "performance_metrics": {
+    "analysis_duration": 12.5,
+    "tokens_used": 1250,
+    "cost_estimate": 0.025,
+    "cache_hit_rate": 0.65,
+    "provider_health": 0.95
+  }
+}
+```
+
+#### Provider Health Monitoring
+
+The system continuously monitors AI provider health:
+
+- **Response Time Tracking**: Monitor API response times
+- **Success Rate Monitoring**: Track successful vs. failed requests
+- **Error Rate Analysis**: Identify patterns in API errors
+- **Automatic Failover**: Switch providers when health degrades
+
+### Integration with Existing Workflows
+
+#### Command Line Integration
+
+AI analysis integrates seamlessly with existing HawkEye commands:
+
+```bash
+# Enable AI analysis in comprehensive detection
+python application.py detect comprehensive --target 192.168.1.100 \
+  --enable-introspection \
+  --enable-risk-assessment \
+  --confidence-threshold 0.7
+
+# Generate reports with AI analysis data
+python application.py report generate \
+  --input analysis_results.json \
+  --format html \
+  --template ai-analysis
+```
+
+#### Programmatic Integration
+
+For advanced users, the AI analysis system can be integrated programmatically:
+
+```python
+from hawkeye.detection.ai_threat import AIThreatAnalyzer
+from hawkeye.detection.ai_threat.models import EnvironmentContext
+
+# Initialize analyzer
+analyzer = AIThreatAnalyzer()
+
+# Create environment context
+context = EnvironmentContext(
+    deployment_type="production",
+    security_posture="medium",
+    compliance_frameworks=["GDPR", "SOC2"]
+)
+
+# Analyze MCP server
+result = analyzer.analyze_threats(mcp_server, context)
+```
+
+### Best Practices for AI Analysis
+
+#### Security Considerations
+
+1. **API Key Protection**: Store API keys securely, never commit to version control
+2. **Cost Monitoring**: Set up budget alerts and monitoring for AI provider usage
+3. **Result Validation**: Always validate AI analysis results with human expertise
+4. **Data Privacy**: Consider data sensitivity when using cloud AI providers
+
+#### Performance Optimization
+
+1. **Batch Processing**: Analyze multiple servers together for efficiency
+2. **Caching Strategy**: Configure appropriate cache TTL for your environment
+3. **Provider Selection**: Choose AI providers based on your cost and performance requirements
+4. **Parallel Processing**: Use parallel analysis for large-scale assessments
+
+#### Quality Assurance
+
+1. **Confidence Thresholds**: Set appropriate confidence thresholds for your use case
+2. **Multi-Provider Validation**: Use multiple AI providers for critical analyses
+3. **Historical Comparison**: Compare results with previous analyses for consistency
+4. **Expert Review**: Have security experts review high-risk findings
 
 ---
 
@@ -275,61 +563,61 @@ python application.py detect config
 python application.py detect config --path /opt/mcp --include-hidden --max-depth 10
 ```
 
-##### `detect introspect` - MCP Introspection
+##### `detect comprehensive` - Comprehensive MCP Detection
 
-Performs comprehensive introspection of discovered MCP servers using the Python-based introspection system. This command directly communicates with MCP servers to discover their capabilities, tools, resources, and security implications.
+Performs comprehensive MCP detection using the integrated detection pipeline with Python-based introspection. This command combines traditional detection methods with advanced MCP introspection for complete analysis.
 
 ```bash
-python application.py detect introspect [OPTIONS]
+python application.py detect comprehensive [OPTIONS]
 ```
 
 **Required Options:**
-- `--target <IP|hostname>`: Target MCP server address
-- `--server-id <id>`: Unique identifier for the server (if known)
+- `--target <IP|hostname>`: Target IP address or hostname
 
 **Optional Parameters:**
-- `--transport <stdio|sse|http>`: Force specific transport type (default: auto-detect)
-- `--timeout <seconds>`: Connection timeout (default: 30)
-- `--max-retries <count>`: Maximum retry attempts (default: 3)
-- `--enable-caching/--no-caching`: Enable result caching (default: enabled)
-- `--cache-ttl <seconds>`: Cache time-to-live (default: 300)
-- `--risk-analysis/--no-risk-analysis`: Enable comprehensive risk analysis (default: enabled)
-- `--concurrent-limit <count>`: Maximum concurrent connections (default: 5)
-- `--output <path>`: Output file path
-- `--format <json|html|markdown|csv>`: Output format (default: json)
-- `--include-tools/--no-tools`: Include tool discovery (default: enabled)
-- `--include-resources/--no-resources`: Include resource discovery (default: enabled)
-- `--include-capabilities/--no-capabilities`: Include capability discovery (default: enabled)
+- `--enable-introspection/--disable-introspection`: Enable enhanced MCP introspection (default: enabled)
+- `--introspection-timeout <seconds>`: Timeout for MCP introspection (default: 180)
+- `--enable-risk-assessment/--disable-risk-assessment`: Enable risk assessment (default: enabled)
+- `--confidence-threshold <float>`: Minimum confidence threshold (default: 0.3)
+- `--output <path>`: Output file path for comprehensive results
+- `--format <json|csv|xml|html>`: Output format (default: json)
+- `--generate-introspection-report/--no-introspection-report`: Generate detailed introspection report
+- `--introspection-report-path <path>`: Path for introspection report
 
 **Examples:**
 ```bash
-# Basic server introspection
-python application.py detect introspect --target 192.168.1.100 --server-id mcp-server-1
+# Basic comprehensive detection
+python application.py detect comprehensive --target 192.168.1.100
 
-# Introspection with specific transport
-python application.py detect introspect --target localhost:3000 --transport stdio --server-id local-server
+# Full detection with risk analysis and reporting
+python application.py detect comprehensive --target api.example.com \
+  --enable-risk-assessment \
+  --generate-introspection-report \
+  --format html
 
-# Full introspection with risk analysis
-python application.py detect introspect --target api.example.com --risk-analysis --format html
-
-# Batch introspection with caching disabled
-python application.py detect introspect --target 192.168.1.100 --no-caching --concurrent-limit 10
+# High-confidence detection with extended timeout
+python application.py detect comprehensive --target 192.168.1.100 \
+  --confidence-threshold 0.8 \
+  --introspection-timeout 300
 ```
 
-**Output Includes:**
-- **Server Information**: Name, version, protocol details
-- **Tool Inventory**: Available tools with descriptions and schemas
-- **Resource Catalog**: Accessible resources and their types
-- **Capability Assessment**: Supported MCP features and extensions
-- **Risk Analysis**: Security assessment and threat modeling
-- **Performance Metrics**: Connection statistics and timing information
+**Detection Methods Included:**
+- **Process-based Detection**: Node.js/NPX process enumeration
+- **Network Scanning**: Port scanning with MCP protocol verification
+- **Configuration Discovery**: MCP server configuration file analysis
+- **Docker Inspection**: Container-based MCP server detection
+- **Environment Analysis**: Environment variable and path analysis
+- **Transport Detection**: stdio, HTTP, WebSocket, SSE transport identification
+- **Python-based Introspection**: Direct MCP server communication and analysis
 
-**Security Features:**
-- **521+ Risk Patterns**: Comprehensive security pattern matching
-- **CWE Mapping**: Common Weakness Enumeration integration
-- **CVSS-like Scoring**: Industry-standard risk scoring
-- **Threat Modeling**: Capability-based security assessment
-- **Attack Vector Analysis**: Potential security vulnerabilities
+**Output Features:**
+- **Server Information**: Name, version, protocol details
+- **Tool Inventory**: Available tools with descriptions and schemas (521+ risk patterns)
+- **Resource Catalog**: Accessible resources and their types
+- **Risk Analysis**: Comprehensive security assessment with CWE mapping
+- **Attack Vector Analysis**: Potential security vulnerabilities and attack paths
+- **Performance Metrics**: Detection and introspection timing information
+- **Confidence Scoring**: Analysis confidence levels for all findings
 
 ##### `detect introspect-batch` - Batch MCP Introspection
 
