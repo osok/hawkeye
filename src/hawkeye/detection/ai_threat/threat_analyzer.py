@@ -655,3 +655,666 @@ class AIThreatAnalyzer:
         
         key_string = "|".join(key_components)
         return hashlib.md5(key_string.encode()).hexdigest() 
+
+
+class AdvancedThreatAnalysisPipeline:
+    """
+    Advanced threat analysis pipeline for coordinating multi-stage AI analysis workflows.
+    
+    This pipeline orchestrates complex threat analysis scenarios including:
+    - Multi-stage analysis workflows
+    - Context-aware threat modeling
+    - Attack chain analysis across multiple tools
+    - Comprehensive result aggregation and enhancement
+    """
+    
+    def __init__(self, threat_analyzer: AIThreatAnalyzer, config: Optional[Dict[str, Any]] = None):
+        """
+        Initialize advanced threat analysis pipeline.
+        
+        Args:
+            threat_analyzer: AI threat analyzer instance
+            config: Optional pipeline configuration
+        """
+        self.threat_analyzer = threat_analyzer
+        self.config = config or {}
+        self.settings = get_settings()
+        
+        # Pipeline configuration
+        self.max_concurrent_analyses = self.config.get("max_concurrent_analyses", 3)
+        self.enable_context_enhancement = self.config.get("enable_context_enhancement", True)
+        self.enable_attack_chain_analysis = self.config.get("enable_attack_chain_analysis", True)
+        self.enable_comprehensive_analysis = self.config.get("enable_comprehensive_analysis", True)
+        
+        # Pipeline statistics
+        self.pipeline_stats = {
+            "pipelines_executed": 0,
+            "successful_pipelines": 0,
+            "failed_pipelines": 0,
+            "total_analysis_time": 0.0,
+            "avg_pipeline_time": 0.0,
+            "stage_performance": {
+                "context_building": [],
+                "individual_analysis": [],
+                "attack_chain_analysis": [],
+                "result_aggregation": []
+            }
+        }
+        
+        logger.info("Advanced Threat Analysis Pipeline initialized")
+    
+    def execute_comprehensive_analysis(self,
+                                     mcp_servers: List[MCPServerInfo],
+                                     environment_context: Optional[EnvironmentContext] = None,
+                                     analysis_options: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """
+        Execute comprehensive multi-stage threat analysis pipeline.
+        
+        Args:
+            mcp_servers: List of MCP servers to analyze
+            environment_context: Optional pre-built environment context
+            analysis_options: Optional analysis configuration
+            
+        Returns:
+            Comprehensive analysis results
+        """
+        pipeline_start = time.time()
+        self.pipeline_stats["pipelines_executed"] += 1
+        options = analysis_options or {}
+        
+        try:
+            logger.info(f"Starting comprehensive analysis pipeline for {len(mcp_servers)} servers")
+            
+            # Initialize pipeline result
+            pipeline_result = {
+                "pipeline_id": f"pipeline_{int(time.time())}",
+                "start_time": datetime.now(),
+                "servers_analyzed": len(mcp_servers),
+                "stages_completed": [],
+                "individual_analyses": {},
+                "attack_chain_analyses": [],
+                "enhanced_context": None,
+                "aggregated_results": {},
+                "pipeline_metrics": {},
+                "errors": [],
+                "warnings": []
+            }
+            
+            # Stage 1: Context Enhancement and Building
+            stage_start = time.time()
+            if self.enable_context_enhancement:
+                logger.debug("Stage 1: Building enhanced environment context")
+                enhanced_context = self._build_enhanced_context(mcp_servers, environment_context, options)
+                pipeline_result["enhanced_context"] = enhanced_context
+                pipeline_result["stages_completed"].append("context_enhancement")
+                
+                stage_duration = time.time() - stage_start
+                self.pipeline_stats["stage_performance"]["context_building"].append(stage_duration)
+                logger.debug(f"Context enhancement completed in {stage_duration:.2f}s")
+            else:
+                enhanced_context = environment_context or self.threat_analyzer.capability_analyzer.build_environment_context(mcp_servers)
+                pipeline_result["enhanced_context"] = enhanced_context
+            
+            # Stage 2: Individual Server Analysis
+            stage_start = time.time()
+            if self.enable_comprehensive_analysis:
+                logger.debug("Stage 2: Performing individual server analyses")
+                individual_results = self._execute_individual_analyses(
+                    mcp_servers, 
+                    enhanced_context, 
+                    options
+                )
+                pipeline_result["individual_analyses"] = individual_results
+                pipeline_result["stages_completed"].append("individual_analysis")
+                
+                stage_duration = time.time() - stage_start
+                self.pipeline_stats["stage_performance"]["individual_analysis"].append(stage_duration)
+                logger.debug(f"Individual analyses completed in {stage_duration:.2f}s")
+            
+            # Stage 3: Attack Chain Analysis
+            stage_start = time.time()
+            if self.enable_attack_chain_analysis and len(mcp_servers) > 1:
+                logger.debug("Stage 3: Performing attack chain analysis")
+                attack_chain_results = self._execute_attack_chain_analysis(
+                    mcp_servers,
+                    enhanced_context,
+                    pipeline_result.get("individual_analyses", {}),
+                    options
+                )
+                pipeline_result["attack_chain_analyses"] = attack_chain_results
+                pipeline_result["stages_completed"].append("attack_chain_analysis")
+                
+                stage_duration = time.time() - stage_start
+                self.pipeline_stats["stage_performance"]["attack_chain_analysis"].append(stage_duration)
+                logger.debug(f"Attack chain analysis completed in {stage_duration:.2f}s")
+            
+            # Stage 4: Result Aggregation and Enhancement
+            stage_start = time.time()
+            logger.debug("Stage 4: Aggregating and enhancing results")
+            aggregated_results = self._aggregate_and_enhance_results(pipeline_result, options)
+            pipeline_result["aggregated_results"] = aggregated_results
+            pipeline_result["stages_completed"].append("result_aggregation")
+            
+            stage_duration = time.time() - stage_start
+            self.pipeline_stats["stage_performance"]["result_aggregation"].append(stage_duration)
+            logger.debug(f"Result aggregation completed in {stage_duration:.2f}s")
+            
+            # Finalize pipeline result
+            pipeline_duration = time.time() - pipeline_start
+            pipeline_result["end_time"] = datetime.now()
+            pipeline_result["duration"] = pipeline_duration
+            pipeline_result["success"] = True
+            
+            # Update statistics
+            self.pipeline_stats["successful_pipelines"] += 1
+            self.pipeline_stats["total_analysis_time"] += pipeline_duration
+            self._update_average_pipeline_time()
+            
+            logger.info(f"Comprehensive analysis pipeline completed successfully in {pipeline_duration:.2f}s")
+            return pipeline_result
+            
+        except Exception as e:
+            logger.error(f"Comprehensive analysis pipeline failed: {e}")
+            pipeline_duration = time.time() - pipeline_start
+            
+            # Update error statistics
+            self.pipeline_stats["failed_pipelines"] += 1
+            self.pipeline_stats["total_analysis_time"] += pipeline_duration
+            
+            # Return error result
+            pipeline_result["end_time"] = datetime.now()
+            pipeline_result["duration"] = pipeline_duration
+            pipeline_result["success"] = False
+            pipeline_result["errors"].append(str(e))
+            
+            return pipeline_result
+    
+    def execute_workflow_analysis(self,
+                                 mcp_servers: List[MCPServerInfo],
+                                 workflow_type: str,
+                                 workflow_config: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Execute specific analysis workflow type.
+        
+        Args:
+            mcp_servers: List of MCP servers to analyze
+            workflow_type: Type of workflow (e.g., 'security_audit', 'compliance_check', 'penetration_test')
+            workflow_config: Workflow-specific configuration
+            
+        Returns:
+            Workflow-specific analysis results
+        """
+        logger.info(f"Starting {workflow_type} workflow for {len(mcp_servers)} servers")
+        
+        try:
+            if workflow_type == "security_audit":
+                return self._execute_security_audit_workflow(mcp_servers, workflow_config)
+            elif workflow_type == "compliance_check":
+                return self._execute_compliance_workflow(mcp_servers, workflow_config)
+            elif workflow_type == "penetration_test":
+                return self._execute_penetration_test_workflow(mcp_servers, workflow_config)
+            elif workflow_type == "risk_assessment":
+                return self._execute_risk_assessment_workflow(mcp_servers, workflow_config)
+            else:
+                raise ValueError(f"Unknown workflow type: {workflow_type}")
+                
+        except Exception as e:
+            logger.error(f"Workflow {workflow_type} failed: {e}")
+            return {
+                "workflow_type": workflow_type,
+                "success": False,
+                "error": str(e),
+                "results": {}
+            }
+    
+    def _build_enhanced_context(self,
+                              mcp_servers: List[MCPServerInfo],
+                              base_context: Optional[EnvironmentContext],
+                              options: Dict[str, Any]) -> EnvironmentContext:
+        """Build enhanced environment context with additional intelligence."""
+        logger.debug("Building enhanced environment context")
+        
+        # Start with base context if provided
+        if base_context:
+            enhanced_context = base_context
+        else:
+            enhanced_context = self.threat_analyzer.capability_analyzer.build_environment_context(mcp_servers)
+        
+        # Enhance with additional intelligence
+        try:
+            # Analyze deployment patterns
+            deployment_info = self._analyze_deployment_patterns(mcp_servers)
+            
+            # Enhance security posture assessment
+            security_assessment = self._assess_security_posture(mcp_servers)
+            
+            # Update context with enhanced information
+            if deployment_info.get("cloud_deployment_detected"):
+                enhanced_context.deployment_type = DeploymentType.CLOUD
+            elif deployment_info.get("hybrid_deployment_detected"):
+                enhanced_context.deployment_type = DeploymentType.HYBRID
+            
+            # Adjust security posture based on analysis
+            if security_assessment.get("high_security_indicators", 0) > 2:
+                enhanced_context.security_posture = SecurityPosture.HIGH
+            elif security_assessment.get("low_security_indicators", 0) > 2:
+                enhanced_context.security_posture = SecurityPosture.LOW
+            
+            logger.debug("Enhanced context building completed successfully")
+            
+        except Exception as e:
+            logger.warning(f"Context enhancement failed, using base context: {e}")
+        
+        return enhanced_context
+    
+    def _execute_individual_analyses(self,
+                                   mcp_servers: List[MCPServerInfo],
+                                   environment_context: EnvironmentContext,
+                                   options: Dict[str, Any]) -> Dict[str, ThreatAnalysis]:
+        """Execute individual threat analyses for each server."""
+        results = {}
+        
+        for i, server in enumerate(mcp_servers):
+            server_id = server.metadata.get('name', f'server_{i}')
+            
+            try:
+                logger.debug(f"Analyzing individual server: {server_id}")
+                
+                # Determine analysis type based on options
+                analysis_type = options.get("analysis_type", "comprehensive")
+                
+                # Perform analysis
+                analysis = self.threat_analyzer.analyze_threats(
+                    server,
+                    environment_context,
+                    analysis_type
+                )
+                
+                results[server_id] = analysis
+                logger.debug(f"Individual analysis completed for {server_id}")
+                
+            except Exception as e:
+                logger.error(f"Individual analysis failed for {server_id}: {e}")
+                # Continue with other servers
+                continue
+        
+        return results
+    
+    def _execute_attack_chain_analysis(self,
+                                     mcp_servers: List[MCPServerInfo],
+                                     environment_context: EnvironmentContext,
+                                     individual_results: Dict[str, ThreatAnalysis],
+                                     options: Dict[str, Any]) -> List[ThreatAnalysis]:
+        """Execute attack chain analysis across multiple servers."""
+        attack_chain_results = []
+        
+        try:
+            # Group servers for attack chain analysis
+            server_groups = self._group_servers_for_attack_chains(mcp_servers, individual_results)
+            
+            for group_id, server_group in server_groups.items():
+                try:
+                    logger.debug(f"Analyzing attack chain for group: {group_id}")
+                    
+                    # Perform attack chain analysis
+                    chain_analysis = self.threat_analyzer.analyze_attack_chains(
+                        server_group,
+                        environment_context
+                    )
+                    
+                    attack_chain_results.append(chain_analysis)
+                    logger.debug(f"Attack chain analysis completed for group: {group_id}")
+                    
+                except Exception as e:
+                    logger.error(f"Attack chain analysis failed for group {group_id}: {e}")
+                    continue
+        
+        except Exception as e:
+            logger.error(f"Attack chain analysis setup failed: {e}")
+        
+        return attack_chain_results
+    
+    def _aggregate_and_enhance_results(self,
+                                     pipeline_result: Dict[str, Any],
+                                     options: Dict[str, Any]) -> Dict[str, Any]:
+        """Aggregate and enhance all analysis results."""
+        aggregated = {
+            "overall_threat_level": ThreatLevel.LOW,
+            "total_servers_analyzed": pipeline_result["servers_analyzed"],
+            "total_attack_vectors": 0,
+            "total_abuse_scenarios": 0,
+            "total_mitigation_strategies": 0,
+            "critical_findings": [],
+            "high_priority_recommendations": [],
+            "compliance_impacts": [],
+            "attack_chain_risks": [],
+            "summary_statistics": {},
+            "trend_analysis": {}
+        }
+        
+        try:
+            # Aggregate individual analysis results
+            individual_analyses = pipeline_result.get("individual_analyses", {})
+            
+            threat_levels = []
+            all_attack_vectors = []
+            all_abuse_scenarios = []
+            all_mitigations = []
+            
+            for server_id, analysis in individual_analyses.items():
+                threat_levels.append(analysis.threat_level)
+                all_attack_vectors.extend(analysis.attack_vectors)
+                all_abuse_scenarios.extend(analysis.abuse_scenarios)
+                all_mitigations.extend(analysis.mitigation_strategies)
+                
+                # Collect critical findings
+                if analysis.threat_level in [ThreatLevel.HIGH, ThreatLevel.CRITICAL]:
+                    aggregated["critical_findings"].append({
+                        "server": server_id,
+                        "threat_level": analysis.threat_level.value,
+                        "confidence": analysis.confidence_score,
+                        "key_risks": [av.name for av in analysis.attack_vectors[:3]]
+                    })
+            
+            # Determine overall threat level
+            if ThreatLevel.CRITICAL in threat_levels:
+                aggregated["overall_threat_level"] = ThreatLevel.CRITICAL
+            elif ThreatLevel.HIGH in threat_levels:
+                aggregated["overall_threat_level"] = ThreatLevel.HIGH
+            elif ThreatLevel.MEDIUM in threat_levels:
+                aggregated["overall_threat_level"] = ThreatLevel.MEDIUM
+            
+            # Update counts
+            aggregated["total_attack_vectors"] = len(all_attack_vectors)
+            aggregated["total_abuse_scenarios"] = len(all_abuse_scenarios)
+            aggregated["total_mitigation_strategies"] = len(all_mitigations)
+            
+            # Generate high-priority recommendations
+            aggregated["high_priority_recommendations"] = self._generate_priority_recommendations(
+                individual_analyses,
+                pipeline_result.get("attack_chain_analyses", [])
+            )
+            
+            # Analyze attack chain risks
+            attack_chain_analyses = pipeline_result.get("attack_chain_analyses", [])
+            for chain_analysis in attack_chain_analyses:
+                if chain_analysis.threat_level in [ThreatLevel.HIGH, ThreatLevel.CRITICAL]:
+                    aggregated["attack_chain_risks"].append({
+                        "threat_level": chain_analysis.threat_level.value,
+                        "confidence": chain_analysis.confidence_score,
+                        "chain_description": chain_analysis.attack_vectors[0].description if chain_analysis.attack_vectors else "Unknown"
+                    })
+            
+            # Generate summary statistics
+            aggregated["summary_statistics"] = {
+                "servers_with_critical_risk": sum(1 for level in threat_levels if level == ThreatLevel.CRITICAL),
+                "servers_with_high_risk": sum(1 for level in threat_levels if level == ThreatLevel.HIGH),
+                "servers_with_medium_risk": sum(1 for level in threat_levels if level == ThreatLevel.MEDIUM),
+                "servers_with_low_risk": sum(1 for level in threat_levels if level == ThreatLevel.LOW),
+                "attack_chains_identified": len(attack_chain_analyses),
+                "high_severity_attack_vectors": sum(1 for av in all_attack_vectors if av.severity in [SeverityLevel.HIGH, SeverityLevel.CRITICAL]),
+                "average_confidence_score": sum(analysis.confidence_score for analysis in individual_analyses.values()) / max(len(individual_analyses), 1)
+            }
+            
+        except Exception as e:
+            logger.error(f"Result aggregation failed: {e}")
+            aggregated["error"] = str(e)
+        
+        return aggregated
+    
+    def _analyze_deployment_patterns(self, mcp_servers: List[MCPServerInfo]) -> Dict[str, Any]:
+        """Analyze deployment patterns from server information."""
+        patterns = {
+            "cloud_deployment_detected": False,
+            "hybrid_deployment_detected": False,
+            "containerized_deployment": False,
+            "distributed_deployment": False
+        }
+        
+        # Analyze server metadata and configuration
+        hosts = set()
+        docker_indicators = 0
+        cloud_indicators = 0
+        
+        for server in mcp_servers:
+            # Collect unique hosts
+            hosts.add(server.host)
+            
+            # Check for Docker indicators
+            if server.metadata.get('docker', False) or 'docker' in str(server.metadata).lower():
+                docker_indicators += 1
+            
+            # Check for cloud indicators
+            metadata_str = str(server.metadata).lower()
+            if any(cloud in metadata_str for cloud in ['aws', 'gcp', 'azure', 'cloud']):
+                cloud_indicators += 1
+        
+        patterns["containerized_deployment"] = docker_indicators > 0
+        patterns["distributed_deployment"] = len(hosts) > 1
+        patterns["cloud_deployment_detected"] = cloud_indicators > 0
+        patterns["hybrid_deployment_detected"] = patterns["distributed_deployment"] and patterns["cloud_deployment_detected"]
+        
+        return patterns
+    
+    def _assess_security_posture(self, mcp_servers: List[MCPServerInfo]) -> Dict[str, Any]:
+        """Assess overall security posture from server information."""
+        assessment = {
+            "high_security_indicators": 0,
+            "low_security_indicators": 0,
+            "security_features_detected": [],
+            "security_concerns": []
+        }
+        
+        for server in mcp_servers:
+            # Check for security features
+            if server.transport_type in ['https', 'wss']:
+                assessment["high_security_indicators"] += 1
+                assessment["security_features_detected"].append("encrypted_transport")
+            
+            if server.transport_type in ['http', 'ws']:
+                assessment["low_security_indicators"] += 1
+                assessment["security_concerns"].append("unencrypted_transport")
+            
+            # Check for authentication indicators in metadata
+            metadata_str = str(server.metadata).lower()
+            if any(auth in metadata_str for auth in ['auth', 'token', 'key', 'credential']):
+                assessment["high_security_indicators"] += 1
+                assessment["security_features_detected"].append("authentication_present")
+        
+        return assessment
+    
+    def _group_servers_for_attack_chains(self,
+                                       mcp_servers: List[MCPServerInfo],
+                                       individual_results: Dict[str, ThreatAnalysis]) -> Dict[str, List[MCPServerInfo]]:
+        """Group servers for attack chain analysis based on capabilities and risk levels."""
+        groups = {}
+        
+        # Group by host for potential lateral movement
+        host_groups = {}
+        for server in mcp_servers:
+            host = server.host
+            if host not in host_groups:
+                host_groups[host] = []
+            host_groups[host].append(server)
+        
+        # Create groups only if multiple servers per host
+        group_id = 0
+        for host, servers in host_groups.items():
+            if len(servers) > 1:
+                groups[f"host_group_{group_id}"] = servers
+                group_id += 1
+        
+        # Also create capability-based groups
+        high_risk_servers = []
+        file_access_servers = []
+        network_access_servers = []
+        
+        for server in mcp_servers:
+            server_id = server.metadata.get('name', server.server_id)
+            if server_id in individual_results:
+                analysis = individual_results[server_id]
+                if analysis.threat_level in [ThreatLevel.HIGH, ThreatLevel.CRITICAL]:
+                    high_risk_servers.append(server)
+                
+                # Check capabilities for grouping
+                for capability in analysis.tool_capabilities.capability_categories:
+                    if capability.value == "file_system":
+                        file_access_servers.append(server)
+                    elif capability.value == "network_access":
+                        network_access_servers.append(server)
+        
+        if len(high_risk_servers) > 1:
+            groups["high_risk_group"] = high_risk_servers
+        
+        if len(file_access_servers) > 0 and len(network_access_servers) > 0:
+            # Potential data exfiltration chain
+            groups["data_exfiltration_chain"] = list(set(file_access_servers + network_access_servers))
+        
+        return groups
+    
+    def _generate_priority_recommendations(self,
+                                         individual_analyses: Dict[str, ThreatAnalysis],
+                                         attack_chain_analyses: List[ThreatAnalysis]) -> List[str]:
+        """Generate high-priority recommendations based on all analyses."""
+        recommendations = []
+        
+        # Analyze individual results for critical issues
+        critical_servers = []
+        common_issues = {}
+        
+        for server_id, analysis in individual_analyses.items():
+            if analysis.threat_level == ThreatLevel.CRITICAL:
+                critical_servers.append(server_id)
+            
+            # Count common issues
+            for vector in analysis.attack_vectors:
+                issue_type = vector.name
+                if issue_type not in common_issues:
+                    common_issues[issue_type] = 0
+                common_issues[issue_type] += 1
+        
+        # Generate recommendations for critical servers
+        if critical_servers:
+            recommendations.append(
+                f"CRITICAL: Immediately review and restrict capabilities for servers: {', '.join(critical_servers)}"
+            )
+        
+        # Generate recommendations for common issues
+        for issue, count in sorted(common_issues.items(), key=lambda x: x[1], reverse=True):
+            if count >= len(individual_analyses) * 0.5:  # Affects 50% or more servers
+                recommendations.append(
+                    f"HIGH: Address {issue} vulnerability affecting {count} servers"
+                )
+        
+        # Generate recommendations for attack chains
+        if attack_chain_analyses:
+            high_risk_chains = [
+                chain for chain in attack_chain_analyses 
+                if chain.threat_level in [ThreatLevel.HIGH, ThreatLevel.CRITICAL]
+            ]
+            if high_risk_chains:
+                recommendations.append(
+                    f"HIGH: {len(high_risk_chains)} high-risk attack chains identified - implement network segmentation"
+                )
+        
+        return recommendations[:10]  # Return top 10 recommendations
+    
+    def _execute_security_audit_workflow(self,
+                                       mcp_servers: List[MCPServerInfo],
+                                       config: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute security audit workflow."""
+        return self.execute_comprehensive_analysis(
+            mcp_servers,
+            analysis_options={
+                "analysis_type": "comprehensive",
+                "focus_areas": ["security", "vulnerabilities", "compliance"]
+            }
+        )
+    
+    def _execute_compliance_workflow(self,
+                                   mcp_servers: List[MCPServerInfo], 
+                                   config: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute compliance check workflow."""
+        # Build compliance-focused environment context
+        compliance_context = self.threat_analyzer.capability_analyzer.build_environment_context(mcp_servers)
+        
+        # Add specific compliance requirements from config
+        if "compliance_frameworks" in config:
+            from .models import ComplianceFramework
+            frameworks = []
+            for framework_name in config["compliance_frameworks"]:
+                try:
+                    framework = ComplianceFramework[framework_name.upper()]
+                    frameworks.append(framework)
+                except KeyError:
+                    logger.warning(f"Unknown compliance framework: {framework_name}")
+            compliance_context.compliance_requirements = frameworks
+        
+        return self.execute_comprehensive_analysis(
+            mcp_servers,
+            compliance_context,
+            analysis_options={
+                "analysis_type": "context_aware",
+                "focus_areas": ["compliance", "governance", "data_protection"]
+            }
+        )
+    
+    def _execute_penetration_test_workflow(self,
+                                         mcp_servers: List[MCPServerInfo],
+                                         config: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute penetration test workflow."""
+        return self.execute_comprehensive_analysis(
+            mcp_servers,
+            analysis_options={
+                "analysis_type": "comprehensive",
+                "focus_areas": ["attack_vectors", "exploitation", "lateral_movement"]
+            }
+        )
+    
+    def _execute_risk_assessment_workflow(self,
+                                        mcp_servers: List[MCPServerInfo],
+                                        config: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute risk assessment workflow."""
+        return self.execute_comprehensive_analysis(
+            mcp_servers,
+            analysis_options={
+                "analysis_type": "context_aware",
+                "focus_areas": ["risk_analysis", "business_impact", "likelihood"]
+            }
+        )
+    
+    def _update_average_pipeline_time(self):
+        """Update average pipeline execution time."""
+        total_pipelines = self.pipeline_stats["pipelines_executed"]
+        if total_pipelines > 0:
+            self.pipeline_stats["avg_pipeline_time"] = (
+                self.pipeline_stats["total_analysis_time"] / total_pipelines
+            )
+    
+    def get_pipeline_statistics(self) -> Dict[str, Any]:
+        """Get pipeline execution statistics."""
+        stats = self.pipeline_stats.copy()
+        
+        # Calculate stage averages
+        for stage, times in stats["stage_performance"].items():
+            if times:
+                stats["stage_performance"][f"{stage}_avg"] = sum(times) / len(times)
+                stats["stage_performance"][f"{stage}_min"] = min(times)
+                stats["stage_performance"][f"{stage}_max"] = max(times)
+        
+        return stats
+
+
+def create_advanced_pipeline(threat_analyzer: AIThreatAnalyzer, 
+                           config: Optional[Dict[str, Any]] = None) -> AdvancedThreatAnalysisPipeline:
+    """
+    Factory function to create advanced threat analysis pipeline.
+    
+    Args:
+        threat_analyzer: AI threat analyzer instance
+        config: Optional pipeline configuration
+        
+    Returns:
+        AdvancedThreatAnalysisPipeline instance
+    """
+    return AdvancedThreatAnalysisPipeline(threat_analyzer, config) 

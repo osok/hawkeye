@@ -149,8 +149,8 @@ This document provides a detailed implementation plan for the AI-powered dynamic
 | ID | Task | Dependencies | Estimate | Status | Reference |
 |----|------|-------------|----------|--------|-----------|
 | F2.6 | Enhance AIThreatAnalyzer with new prompts | F2.1-F2.5 | 3 days | **Complete** | src/hawkeye/detection/ai_threat/threat_analyzer.py |
-| F2.7 | Build advanced threat analysis pipeline | F2.6, F2.5 | 4 days | **Ready** | Enhanced analysis workflows |
-| F2.8 | Implement comprehensive response parsing | F2.7 | 3 days | Pending | ThreatAnalysis.from_dict integration |
+| F2.7 | Build advanced threat analysis pipeline | F2.6, F2.5 | 4 days | **Complete** | src/hawkeye/detection/ai_threat/threat_analyzer.py |
+| F2.8 | Implement comprehensive response parsing | F2.7 | 3 days | **Ready** | ThreatAnalysis.from_dict integration |
 | F2.9 | Create advanced error handling and retry logic | F2.8 | 2 days | Pending | Multi-provider failover |
 | F2.10 | Build dynamic confidence scoring system | F2.8 | 3 days | Pending | Context-aware confidence calculation |
 
