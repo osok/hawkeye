@@ -427,5 +427,10 @@ def quick_scan(ctx, target: str, ports: Optional[str], threads: Optional[int],
         raise click.ClickException(f"Quick scan failed: {e}")
 
 
+def main():
+    """Main entry point for the HawkEye CLI application."""
+    cli()
+
+
 if __name__ == "__main__":
-    cli() 
+    main() 
