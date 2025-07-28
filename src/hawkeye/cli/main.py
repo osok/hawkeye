@@ -20,7 +20,7 @@ from .. import __version__
 
 # Import command groups
 from .scan_commands import scan
-from .detect_commands import detect
+from .detect_commands import detect, analyze_threats
 from .report_commands import report
 from .config_file import config, load_config_from_file
 from .output_control import configure_output, VerbosityLevel
@@ -162,6 +162,7 @@ def show_banner():
 # Add command groups to main CLI
 cli.add_command(scan)
 cli.add_command(detect)
+cli.add_command(analyze_threats)
 cli.add_command(report)
 cli.add_command(config)
 

@@ -14,7 +14,8 @@ from datetime import datetime
 from .models import (
     ThreatAnalysis, ToolCapabilities, EnvironmentContext, AnalysisMetadata,
     ThreatLevel, AttackVector, AbuseScenario, MitigationStrategy, SeverityLevel,
-    DetectionIndicator, ComplianceImpact
+    DetectionIndicator, ComplianceImpact, ThreatActorType, AttackStep, 
+    BusinessImpact, AccessLevel, DifficultyLevel
 )
 from .capability_analyzer import MCPCapabilityAnalyzer
 from .ai_providers import (
@@ -391,7 +392,7 @@ class AIThreatAnalyzer:
                 )
                 
                 # Try fallback analysis if main provider fails
-                return self._perform_fallback_analysis(mcp_server, environment_context)
+                return self._create_fallback_analysis(mcp_server, tool_capabilities, environment_context, "comprehensive")
                 
             except Exception as e:
                 logger.error(f"Enhanced threat analysis failed for {tool_name}: {e}")
@@ -1063,55 +1064,17 @@ class AIThreatAnalyzer:
     def _create_rule_based_analysis(self, 
                                   tool_capabilities: ToolCapabilities,
                                   environment_context: EnvironmentContext) -> ThreatAnalysis:
-        """Create rule-based threat analysis when AI fails."""
-        # Determine threat level based on capabilities
-        threat_level = ThreatLevel.LOW
+        """Create enhanced rule-based threat analysis with detailed attack scenarios for known MCP tools."""
+        tool_name = tool_capabilities.tool_name.lower()
         
-        high_risk_categories = [
-            "CODE_EXECUTION", "FILE_SYSTEM", "NETWORK_ACCESS", "SYSTEM_INFORMATION"
-        ]
+        # Enhanced attack scenarios for specific MCP tools
+        attack_vectors = self._generate_enhanced_attack_vectors(tool_name, tool_capabilities)
+        abuse_scenarios = self._generate_enhanced_abuse_scenarios(tool_name, tool_capabilities)
+        mitigation_strategies = self._generate_enhanced_mitigations(tool_name, tool_capabilities)
+        detection_indicators = self._generate_enhanced_detection_indicators(tool_name, tool_capabilities)
         
-        risk_score = 0
-        for category in tool_capabilities.capability_categories:
-            if category.value.upper() in high_risk_categories:
-                risk_score += 1
-        
-        if risk_score >= 3:
-            threat_level = ThreatLevel.HIGH
-        elif risk_score >= 2:
-            threat_level = ThreatLevel.MEDIUM
-        
-        # Create basic attack vectors
-        attack_vectors = []
-        if any(c.value == "code_execution" for c in tool_capabilities.capability_categories):
-            attack_vectors.append(AttackVector(
-                name="Command Injection",
-                severity=SeverityLevel.HIGH,
-                description="Tool may be vulnerable to command injection attacks",
-                attack_steps=[
-                    "Identify input parameters",
-                    "Craft malicious payload",
-                    "Execute command injection",
-                    "Achieve code execution"
-                ],
-                prerequisites=["Access to tool interface"],
-                impact="Arbitrary code execution on host system",
-                likelihood=0.7
-            ))
-        
-        # Create basic mitigation strategies
-        mitigation_strategies = [
-            MitigationStrategy(
-                name="Input Validation",
-                description="Implement strict input validation and sanitization",
-                implementation_steps=[
-                    "Validate all user inputs",
-                    "Sanitize command parameters",
-                    "Use allowlists for acceptable inputs"
-                ],
-                effectiveness_score=0.8
-            )
-        ]
+        # Determine threat level based on tool type and capabilities
+        threat_level = self._calculate_enhanced_threat_level(tool_name, tool_capabilities)
         
         return ThreatAnalysis(
             tool_signature=tool_capabilities.tool_id,
@@ -1119,24 +1082,449 @@ class AIThreatAnalyzer:
             environment_context=environment_context,
             threat_level=threat_level,
             attack_vectors=attack_vectors,
-            abuse_scenarios=[],  # No abuse scenarios in basic rule-based analysis
+            abuse_scenarios=abuse_scenarios,
             mitigation_strategies=mitigation_strategies,
-            detection_indicators=[],  # No detection indicators in basic analysis
+            detection_indicators=detection_indicators,
             compliance_impact=ComplianceImpact(
-                affected_frameworks=[],
-                violation_risk=ThreatLevel.LOW,
-                required_controls=[]
+                affected_frameworks=[ComplianceFramework.SOC2_TYPE_II, ComplianceFramework.ISO_27001],
+                violation_risk=threat_level,
+                required_controls=["Access controls", "Monitoring", "Incident response"]
             ),
-            confidence_score=0.6,  # Lower confidence for rule-based
+            confidence_score=0.7,  # Higher confidence for enhanced rule-based analysis
             analysis_metadata=AnalysisMetadata(
-                                                        provider="rule_based",
-                    model="internal_rules",
-                    timestamp=datetime.now(),
-                    analysis_duration=0.1,
-                    cost=0.0,
-                confidence_score=0.6
+                provider="enhanced_rule_based",
+                model="hawkeye_internal",
+                timestamp=datetime.now(),
+                analysis_duration=0.1,
+                cost=0.0,
+                confidence_score=0.7
             )
         )
+    
+    def _generate_enhanced_attack_vectors(self, tool_name: str, tool_capabilities: ToolCapabilities) -> List[AttackVector]:
+        """Generate detailed attack vectors based on detected MCP tool capabilities."""
+        attack_vectors = []
+        
+        # Analyze capabilities to determine potential attack vectors
+        capability_categories = [cat.value.lower() for cat in tool_capabilities.capability_categories]
+        tools_available = [func.name.lower() for func in tool_capabilities.tool_functions] if tool_capabilities.tool_functions else []
+        
+        # Generate attack vectors based on detected capabilities, not hard-coded tool names
+        if any('network' in cat or 'web' in cat or 'http' in cat for cat in capability_categories) or \
+           any('search' in tool or 'web' in tool for tool in tools_available):
+            attack_vectors.append(AttackVector(
+                name="Information Reconnaissance",
+                severity=SeverityLevel.HIGH,
+                description="Attacker uses web/network capabilities to gather intelligence about targets",
+                attack_steps=[
+                    "Gain access to AI assistant with network-enabled MCP server",
+                    "Use available tools to research target organization",
+                    "Search for employee information, technologies, vulnerabilities", 
+                    "Gather intelligence for social engineering attacks",
+                    "Map attack surface using available information sources"
+                ],
+                example_code="""# Example reconnaissance using detected capabilities
+# Note: Actual implementation depends on specific MCP tools detected
+results = await mcp_tool.execute("research", {"target": "organization.com"})
+# Process results for intelligence gathering""",
+                prerequisites=["Access to AI assistant", "Network-enabled MCP server"],
+                impact="Organizational intelligence gathering",
+                likelihood=0.7
+            ))
+        
+        if any('file' in cat or 'filesystem' in cat for cat in capability_categories) or \
+           any('file' in tool or 'read' in tool or 'write' in tool for tool in tools_available):
+            attack_vectors.extend([
+                AttackVector(
+                    name="Data Exfiltration",
+                    severity=SeverityLevel.CRITICAL,
+                    description="Steal sensitive files and data through filesystem access",
+                    attack_steps=[
+                        "Gain access to AI assistant with file system capabilities",
+                        "Map accessible directories and file structure",
+                        "Identify sensitive files (configs, credentials, source code)",
+                        "Extract valuable data and intellectual property",
+                        "Exfiltrate data through available channels"
+                    ],
+                    example_code="""# Example file system exploitation
+# Note: Actual commands depend on detected MCP tool capabilities  
+file_list = await mcp_tool.execute("list_files", {"path": "/sensitive"})
+for file_path in file_list:
+    content = await mcp_tool.execute("read_file", {"path": file_path})
+    # Process and exfiltrate sensitive content""",
+                    prerequisites=["AI assistant access", "File system MCP server"],
+                    impact="Data breach and intellectual property theft",
+                    likelihood=0.8
+                ),
+                AttackVector(
+                    name="Malicious File Modification",
+                    severity=SeverityLevel.HIGH,
+                    description="Modify files to inject malicious content or create backdoors",
+                    attack_steps=[
+                        "Identify writable files and directories",
+                        "Locate critical system or application files",
+                        "Inject malicious code or backdoors",
+                        "Modify configuration files to weaken security",
+                        "Ensure persistence and avoid detection"
+                    ],
+                    example_code="""# Example malicious file modification
+# Note: Educational example - actual implementation varies by MCP tool
+original_content = await mcp_tool.execute("read_file", {"path": "app.py"})
+malicious_content = original_content + "\\n# Hidden backdoor code"
+await mcp_tool.execute("write_file", {"path": "app.py", "content": malicious_content})""",
+                    prerequisites=["Write access to file system", "Knowledge of file structure"],
+                    impact="System compromise and persistent access",
+                    likelihood=0.6
+                )
+            ])
+        
+        if any('code' in cat or 'execution' in cat for cat in capability_categories) or \
+           any('exec' in tool or 'run' in tool or 'command' in tool for tool in tools_available):
+            attack_vectors.append(AttackVector(
+                name="Command Injection",
+                severity=SeverityLevel.CRITICAL,
+                description="Execute arbitrary commands through code execution capabilities",
+                attack_steps=[
+                    "Identify command execution interfaces in MCP tools",
+                    "Craft malicious payloads to inject commands",
+                    "Execute commands to gain system access",
+                    "Escalate privileges where possible", 
+                    "Establish persistent access to the system"
+                ],
+                example_code="""# Example command injection
+# Note: Educational example showing potential attack pattern
+payload = "legitimate_command; malicious_command"
+result = await mcp_tool.execute("run_command", {"command": payload})
+# Attacker gains command execution on host system""",
+                prerequisites=["Access to command execution interface"],
+                impact="Full system compromise",
+                likelihood=0.9
+            ))
+        
+        # Add generic security analysis if no specific capabilities detected
+        if not attack_vectors:
+            attack_vectors.append(AttackVector(
+                name="MCP Tool Security Analysis",
+                severity=SeverityLevel.MEDIUM,
+                description="General security concerns with detected MCP tool",
+                attack_steps=[
+                    "Analyze MCP tool interfaces and capabilities",
+                    "Identify potential input validation issues",
+                    "Test for authorization bypass vulnerabilities",
+                    "Attempt privilege escalation through tool misuse",
+                    "Evaluate data exposure risks"
+                ],
+                example_code="""# Generic MCP tool security testing
+# Note: Approach varies based on specific tool capabilities
+tool_info = await mcp_tool.get_capabilities()
+for capability in tool_info:
+    # Test each capability for security issues
+    test_result = await security_test(capability)""",
+                prerequisites=["Access to MCP tool interface"],
+                impact="Varies based on tool capabilities and vulnerabilities",
+                likelihood=0.5
+            ))
+        
+        return attack_vectors
+        
+    def _generate_enhanced_abuse_scenarios(self, tool_name: str, tool_capabilities: ToolCapabilities) -> List[AbuseScenario]:
+        """Generate detailed abuse scenarios based on detected MCP tool capabilities."""
+        scenarios = []
+        
+        # Analyze capabilities to determine potential abuse scenarios
+        capability_categories = [cat.value.lower() for cat in tool_capabilities.capability_categories]
+        tools_available = [func.name.lower() for func in tool_capabilities.tool_functions] if tool_capabilities.tool_functions else []
+        
+        # Generate scenarios based on detected capabilities
+        has_network_access = any('network' in cat or 'web' in cat or 'http' in cat for cat in capability_categories) or \
+                           any('search' in tool or 'web' in tool for tool in tools_available)
+        
+        has_file_access = any('file' in cat or 'filesystem' in cat for cat in capability_categories) or \
+                         any('file' in tool or 'read' in tool or 'write' in tool for tool in tools_available)
+        
+        has_execution_capability = any('code' in cat or 'execution' in cat for cat in capability_categories) or \
+                                 any('exec' in tool or 'run' in tool or 'command' in tool for tool in tools_available)
+        
+        if has_network_access or has_file_access or has_execution_capability:
+            scenarios.append(AbuseScenario(
+                scenario_name="Data Reconnaissance and Exfiltration",
+                threat_actor=ThreatActorType.EXTERNAL_ATTACKER,
+                motivation="Gather sensitive information and extract valuable data",
+                attack_flow=[
+                    AttackStep(1, "Gain access to AI assistant with MCP tool capabilities", [], []),
+                    AttackStep(2, "Enumerate available tools and their capabilities", [], []),
+                    AttackStep(3, "Identify sensitive data sources and access points", [], []),
+                    AttackStep(4, "Extract and exfiltrate valuable information", [], [])
+                ],
+                required_access=AccessLevel.USER,
+                detection_difficulty=DifficultyLevel.MEDIUM,
+                business_impact=BusinessImpact(
+                    financial_impact="High - potential data breach costs",
+                    operational_impact="Medium - incident response required",
+                    reputation_impact="High - customer trust impact"
+                )
+            ))
+        
+        if has_file_access or has_execution_capability:
+            scenarios.append(AbuseScenario(
+                scenario_name="System Compromise via MCP Tool Abuse",
+                threat_actor=ThreatActorType.INSIDER_THREAT,
+                motivation="Gain unauthorized system access and establish persistence",
+                attack_flow=[
+                    AttackStep(1, "Abuse legitimate MCP tool access", [], []),
+                    AttackStep(2, "Explore system directories and files", [], []),
+                    AttackStep(3, "Modify critical files or execute malicious code", [], []),
+                    AttackStep(4, "Establish backdoors for persistent access", [], [])
+                ],
+                required_access=AccessLevel.ADMIN,
+                detection_difficulty=DifficultyLevel.LOW,
+                business_impact=BusinessImpact(
+                    financial_impact="Critical - system compromise costs",
+                    operational_impact="Critical - business disruption",
+                    reputation_impact="Critical - security breach disclosure"
+                )
+            ))
+        
+        return scenarios
+    
+    def _generate_enhanced_mitigations(self, tool_name: str, tool_capabilities: ToolCapabilities) -> List[MitigationStrategy]:
+        """Generate detailed mitigation strategies based on detected MCP tool capabilities."""
+        strategies = []
+        
+        # Analyze capabilities to determine appropriate mitigations
+        capability_categories = [cat.value.lower() for cat in tool_capabilities.capability_categories]
+        tools_available = [func.name.lower() for func in tool_capabilities.tool_functions] if tool_capabilities.tool_functions else []
+        
+        # Network/Web access mitigations
+        if any('network' in cat or 'web' in cat or 'http' in cat for cat in capability_categories) or \
+           any('search' in tool or 'web' in tool for tool in tools_available):
+            strategies.extend([
+                MitigationStrategy(
+                    name="Network Access Controls",
+                    description="Implement strict controls on network-enabled MCP tool capabilities",
+                    implementation_steps=[
+                        "Configure allowlist of permitted domains and endpoints",
+                        "Implement comprehensive request logging and monitoring",
+                        "Set rate limits and quotas on network requests",
+                        "Review and audit all external network communications"
+                    ],
+                    effectiveness_score=0.8
+                ),
+                MitigationStrategy(
+                    name="Data Sanitization and Filtering",
+                    description="Filter and sanitize data retrieved through network access",
+                    implementation_steps=[
+                        "Implement content filtering for sensitive information",
+                        "Block access to unauthorized data sources",
+                        "Sanitize retrieved data before processing",
+                        "Log all data retrieval for compliance audit"
+                    ],
+                    effectiveness_score=0.7
+                )
+            ])
+        
+        # File system access mitigations
+        if any('file' in cat or 'filesystem' in cat for cat in capability_categories) or \
+           any('file' in tool or 'read' in tool or 'write' in tool for tool in tools_available):
+            strategies.extend([
+                MitigationStrategy(
+                    name="File System Access Controls",
+                    description="Implement strict filesystem access controls for MCP tools",
+                    implementation_steps=[
+                        "Use principle of least privilege - read-only where possible",
+                        "Implement comprehensive file access logging",
+                        "Restrict access to sensitive directories and files",
+                        "Use sandboxing, containerization, and chroot jails"
+                    ],
+                    effectiveness_score=0.9
+                ),
+                MitigationStrategy(
+                    name="File Integrity Monitoring",
+                    description="Monitor for unauthorized file system changes",
+                    implementation_steps=[
+                        "Implement real-time file integrity monitoring",
+                        "Use version control systems for all file changes",
+                        "Require approval workflows for file modifications",
+                        "Set up automated alerts for unexpected file changes"
+                    ],
+                    effectiveness_score=0.8
+                )
+            ])
+        
+        # Code execution mitigations
+        if any('code' in cat or 'execution' in cat for cat in capability_categories) or \
+           any('exec' in tool or 'run' in tool or 'command' in tool for tool in tools_available):
+            strategies.append(MitigationStrategy(
+                name="Command Execution Controls",
+                description="Control and monitor command execution capabilities",
+                implementation_steps=[
+                    "Implement command allowlisting and validation",
+                    "Use secure execution environments (containers/VMs)",
+                    "Monitor all command executions and their outputs",
+                    "Implement resource limits and execution timeouts"
+                ],
+                effectiveness_score=0.9
+            ))
+        
+        # Generic security controls for all MCP tools
+        strategies.extend([
+            MitigationStrategy(
+                name="MCP Tool Security Baseline",
+                description="Implement baseline security controls for MCP tool deployment",
+                implementation_steps=[
+                    "Regular security assessments and penetration testing",
+                    "Implement comprehensive logging and monitoring",
+                    "Apply principle of least privilege for all access",
+                    "Establish incident response procedures for MCP tool abuse",
+                    "Regular security updates and patch management"
+                ],
+                effectiveness_score=0.7
+            ),
+            MitigationStrategy(
+                name="Access Management and Authentication",
+                description="Strong authentication and authorization for MCP tool access",
+                implementation_steps=[
+                    "Implement multi-factor authentication",
+                    "Use role-based access control (RBAC)",
+                    "Regular access reviews and privilege auditing",
+                    "Session management and timeout controls"
+                ],
+                effectiveness_score=0.8
+            )
+        ])
+        
+        return strategies
+    
+    def _generate_enhanced_detection_indicators(self, tool_name: str, tool_capabilities: ToolCapabilities) -> List[DetectionIndicator]:
+        """Generate detailed detection indicators based on detected MCP tool capabilities."""
+        indicators = []
+        
+        # Analyze capabilities to determine appropriate detection indicators
+        capability_categories = [cat.value.lower() for cat in tool_capabilities.capability_categories]
+        tools_available = [func.name.lower() for func in tool_capabilities.tool_functions] if tool_capabilities.tool_functions else []
+        
+        # Network/Web access indicators
+        if any('network' in cat or 'web' in cat or 'http' in cat for cat in capability_categories) or \
+           any('search' in tool or 'web' in tool for tool in tools_available):
+            indicators.extend([
+                DetectionIndicator(
+                    indicator_name="Unusual Network Request Patterns",
+                    indicator_type="network_monitoring",
+                    pattern="High volume or suspicious patterns in network requests",
+                    confidence=0.8
+                ),
+                DetectionIndicator(
+                    indicator_name="Unauthorized Data Retrieval",
+                    indicator_type="data_access_monitoring", 
+                    pattern="Access to external data sources outside normal usage patterns",
+                    confidence=0.7
+                )
+            ])
+        
+        # File system access indicators
+        if any('file' in cat or 'filesystem' in cat for cat in capability_categories) or \
+           any('file' in tool or 'read' in tool or 'write' in tool for tool in tools_available):
+            indicators.extend([
+                DetectionIndicator(
+                    indicator_name="Abnormal File System Activity",
+                    indicator_type="filesystem_monitoring",
+                    pattern="Access to sensitive files or directories outside normal patterns",
+                    confidence=0.9
+                ),
+                DetectionIndicator(
+                    indicator_name="File Modification Attempts",
+                    indicator_type="file_integrity_monitoring",
+                    pattern="Unauthorized modifications to critical system or application files",
+                    confidence=0.8
+                )
+            ])
+        
+        # Code execution indicators
+        if any('code' in cat or 'execution' in cat for cat in capability_categories) or \
+           any('exec' in tool or 'run' in tool or 'command' in tool for tool in tools_available):
+            indicators.extend([
+                DetectionIndicator(
+                    indicator_name="Suspicious Command Execution",
+                    indicator_type="command_monitoring",
+                    pattern="Execution of unusual or potentially malicious commands",
+                    confidence=0.9
+                ),
+                DetectionIndicator(
+                    indicator_name="Privilege Escalation Attempts",
+                    indicator_type="privilege_monitoring",
+                    pattern="Attempts to escalate privileges through command execution",
+                    confidence=0.8
+                )
+            ])
+        
+        # Generic MCP tool indicators
+        indicators.extend([
+            DetectionIndicator(
+                indicator_name="MCP Tool Abuse Patterns",
+                indicator_type="usage_monitoring",
+                pattern="Unusual usage patterns or frequency of MCP tool interactions",
+                confidence=0.6
+            ),
+            DetectionIndicator(
+                indicator_name="Authentication and Session Anomalies", 
+                indicator_type="authentication_monitoring",
+                pattern="Unusual authentication patterns or session management issues",
+                confidence=0.7
+            )
+        ])
+        
+        return indicators
+    
+    def _calculate_enhanced_threat_level(self, tool_name: str, tool_capabilities: ToolCapabilities) -> ThreatLevel:
+        """Calculate threat level based on detected MCP tool capabilities."""
+        # Analyze capabilities to determine threat level
+        capability_categories = [cat.value.lower() for cat in tool_capabilities.capability_categories]
+        tools_available = [tool.name.lower() for tool in tool_capabilities.server_info.tools] if tool_capabilities.server_info.tools else []
+        
+        threat_score = 0
+        
+        # High-risk capabilities that significantly increase threat score
+        high_risk_capabilities = [
+            ('file', 'filesystem', 'write', 'modify'), # File system access
+            ('code', 'execution', 'exec', 'command', 'run'), # Code execution
+            ('admin', 'root', 'system', 'privilege') # Administrative access
+        ]
+        
+        # Medium-risk capabilities
+        medium_risk_capabilities = [
+            ('network', 'web', 'http', 'search'), # Network access
+            ('read', 'access', 'data'), # Data access
+            ('database', 'db', 'sql') # Database access
+        ]
+        
+        # Check capabilities against risk categories
+        for risk_group in high_risk_capabilities:
+            if any(risk_term in cat for cat in capability_categories for risk_term in risk_group) or \
+               any(risk_term in tool for tool in tools_available for risk_term in risk_group):
+                threat_score += 3
+                
+        for risk_group in medium_risk_capabilities:
+            if any(risk_term in cat for cat in capability_categories for risk_term in risk_group) or \
+               any(risk_term in tool for tool in tools_available for risk_term in risk_group):
+                threat_score += 1
+        
+        # Factor in overall risk score from tool capabilities
+        if hasattr(tool_capabilities, 'risk_surface') and tool_capabilities.risk_surface:
+            base_risk = tool_capabilities.risk_surface.risk_score
+            if base_risk >= 0.8:
+                threat_score += 2
+            elif base_risk >= 0.6:
+                threat_score += 1
+        
+        # Determine threat level based on calculated score
+        if threat_score >= 5:
+            return ThreatLevel.CRITICAL
+        elif threat_score >= 3:
+            return ThreatLevel.HIGH
+        elif threat_score >= 1:
+            return ThreatLevel.MEDIUM
+        else:
+            return ThreatLevel.LOW
     
     def _post_process_analysis(self, 
                              analysis: ThreatAnalysis,

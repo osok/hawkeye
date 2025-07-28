@@ -1725,3 +1725,382 @@ For additional support, consult the troubleshooting guide or contact the HawkEye
 **Document Version**: 1.0  
 **Last Updated**: Current Version  
 **Next Review**: Quarterly 
+
+### Using the AI Threat Analysis CLI Command
+
+The `analyze-threats` command provides a production-ready CLI interface for processing JSON detection results through the AI-powered threat analysis system. This replaces the demo-only approach with a complete workflow integration.
+
+#### Command Syntax
+
+```bash
+python application.py detect analyze-threats [OPTIONS]
+```
+
+#### Required Parameters
+
+| Parameter | Description | Example |
+|-----------|-------------|---------|
+| `--input, -i PATH` | Input JSON file containing detection results | `--input detection_results.json` |
+
+#### Optional Parameters
+
+| Parameter | Description | Default | Example |
+|-----------|-------------|---------|---------|
+| `--output, -o PATH` | Output file path for threat analysis results | None | `--output threat_analysis.json` |
+| `--format, -f FORMAT` | Output format (json, html, csv, xml) | json | `--format html` |
+| `--analysis-type TYPE` | Analysis depth (quick, comprehensive, detailed) | comprehensive | `--analysis-type detailed` |
+| `--confidence-threshold FLOAT` | Minimum confidence threshold for analysis | 0.5 | `--confidence-threshold 0.8` |
+| `--enable-ai/--disable-ai` | Enable AI-powered analysis | Enabled | `--disable-ai` |
+| `--parallel-processing/--sequential-processing` | Enable parallel processing | Enabled | `--sequential-processing` |
+| `--max-workers INTEGER` | Maximum number of parallel workers | 3 | `--max-workers 5` |
+| `--cost-limit FLOAT` | Maximum cost limit for AI analysis (USD) | No limit | `--cost-limit 10.0` |
+
+#### Complete Workflow Examples
+
+**Basic Workflow:**
+```bash
+# Step 1: Run detection and save to JSON
+python application.py detect target --target 192.168.1.100 --output detection_results.json
+
+# Step 2: Analyze threats from detection results
+python application.py detect analyze-threats --input detection_results.json --output threat_analysis.json
+```
+
+**Comprehensive Analysis:**
+```bash
+# Step 1: Comprehensive detection with introspection
+python application.py detect comprehensive --target api.example.com --output comprehensive_results.json
+
+# Step 2: Detailed AI threat analysis with custom settings
+python application.py detect analyze-threats \
+  --input comprehensive_results.json \
+  --output detailed_threats.json \
+  --analysis-type detailed \
+  --parallel-processing \
+  --max-workers 5 \
+  --cost-limit 10.0
+```
+
+**HTML Report Generation:**
+```bash
+# Generate HTML threat analysis report
+python application.py detect analyze-threats \
+  --input detection_results.json \
+  --format html \
+  --output security_report.html \
+  --analysis-type comprehensive
+```
+
+**Batch Processing Multiple Environments:**
+```bash
+# Local environment analysis
+python application.py detect local --output local_detection.json
+python application.py detect analyze-threats \
+  --input local_detection.json \
+  --output local_threats.json \
+  --confidence-threshold 0.6
+
+# Production environment analysis with cost controls
+python application.py detect target --target prod.company.com --output prod_detection.json
+python application.py detect analyze-threats \
+  --input prod_detection.json \
+  --output prod_threats.json \
+  --cost-limit 5.0 \
+  --analysis-type comprehensive
+```
+
+#### Output Formats
+
+**JSON Format (Default):**
+The JSON output includes comprehensive threat analysis data:
+
+```json
+{
+  "metadata": {
+    "title": "HawkEye AI Security Threat Analysis",
+    "source_file": "detection_results.json",
+    "analysis_type": "comprehensive",
+    "generated_at": "2024-12-28T12:00:00Z",
+    "total_servers_analyzed": 2,
+    "successful_analyses": 2,
+    "failed_analyses": 0,
+    "ai_enabled": true,
+    "parallel_processing": true
+  },
+  "threat_analyses": {
+    "filesystem-mcp-server": {
+      "tool_capabilities": {
+        "tool_name": "Filesystem MCP Server",
+        "capability_categories": ["file_system", "data_access"],
+        "risk_score": 7.8,
+        "confidence": 0.95
+      },
+      "threat_level": "high",
+      "attack_vectors": [
+        {
+          "name": "Unauthorized File Access",
+          "severity": "high",
+          "description": "Server allows unrestricted file system access",
+          "impact": "Complete file system compromise",
+          "likelihood": 0.85,
+          "prerequisites": ["Server access", "Tool permissions"],
+          "attack_steps": [
+            "Gain access to MCP server",
+            "Use read_file tool with sensitive paths",
+            "Extract confidential information"
+          ]
+        }
+      ],
+      "mitigation_strategies": [
+        {
+          "name": "Implement File Access Controls",
+          "description": "Restrict file access to specific directories",
+          "implementation_steps": [
+            "Configure directory whitelist",
+            "Implement path validation",
+            "Add audit logging"
+          ],
+          "effectiveness_score": 0.9,
+          "cost_estimate": "medium"
+        }
+      ],
+      "confidence_score": 0.95,
+      "analysis_metadata": {
+        "provider": "anthropic",
+        "model": "claude-3-sonnet-20240229",
+        "cost": 0.0156,
+        "analysis_time": 12.5,
+        "timestamp": "2024-12-28T12:05:30Z"
+      }
+    }
+  },
+  "errors": {},
+  "statistics": {
+    "analyses_performed": 2,
+    "cache_hits": 0,
+    "total_cost": 0.0312
+  }
+}
+```
+
+**HTML Format:**
+Generates a comprehensive HTML report with:
+- Executive summary with risk overview
+- Detailed threat analysis for each MCP server
+- Attack vector visualization
+- Mitigation strategy recommendations
+- Interactive risk charts and graphs
+
+**CSV Format:**
+Produces a tabular format suitable for spreadsheet analysis:
+```csv
+tool_name,threat_level,attack_vectors_count,mitigations_count,confidence_score,analysis_cost
+Filesystem MCP Server,high,3,2,0.95,0.0156
+Web Search MCP Server,medium,2,3,0.88,0.0156
+```
+
+**XML Format:**
+Structured XML output for integration with other security tools and systems.
+
+#### Error Handling and Troubleshooting
+
+**Common Error Scenarios:**
+
+1. **Invalid JSON Input File:**
+   ```bash
+   Error: Invalid JSON format in input file: Expecting ',' delimiter: line 5 column 10
+   ```
+   **Solution:** Validate the JSON file format using `jq` or a JSON validator.
+
+2. **No MCP Servers Found:**
+   ```bash
+   No MCP servers found above confidence threshold 0.5
+   ```
+   **Solution:** Lower the confidence threshold or verify the detection results contain valid MCP server data.
+
+3. **AI API Configuration Issues:**
+   ```bash
+   Warning: No AI API keys configured! Falling back to rule-based analysis...
+   ```
+   **Solution:** Configure API keys in the `.env` file:
+   ```bash
+   AI_PROVIDER=anthropic
+   AI_ANTHROPIC_API_KEY=your_key_here
+   AI_OPENAI_API_KEY=your_key_here
+   ```
+
+4. **Cost Limit Exceeded:**
+   ```bash
+   Analysis stopped: Cost limit of $5.00 exceeded
+   ```
+   **Solution:** Increase cost limit or process fewer servers at once.
+
+#### Performance Optimization
+
+**Parallel Processing:**
+- Use `--parallel-processing` for multiple servers (default: enabled)
+- Adjust `--max-workers` based on system resources and API rate limits
+- Monitor API rate limits to avoid throttling
+
+**Cost Optimization:**
+- Set `--cost-limit` to control AI usage costs
+- Use `--confidence-threshold` to filter low-confidence detections
+- Choose `--analysis-type quick` for basic analysis to reduce costs
+
+**Memory and Performance:**
+- For large-scale analysis, process servers in batches
+- Use `--sequential-processing` if experiencing memory issues
+- Monitor system resources during analysis
+
+#### Integration Examples
+
+**CI/CD Pipeline Integration:**
+```bash
+#!/bin/bash
+# ci-security-check.sh
+
+# Run detection
+python application.py detect target --target $CI_TARGET --output detection.json
+
+# Analyze threats with cost controls
+python application.py detect analyze-threats \
+  --input detection.json \
+  --output threats.json \
+  --cost-limit 2.0 \
+  --confidence-threshold 0.7
+
+# Check for high-risk findings
+HIGH_RISK=$(jq '[.threat_analyses[] | select(.threat_level == "high" or .threat_level == "critical")] | length' threats.json)
+
+if [ "$HIGH_RISK" -gt 0 ]; then
+  echo "❌ Security check failed: $HIGH_RISK high-risk threats detected"
+  exit 1
+else
+  echo "✅ Security check passed"
+  exit 0
+fi
+```
+
+**Automated Security Monitoring:**
+```bash
+#!/bin/bash
+# daily-security-monitor.sh
+
+DATE=$(date +%Y%m%d)
+TARGETS=("prod.company.com" "api.company.com" "staging.company.com")
+
+for target in "${TARGETS[@]}"; do
+  # Detection
+  python application.py detect target --target "$target" --output "detection_${target}_${DATE}.json"
+  
+  # Threat analysis
+  python application.py detect analyze-threats \
+    --input "detection_${target}_${DATE}.json" \
+    --output "threats_${target}_${DATE}.json" \
+    --format json \
+    --cost-limit 5.0
+  
+  # Generate HTML report
+  python application.py detect analyze-threats \
+    --input "detection_${target}_${DATE}.json" \
+    --output "report_${target}_${DATE}.html" \
+    --format html
+done
+
+# Send notification if high-risk threats found
+python send_security_alerts.py --date "$DATE"
+```
+
+**Security Dashboard Integration:**
+```bash
+# Export threat data to security dashboard
+python application.py detect analyze-threats \
+  --input detection_results.json \
+  --format json \
+  --output dashboard_data.json
+
+# Transform for dashboard API
+jq '.threat_analyses | to_entries | map({
+  server_name: .key,
+  threat_level: .value.threat_level,
+  risk_score: .value.tool_capabilities.risk_score,
+  attack_vectors: (.value.attack_vectors | length),
+  timestamp: .value.analysis_metadata.timestamp
+})' dashboard_data.json > dashboard_feed.json
+
+# Send to dashboard API
+curl -X POST https://dashboard.company.com/api/security-threats \
+  -H "Content-Type: application/json" \
+  --data @dashboard_feed.json
+```
+
+#### Best Practices
+
+**Security Considerations:**
+1. **Protect API Keys:** Store API keys securely, never commit to repositories
+2. **Validate Results:** Always review AI analysis results with human expertise
+3. **Monitor Costs:** Set up alerts for AI usage costs across all environments
+4. **Audit Trails:** Maintain logs of all threat analysis activities
+
+**Operational Excellence:**
+1. **Regular Analysis:** Schedule daily or weekly automated threat analysis
+2. **Baseline Comparisons:** Compare current results with historical baselines
+3. **Escalation Procedures:** Define clear escalation paths for high-risk findings
+4. **Documentation:** Document all security findings and remediation actions
+
+**Performance Guidelines:**
+1. **Batch Processing:** Analyze multiple servers together for efficiency
+2. **Resource Management:** Monitor system resources during large-scale analysis
+3. **API Rate Limits:** Respect AI provider rate limits and quotas
+4. **Caching Strategy:** Configure appropriate cache settings for your environment
+
+#### Advanced Usage Scenarios
+
+**Multi-Environment Security Assessment:**
+```bash
+# Development environment
+python application.py detect local --output dev_detection.json
+python application.py detect analyze-threats \
+  --input dev_detection.json \
+  --output dev_threats.json \
+  --analysis-type quick \
+  --cost-limit 1.0
+
+# Staging environment  
+python application.py detect target --target staging.company.com --output staging_detection.json
+python application.py detect analyze-threats \
+  --input staging_detection.json \
+  --output staging_threats.json \
+  --analysis-type comprehensive \
+  --cost-limit 3.0
+
+# Production environment (detailed analysis)
+python application.py detect comprehensive --target prod.company.com --output prod_detection.json
+python application.py detect analyze-threats \
+  --input prod_detection.json \
+  --output prod_threats.json \
+  --analysis-type detailed \
+  --cost-limit 10.0 \
+  --parallel-processing \
+  --max-workers 5
+```
+
+**Compliance and Audit Support:**
+```bash
+# Generate compliance-ready reports
+python application.py detect analyze-threats \
+  --input audit_detection.json \
+  --output compliance_analysis.xml \
+  --format xml \
+  --analysis-type detailed \
+  --confidence-threshold 0.9
+
+# Create executive summary for stakeholders
+python application.py detect analyze-threats \
+  --input audit_detection.json \
+  --output executive_summary.html \
+  --format html \
+  --analysis-type comprehensive
+```
+
+This comprehensive CLI integration provides a production-ready workflow that replaces the previous demo-only approach with full enterprise capabilities for AI-powered MCP security analysis. 

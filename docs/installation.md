@@ -1,7 +1,7 @@
 # 🚀 HawkEye Installation Guide
-## Complete Setup and Deployment Instructions
+## Complete Setup and Deployment Instructions with AI Provider Configuration
 
-### Version 1.0 
+### Version 2.0 - Updated with AI Analysis Setup
 
 ---
 
@@ -9,13 +9,14 @@
 
 1. [System Requirements](#system-requirements)
 2. [Quick Installation](#quick-installation)
-3. [Platform-Specific Installation](#platform-specific-installation)
-4. [Docker Installation](#docker-installation)
-5. [Development Setup](#development-setup)
-6. [Configuration](#configuration)
-7. [Verification](#verification)
-8. [Troubleshooting](#troubleshooting)
-9. [Uninstallation](#uninstallation)
+3. [AI Provider Setup](#ai-provider-setup)
+4. [Platform-Specific Installation](#platform-specific-installation)
+5. [Docker Installation](#docker-installation)
+6. [Development Setup](#development-setup)
+7. [Configuration](#configuration)
+8. [Verification](#verification)
+9. [Troubleshooting](#troubleshooting)
+10. [Uninstallation](#uninstallation)
 
 ---
 
@@ -25,30 +26,31 @@
 
 - **Operating System**: Linux, macOS, or Windows
 - **Python**: Version 3.8 or higher
-- **Memory**: 512MB RAM (2GB recommended for large scans)
-- **Storage**: 100MB for installation, additional space for logs and results
-- **Network**: Internet access for installation, target network access for scanning
+- **Memory**: 512MB RAM (2GB recommended for large scans, 4GB for AI analysis)
+- **Storage**: 200MB for installation, additional space for logs and results
+- **Network**: Internet access for installation and AI provider APIs
 
-### Recommended Requirements
+### Recommended Requirements for AI Analysis
 
 - **Operating System**: Linux (Ubuntu 20.04+ or CentOS 8+)
 - **Python**: Version 3.9 or higher
-- **Memory**: 4GB RAM
-- **Storage**: 1GB available space
-- **CPU**: Multi-core processor for optimal performance
-- **Network**: Gigabit network interface
+- **Memory**: 8GB RAM (for AI analysis with large datasets)
+- **Storage**: 2GB available space
+- **CPU**: Multi-core processor for optimal parallel processing
+- **Network**: Stable internet connection for AI provider APIs
+- **API Keys**: OpenAI, Anthropic, or Local LLM endpoint access
 
 ### Supported Platforms
 
-| Platform | Version | Status | Notes |
-|----------|---------|--------|-------|
-| Ubuntu | 18.04+ | ✅ Fully Supported | Recommended platform |
-| Debian | 10+ | ✅ Fully Supported | |
-| CentOS | 7+ | ✅ Fully Supported | |
-| RHEL | 7+ | ✅ Fully Supported | |
-| macOS | 10.15+ | ✅ Fully Supported | |
-| Windows | 10+ | ⚠️ Limited Support | Some features may be limited |
-| Docker | Any | ✅ Fully Supported | Recommended for containers |
+| Platform | Version | Status | AI Analysis Support | Notes |
+|----------|---------|--------|-------------------|-------|
+| Ubuntu | 18.04+ | ✅ Fully Supported | ✅ Full Support | Recommended platform |
+| Debian | 10+ | ✅ Fully Supported | ✅ Full Support | |
+| CentOS | 7+ | ✅ Fully Supported | ✅ Full Support | |
+| RHEL | 7+ | ✅ Fully Supported | ✅ Full Support | |
+| macOS | 10.15+ | ✅ Fully Supported | ✅ Full Support | |
+| Windows | 10+ | ⚠️ Limited Support | ⚠️ Limited Support | Some features may be limited |
+| Docker | Any | ✅ Fully Supported | ✅ Full Support | Recommended for containers |
 
 ---
 
@@ -76,8 +78,208 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 # 3. Install dependencies
 pip install -r requirements.txt
 
-# 4. Verify installation
+# 4. Configure AI providers (optional but recommended)
+cp env.example .env
+# Edit .env file with your API keys (see AI Provider Setup section)
+
+# 5. Verify installation
 python application.py --version
+python application.py info
+```
+
+---
+
+## AI Provider Setup
+
+HawkEye's AI-powered threat analysis requires configuration of at least one AI provider. This section covers setup for all supported providers.
+
+### Supported AI Providers
+
+| Provider | Models | Cost | Privacy | Setup Difficulty |
+|----------|--------|------|---------|-----------------|
+| **OpenAI** | GPT-4, GPT-3.5-turbo | $$ | Cloud | Easy |
+| **Anthropic** | Claude-3, Claude-2 | $$ | Cloud | Easy |
+| **Local LLM** | Ollama, etc. | Free | Local | Medium |
+
+### 1. OpenAI Setup
+
+#### Step 1: Create OpenAI Account
+1. Visit [OpenAI Platform](https://platform.openai.com/)
+2. Create an account or sign in
+3. Add billing information (required for API access)
+
+#### Step 2: Generate API Key
+1. Navigate to [API Keys](https://platform.openai.com/api-keys)
+2. Click "Create new secret key"
+3. Copy the key (you won't see it again)
+
+#### Step 3: Configure HawkEye
+```bash
+# Method 1: Environment file (recommended)
+echo "AI_PROVIDER=openai" >> .env
+echo "AI_OPENAI_API_KEY=your_api_key_here" >> .env
+
+# Method 2: Environment variables
+export AI_PROVIDER=openai
+export AI_OPENAI_API_KEY=your_api_key_here
+
+# Method 3: Configuration file
+python application.py config set ai.provider openai
+python application.py config set ai.openai.api_key your_api_key_here
+```
+
+#### Step 4: Test Configuration
+```bash
+# Test OpenAI connection
+python -c "
+import openai
+import os
+from dotenv import load_dotenv
+load_dotenv()
+client = openai.OpenAI(api_key=os.getenv('AI_OPENAI_API_KEY'))
+print('✅ OpenAI connection successful')
+"
+
+# Test with HawkEye
+python application.py detect local --output test.json
+python application.py detect analyze-threats --input test.json --cost-limit 0.50
+```
+
+### 2. Anthropic Setup
+
+#### Step 1: Create Anthropic Account
+1. Visit [Anthropic Console](https://console.anthropic.com/)
+2. Create an account or sign in
+3. Add billing information
+
+#### Step 2: Generate API Key
+1. Navigate to [API Keys](https://console.anthropic.com/settings/keys)
+2. Click "Create Key"
+3. Copy the key
+
+#### Step 3: Configure HawkEye
+```bash
+# Method 1: Environment file (recommended)
+echo "AI_PROVIDER=anthropic" >> .env
+echo "AI_ANTHROPIC_API_KEY=your_api_key_here" >> .env
+
+# Method 2: Environment variables
+export AI_PROVIDER=anthropic
+export AI_ANTHROPIC_API_KEY=your_api_key_here
+
+# Method 3: Configuration file
+python application.py config set ai.provider anthropic
+python application.py config set ai.anthropic.api_key your_api_key_here
+```
+
+#### Step 4: Test Configuration
+```bash
+# Test Anthropic connection
+python -c "
+import anthropic
+import os
+from dotenv import load_dotenv
+load_dotenv()
+client = anthropic.Anthropic(api_key=os.getenv('AI_ANTHROPIC_API_KEY'))
+print('✅ Anthropic connection successful')
+"
+
+# Test with HawkEye
+python application.py detect local --output test.json
+python application.py detect analyze-threats --input test.json --cost-limit 0.50
+```
+
+### 3. Local LLM Setup (Ollama)
+
+#### Step 1: Install Ollama
+```bash
+# Linux/macOS
+curl -fsSL https://ollama.com/install.sh | sh
+
+# Windows
+# Download from https://ollama.com/download/windows
+
+# Alternative: Docker
+docker run -d -v ollama:/root/.ollama -p 11434:11434 --name ollama ollama/ollama
+```
+
+#### Step 2: Install Models
+```bash
+# Install recommended models for threat analysis
+ollama pull llama3.1:8b      # Fast, good quality
+ollama pull llama3.1:70b     # High quality, slower
+ollama pull codellama:13b    # Good for technical analysis
+
+# Verify installation
+ollama list
+```
+
+#### Step 3: Configure HawkEye
+```bash
+# Method 1: Environment file (recommended)
+echo "AI_PROVIDER=local_llm" >> .env
+echo "AI_LOCAL_LLM_ENDPOINT=http://localhost:11434" >> .env
+echo "AI_LOCAL_LLM_MODEL=llama3.1:8b" >> .env
+
+# Method 2: Environment variables
+export AI_PROVIDER=local_llm
+export AI_LOCAL_LLM_ENDPOINT=http://localhost:11434
+export AI_LOCAL_LLM_MODEL=llama3.1:8b
+```
+
+#### Step 4: Test Configuration
+```bash
+# Test Ollama connection
+curl http://localhost:11434/api/tags
+
+# Test with HawkEye
+python application.py detect local --output test.json
+python application.py detect analyze-threats --input test.json
+```
+
+### 4. Multi-Provider Setup (Recommended)
+
+Configure multiple providers for redundancy and cost optimization:
+
+```bash
+# Primary provider
+echo "AI_PROVIDER=anthropic" >> .env
+echo "AI_ANTHROPIC_API_KEY=your_anthropic_key" >> .env
+
+# Fallback provider
+echo "AI_FALLBACK_PROVIDER=openai" >> .env
+echo "AI_OPENAI_API_KEY=your_openai_key" >> .env
+
+# Local LLM for privacy-sensitive analysis
+echo "AI_LOCAL_LLM_ENDPOINT=http://localhost:11434" >> .env
+echo "AI_LOCAL_LLM_MODEL=llama3.1:8b" >> .env
+```
+
+### 5. Cost Management
+
+#### Set Global Cost Limits
+```bash
+# Set in environment file
+echo "AI_MAX_COST_PER_ANALYSIS=1.00" >> .env
+echo "AI_MAX_DAILY_COST=25.00" >> .env
+
+# Or via command line for each analysis
+python application.py detect analyze-threats --input results.json --cost-limit 5.0
+```
+
+#### Monitor Usage
+```bash
+# Check current usage
+python application.py config show | grep -i cost
+
+# View analysis statistics
+python -c "
+from src.hawkeye.detection.ai_threat import AIThreatAnalyzer
+analyzer = AIThreatAnalyzer()
+stats = analyzer.get_analysis_stats()
+print(f'Total cost: ${stats[\"total_cost\"]:.4f}')
+print(f'Analyses performed: {stats[\"analyses_performed\"]}')
+"
 ```
 
 ---
@@ -95,66 +297,36 @@ sudo apt update
 # Install required system packages
 sudo apt install -y python3 python3-pip python3-venv git curl
 
-# Install development tools (optional, for building some packages)
+# Install development tools (for building some packages)
 sudo apt install -y build-essential python3-dev libssl-dev libffi-dev
+
+# Install additional dependencies for AI features
+sudo apt install -y python3-tk  # For matplotlib if using visualization
 ```
 
-#### Installation Steps
+#### Installation
 
 ```bash
-# 1. Clone repository
+# Clone repository
 git clone https://github.com/yourusername/hawkeye.git
 cd hawkeye
 
-# 2. Create virtual environment
+# Create virtual environment
 python3 -m venv venv
 source venv/bin/activate
 
-# 3. Upgrade pip
-pip install --upgrade pip setuptools wheel
+# Upgrade pip
+pip install --upgrade pip
 
-# 4. Install core dependencies
+# Install dependencies
 pip install -r requirements.txt
 
-# 5. Install MCP SDK dependencies (NEW)
-pip install "mcp>=1.0.0" "aiofiles>=0.8.0" "async-timeout>=4.0.0"
+# Configure AI providers
+cp env.example .env
+nano .env  # Edit with your API keys
 
-# 6. Verify MCP SDK installation
-python -c "import mcp; print(f'✅ MCP SDK version: {mcp.__version__}')"
-
-# 7. Create configuration directory
-mkdir -p ~/.hawkeye
-
-# 8. Set up initial configuration
-python application.py config init
-```
-
-#### System Service Setup (Optional)
-
-```bash
-# Create systemd service file
-sudo tee /etc/systemd/system/hawkeye.service > /dev/null << 'EOF'
-[Unit]
-Description=HawkEye Security Scanner
-After=network.target
-
-[Service]
-Type=simple
-User=hawkeye
-Group=hawkeye
-WorkingDirectory=/opt/hawkeye
-Environment=PATH=/opt/hawkeye/venv/bin
-ExecStart=/opt/hawkeye/venv/bin/python application.py daemon
-Restart=always
-RestartSec=10
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-# Enable and start service
-sudo systemctl enable hawkeye
-sudo systemctl start hawkeye
+# Verify installation
+python application.py info
 ```
 
 ### CentOS/RHEL
@@ -162,22 +334,37 @@ sudo systemctl start hawkeye
 #### Prerequisites
 
 ```bash
-# Install EPEL repository (CentOS 7)
+# Install EPEL repository (for additional packages)
 sudo yum install -y epel-release
 
 # Install required packages
-sudo yum install -y python3 python3-pip git curl
+sudo yum install -y python3 python3-pip python3-devel git curl gcc openssl-devel libffi-devel
 
-# Install development tools
-sudo yum groupinstall -y "Development Tools"
-sudo yum install -y python3-devel openssl-devel libffi-devel
+# Alternative for newer versions
+sudo dnf install -y python3 python3-pip python3-devel git curl gcc openssl-devel libffi-devel
 ```
 
-#### Installation Steps
+#### Installation
 
 ```bash
-# Follow the same steps as Ubuntu/Debian
-# (The process is identical after prerequisites)
+# Clone repository
+git clone https://github.com/yourusername/hawkeye.git
+cd hawkeye
+
+# Create virtual environment
+python3 -m venv venv
+source venv/bin/activate
+
+# Install dependencies
+pip install --upgrade pip
+pip install -r requirements.txt
+
+# Configure
+cp env.example .env
+vi .env  # Edit with your API keys
+
+# Verify
+python application.py info
 ```
 
 ### macOS
@@ -188,422 +375,387 @@ sudo yum install -y python3-devel openssl-devel libffi-devel
 # Install Homebrew (if not already installed)
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-# Install Python 3.8+
-brew install python@3.9
+# Install Python 3.9+
+brew install python@3.9 git curl
 
-# Install Git (if not already installed)
-brew install git
+# Alternative: Use system Python with pyenv
+brew install pyenv
+pyenv install 3.9.0
+pyenv global 3.9.0
 ```
 
-#### Installation Steps
-
-```bash
-# 1. Clone repository
-git clone https://github.com/yourusername/hawkeye.git
-cd hawkeye
-
-# 2. Create virtual environment using Homebrew Python
-/usr/local/bin/python3.9 -m venv venv
-source venv/bin/activate
-
-# 3. Install dependencies
-pip install -r requirements.txt
-
-# 4. Create configuration directory
-mkdir -p ~/.hawkeye
-
-# 5. Initialize configuration
-python application.py config init
-```
-
-#### macOS-Specific Configuration
-
-```bash
-# Allow network scanning (may require admin password)
-sudo dscl . -create /Groups/hawkeye
-sudo dscl . -create /Groups/hawkeye PrimaryGroupID 1001
-sudo dseditgroup -o edit -a $(whoami) -t user hawkeye
-
-# Set up firewall rules (if needed)
-sudo pfctl -f /etc/pf.conf
-```
-
-### Windows
-
-#### Prerequisites
-
-1. **Install Python 3.8+**:
-   - Download from [python.org](https://www.python.org/downloads/)
-   - During installation, check "Add Python to PATH"
-   - Verify installation: `python --version`
-
-2. **Install Git**:
-   - Download from [git-scm.com](https://git-scm.com/download/win)
-   - Use default installation options
-
-#### Installation Steps
-
-```cmd
-REM 1. Clone repository
-git clone https://github.com/yourusername/hawkeye.git
-cd hawkeye
-
-REM 2. Create virtual environment
-python -m venv venv
-venv\Scripts\activate
-
-REM 3. Install dependencies
-pip install -r requirements.txt
-
-REM 4. Create configuration directory
-mkdir %USERPROFILE%\.hawkeye
-
-REM 5. Initialize configuration
-python application.py config init
-```
-
-#### Windows-Specific Notes
-
-- Some network scanning features may require administrator privileges
-- Windows Defender may flag the tool as potentially unwanted software
-- Consider adding HawkEye directory to Windows Defender exclusions
-
----
-
-## Docker Installation
-
-### Using Pre-built Image
-
-```bash
-# Pull the latest image
-docker pull hawkeye/hawkeye:latest
-
-# Run HawkEye
-docker run -it --rm hawkeye/hawkeye:latest scan --target 192.168.1.0/24
-```
-
-### Building from Source
+#### Installation
 
 ```bash
 # Clone repository
 git clone https://github.com/yourusername/hawkeye.git
 cd hawkeye
 
-# Build Docker image
-docker build -t hawkeye:local .
+# Create virtual environment
+python3 -m venv venv
+source venv/bin/activate
 
-# Run container
-docker run -it --rm hawkeye:local scan --target 192.168.1.0/24
+# Install dependencies
+pip install --upgrade pip
+pip install -r requirements.txt
+
+# Configure AI providers
+cp env.example .env
+open .env  # Edit with your preferred editor
+
+# Verify installation
+python application.py info
 ```
 
-### Docker Compose Setup
+### Windows
+
+#### Prerequisites
+
+1. **Install Python 3.8+**
+   - Download from [python.org](https://www.python.org/downloads/)
+   - ✅ Check "Add Python to PATH" during installation
+
+2. **Install Git**
+   - Download from [git-scm.com](https://git-scm.com/download/win)
+
+3. **Install Visual Studio Build Tools** (for some packages)
+   - Download from [Microsoft](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
+
+#### Installation
+
+```powershell
+# Clone repository
+git clone https://github.com/yourusername/hawkeye.git
+cd hawkeye
+
+# Create virtual environment
+python -m venv venv
+venv\Scripts\activate
+
+# Install dependencies
+pip install --upgrade pip
+pip install -r requirements.txt
+
+# Configure AI providers
+copy env.example .env
+notepad .env  # Edit with your API keys
+
+# Verify installation
+python application.py info
+```
+
+---
+
+## Docker Installation
+
+### Pre-Built Image
+
+```bash
+# Pull the latest image
+docker pull hawkeye/hawkeye:latest
+
+# Run with AI provider configuration
+docker run -it --rm \
+  -e AI_PROVIDER=anthropic \
+  -e AI_ANTHROPIC_API_KEY=your_key_here \
+  -v $(pwd)/results:/app/results \
+  hawkeye/hawkeye:latest \
+  detect local
+
+# Run with configuration file
+docker run -it --rm \
+  -v $(pwd)/.env:/app/.env \
+  -v $(pwd)/results:/app/results \
+  hawkeye/hawkeye:latest \
+  detect analyze-threats -i /app/results/detection.json
+```
+
+### Build from Source
+
+```bash
+# Clone repository
+git clone https://github.com/yourusername/hawkeye.git
+cd hawkeye
+
+# Build image
+docker build -t hawkeye-local .
+
+# Run with AI configuration
+docker run -it --rm \
+  --env-file .env \
+  -v $(pwd)/results:/app/results \
+  hawkeye-local \
+  detect local -o /app/results/local.json
+```
+
+### Docker Compose (Recommended)
+
+Create `docker-compose.yml`:
 
 ```yaml
-# docker-compose.yml
 version: '3.8'
 
 services:
   hawkeye:
     build: .
-    container_name: hawkeye
-    volumes:
-      - ./config:/app/config
-      - ./logs:/app/logs
-      - ./results:/app/results
     environment:
-      - HAWKEYE_CONFIG=/app/config/hawkeye.yaml
+      - AI_PROVIDER=anthropic
+      - AI_ANTHROPIC_API_KEY=${AI_ANTHROPIC_API_KEY}
+      - AI_FALLBACK_PROVIDER=openai
+      - AI_OPENAI_API_KEY=${AI_OPENAI_API_KEY}
+    volumes:
+      - ./results:/app/results
+      - ./logs:/app/logs
     networks:
-      - hawkeye-net
-    restart: unless-stopped
+      - hawkeye_network
 
-  hawkeye-web:
-    build:
-      context: .
-      dockerfile: Dockerfile.web
-    container_name: hawkeye-web
+  ollama:
+    image: ollama/ollama:latest
     ports:
-      - "8080:8080"
-    depends_on:
-      - hawkeye
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
     networks:
-      - hawkeye-net
+      - hawkeye_network
 
 networks:
-  hawkeye-net:
+  hawkeye_network:
     driver: bridge
+
+volumes:
+  ollama_data:
 ```
 
 ```bash
 # Start services
 docker-compose up -d
 
-# View logs
-docker-compose logs -f hawkeye
-
-# Stop services
-docker-compose down
-```
-
-### Kubernetes Deployment
-
-```yaml
-# hawkeye-deployment.yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: hawkeye
-  labels:
-    app: hawkeye
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: hawkeye
-  template:
-    metadata:
-      labels:
-        app: hawkeye
-    spec:
-      containers:
-      - name: hawkeye
-        image: hawkeye/hawkeye:latest
-        ports:
-        - containerPort: 8080
-        env:
-        - name: HAWKEYE_CONFIG
-          value: "/app/config/hawkeye.yaml"
-        volumeMounts:
-        - name: config-volume
-          mountPath: /app/config
-        - name: logs-volume
-          mountPath: /app/logs
-      volumes:
-      - name: config-volume
-        configMap:
-          name: hawkeye-config
-      - name: logs-volume
-        emptyDir: {}
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: hawkeye-service
-spec:
-  selector:
-    app: hawkeye
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 8080
-  type: LoadBalancer
-```
-
-```bash
-# Deploy to Kubernetes
-kubectl apply -f hawkeye-deployment.yaml
-
-# Check deployment status
-kubectl get pods -l app=hawkeye
-kubectl get services hawkeye-service
+# Run analysis
+docker-compose exec hawkeye python application.py detect local -o /app/results/local.json
+docker-compose exec hawkeye python application.py detect analyze-threats -i /app/results/local.json
 ```
 
 ---
 
 ## Development Setup
 
-### Prerequisites for Development
+### Clone for Development
 
 ```bash
-# Install additional development tools
-pip install -r requirements-dev.txt
-
-# Install pre-commit hooks
-pre-commit install
-
-# Install testing tools
-pip install pytest pytest-cov pytest-mock
-```
-
-### Development Environment Setup
-
-```bash
-# 1. Fork and clone repository
-git clone https://github.com/yourusername/hawkeye.git
+# Fork the repository on GitHub first, then:
+git clone https://github.com/YOUR_USERNAME/hawkeye.git
 cd hawkeye
 
-# 2. Create development virtual environment
+# Add upstream remote
+git remote add upstream https://github.com/original-owner/hawkeye.git
+```
+
+### Development Environment
+
+```bash
+# Create development virtual environment
 python3 -m venv venv-dev
 source venv-dev/bin/activate
 
-# 3. Install in development mode
-pip install -e .
-
-# 4. Install development dependencies
+# Install development dependencies
+pip install --upgrade pip
+pip install -r requirements.txt
 pip install -r requirements-dev.txt
 
-# 5. Set up pre-commit hooks
+# Install in development mode
+pip install -e .
+```
+
+### Development Tools Setup
+
+```bash
+# Install pre-commit hooks
 pre-commit install
 
-# 6. Run tests to verify setup
-pytest tests/
+# Install code quality tools
+pip install black ruff mypy pytest pytest-cov
 
-# 7. Set up development configuration
-cp config/hawkeye.yaml.example config/hawkeye-dev.yaml
-export HAWKEYE_CONFIG=config/hawkeye-dev.yaml
+# Run code quality checks
+black src/ tests/
+ruff src/ tests/
+mypy src/
 ```
 
-### IDE Configuration
+### AI Development Setup
 
-#### Visual Studio Code
+```bash
+# Set up development AI environment
+cp env.example .env.dev
 
-```json
-// .vscode/settings.json
-{
-    "python.defaultInterpreterPath": "./venv/bin/python",
-    "python.linting.enabled": true,
-    "python.linting.pylintEnabled": true,
-    "python.linting.flake8Enabled": true,
-    "python.formatting.provider": "black",
-    "python.testing.pytestEnabled": true,
-    "python.testing.pytestArgs": ["tests/"],
-    "files.exclude": {
-        "**/__pycache__": true,
-        "**/*.pyc": true,
-        ".pytest_cache": true
-    }
-}
+# Edit with development API keys (use separate keys for dev)
+echo "AI_PROVIDER=anthropic" >> .env.dev
+echo "AI_ANTHROPIC_API_KEY=your_dev_key" >> .env.dev
+echo "AI_MAX_COST_PER_ANALYSIS=0.10" >> .env.dev
+
+# Test AI development setup
+python -c "
+from src.hawkeye.detection.ai_threat import AIThreatAnalyzer
+analyzer = AIThreatAnalyzer()
+print('✅ AI development setup successful')
+"
 ```
-
-#### PyCharm
-
-1. Open project in PyCharm
-2. Configure Python interpreter: `File > Settings > Project > Python Interpreter`
-3. Select the virtual environment: `./venv/bin/python`
-4. Configure test runner: `File > Settings > Tools > Python Integrated Tools`
-5. Set default test runner to `pytest`
 
 ---
 
 ## Configuration
 
-### Initial Configuration
-
-```bash
-# Generate default configuration
-python application.py config init
-
-# Edit configuration file
-nano ~/.hawkeye/config.yaml
-```
-
-### Configuration File Structure
-
-```yaml
-# ~/.hawkeye/config.yaml
-scanning:
-  default_ports: [3000, 8000, 8080, 9000]
-  default_threads: 50
-  default_timeout: 10
-  rate_limit: 100
-
-detection:
-  deep_inspection: false
-  protocol_verification: true
-  docker_inspection: true
-
-reporting:
-  default_format: json
-  output_directory: ./results
-  include_metadata: true
-
-logging:
-  level: INFO
-  file: ~/.hawkeye/hawkeye.log
-  max_size: 10MB
-  backup_count: 5
-
-security:
-  audit_logging: true
-  require_authorization: true
-  max_scan_range: 65536
-```
-
 ### Environment Variables
 
-```bash
-# Set environment variables
-export HAWKEYE_CONFIG=~/.hawkeye/config.yaml
-export HAWKEYE_LOG_LEVEL=INFO
-export HAWKEYE_THREADS=25
-export HAWKEYE_TIMEOUT=15
+HawkEye supports configuration via environment variables:
 
-# Make permanent (add to ~/.bashrc or ~/.zshrc)
-echo 'export HAWKEYE_CONFIG=~/.hawkeye/config.yaml' >> ~/.bashrc
+```bash
+# Core settings
+export HAWKEYE_DEBUG=true
+export HAWKEYE_LOG_LEVEL=DEBUG
+export HAWKEYE_LOG_FILE=/var/log/hawkeye.log
+
+# AI provider settings
+export AI_PROVIDER=anthropic
+export AI_ANTHROPIC_API_KEY=your_key
+export AI_FALLBACK_PROVIDER=openai
+export AI_OPENAI_API_KEY=your_key
+export AI_MAX_COST_PER_ANALYSIS=1.00
+export AI_MAX_DAILY_COST=25.00
+
+# Local LLM settings
+export AI_LOCAL_LLM_ENDPOINT=http://localhost:11434
+export AI_LOCAL_LLM_MODEL=llama3.1:8b
+export AI_LOCAL_LLM_TIMEOUT=120
+
+# Performance settings
+export HAWKEYE_MAX_THREADS=50
+export HAWKEYE_DEFAULT_TIMEOUT=30
 ```
 
-### Network Configuration
+### Configuration File
 
+Create `hawkeye.yaml`:
+
+```yaml
+# Core settings
+debug: false
+log_level: INFO
+log_file: /var/log/hawkeye.log
+
+# AI configuration
+ai:
+  provider: anthropic
+  fallback_provider: openai
+  max_cost_per_analysis: 1.00
+  max_daily_cost: 25.00
+  
+  anthropic:
+    api_key: "your_anthropic_key"
+    model: "claude-3-haiku-20240307"
+    
+  openai:
+    api_key: "your_openai_key"
+    model: "gpt-3.5-turbo"
+    
+  local_llm:
+    endpoint: "http://localhost:11434"
+    model: "llama3.1:8b"
+    timeout: 120
+
+# Scanning settings
+scan:
+  max_threads: 50
+  default_timeout: 30
+  default_ports: [3000, 8000, 8080, 9000]
+
+# Detection settings
+detection:
+  enable_ai_analysis: true
+  confidence_threshold: 0.5
+  parallel_processing: true
+  max_workers: 3
+```
+
+Use with:
 ```bash
-# Configure network interfaces (if needed)
-sudo ip link set dev eth0 up
-sudo ip addr add 192.168.1.100/24 dev eth0
-
-# Configure routing (if needed)
-sudo ip route add default via 192.168.1.1
-
-# Configure DNS (if needed)
-echo "nameserver 8.8.8.8" | sudo tee -a /etc/resolv.conf
+python application.py --config-file hawkeye.yaml detect local
 ```
 
 ---
 
 ## Verification
 
-### Basic Functionality Test
+### Basic Verification
 
 ```bash
-# 1. Check version
+# Check installation
 python application.py --version
+python application.py info
 
-# 2. Run health check
-python application.py health-check
-
-# 3. Test configuration
-python application.py config validate
-
-# 4. Test basic scan (safe target)
-python application.py scan --target 127.0.0.1
-
-# 5. Generate test report
-python application.py report --input scan_results.json --format html
+# Test basic functionality
+python application.py detect local --output test_local.json
+cat test_local.json | head -20
 ```
 
-### Comprehensive Test Suite
+### AI Provider Verification
 
 ```bash
-# Run all tests
-pytest tests/ -v
+# Test each configured provider
+python application.py config show | grep -i ai
 
-# Run specific test categories
-pytest tests/test_scanner/ -v
-pytest tests/test_detection/ -v
-pytest tests/integration/ -v
+# Test OpenAI (if configured)
+python -c "
+import os
+from src.hawkeye.detection.ai_threat.ai_providers import OpenAIProvider
+try:
+    provider = OpenAIProvider()
+    print('✅ OpenAI provider initialized successfully')
+except Exception as e:
+    print(f'❌ OpenAI provider failed: {e}')
+"
 
-# Run with coverage
-pytest tests/ --cov=src/hawkeye --cov-report=html
+# Test Anthropic (if configured)
+python -c "
+import os
+from src.hawkeye.detection.ai_threat.ai_providers import AnthropicProvider
+try:
+    provider = AnthropicProvider()
+    print('✅ Anthropic provider initialized successfully')
+except Exception as e:
+    print(f'❌ Anthropic provider failed: {e}')
+"
+
+# Test Local LLM (if configured)
+curl -s http://localhost:11434/api/tags || echo "❌ Local LLM not running"
 ```
 
-### Performance Verification
+### Full Workflow Test
 
 ```bash
-# Benchmark scanning performance
-python application.py benchmark --target 192.168.1.0/24
+# Complete workflow test
+echo "🧪 Testing complete HawkEye workflow with AI analysis"
 
-# Memory usage test
-python application.py test-memory --target 192.168.1.0/24
+# Step 1: Detection
+python application.py detect local --output workflow_test.json
+echo "✅ Detection completed"
 
-# Network performance test
-python application.py test-network --target 192.168.1.0/24
+# Step 2: AI Analysis (with cost limit for safety)
+python application.py detect analyze-threats \
+  --input workflow_test.json \
+  --cost-limit 0.50 \
+  --output workflow_analysis.json
+echo "✅ AI analysis completed"
+
+# Step 3: Report generation
+python application.py detect analyze-threats \
+  --input workflow_test.json \
+  --format html \
+  --cost-limit 0.50 \
+  --output workflow_report.html
+echo "✅ HTML report generated"
+
+echo "🎉 Full workflow test successful!"
+echo "📊 View report: workflow_report.html"
 ```
 
 ---
@@ -612,134 +764,179 @@ python application.py test-network --target 192.168.1.0/24
 
 ### Common Installation Issues
 
-#### Python Version Issues
-
+#### Issue 1: Python Version
 ```bash
 # Check Python version
 python --version
 python3 --version
 
-# Install specific Python version (Ubuntu)
-sudo apt install python3.9 python3.9-venv python3.9-pip
+# If too old, install newer version
+# Ubuntu/Debian
+sudo apt install python3.9 python3.9-venv
 
-# Use specific Python version
-python3.9 -m venv venv
+# macOS
+brew install python@3.9
 ```
 
-#### Permission Issues
-
+#### Issue 2: Virtual Environment
 ```bash
-# Fix file permissions
-chmod +x application.py
-chmod 644 config.yaml
+# If venv creation fails
+python3 -m pip install --user virtualenv
+python3 -m virtualenv venv
 
-# Fix directory permissions
-chmod 755 ~/.hawkeye
+# If activation fails on Windows
+venv\Scripts\activate.bat  # Instead of .ps1
 ```
 
-#### Network Issues
-
+#### Issue 3: Package Installation
 ```bash
-# Test network connectivity
-ping 8.8.8.8
-curl -I https://github.com
+# If pip install fails
+pip install --upgrade pip setuptools wheel
 
-# Check firewall settings
-sudo ufw status
-sudo iptables -L
-```
-
-#### Dependency Issues
-
-```bash
-# Update pip
-pip install --upgrade pip
+# If specific packages fail
+pip install --only-binary=all package_name
 
 # Clear pip cache
 pip cache purge
-
-# Reinstall dependencies
-pip uninstall -r requirements.txt -y
-pip install -r requirements.txt
 ```
 
-### Getting Help
+### AI Provider Issues
 
-If you encounter issues during installation:
+#### Issue 1: API Key Problems
+```bash
+# Check API key format
+echo $AI_ANTHROPIC_API_KEY | head -c 20  # Should start with 'sk-ant'
+echo $AI_OPENAI_API_KEY | head -c 20     # Should start with 'sk-'
 
-1. **Check the troubleshooting guide**: `docs/troubleshooting.md`
-2. **Review system requirements**: Ensure your system meets minimum requirements
-3. **Check logs**: Look for error messages in installation logs
-4. **Search existing issues**: Check GitHub issues for similar problems
-5. **Create new issue**: If problem persists, create a detailed issue report
+# Test API key directly
+curl https://api.anthropic.com/v1/models \
+  -H "x-api-key: $AI_ANTHROPIC_API_KEY"
+```
+
+#### Issue 2: Network/Firewall Issues
+```bash
+# Test connectivity
+curl -I https://api.openai.com/v1/models
+curl -I https://api.anthropic.com/v1/models
+
+# Check proxy settings
+echo $HTTP_PROXY
+echo $HTTPS_PROXY
+```
+
+#### Issue 3: Local LLM Issues
+```bash
+# Check Ollama status
+systemctl status ollama  # Linux with systemd
+brew services list | grep ollama  # macOS
+
+# Check Ollama logs
+journalctl -u ollama --no-pager -n 50  # Linux
+brew services restart ollama  # macOS
+
+# Test direct API
+curl http://localhost:11434/api/generate \
+  -d '{"model": "llama3.1:8b", "prompt": "Hello", "stream": false}'
+```
+
+### Permission Issues
+
+```bash
+# If permission denied on Linux/macOS
+chmod +x application.py
+
+# If docker permission denied
+sudo usermod -a -G docker $USER
+# Then logout and login again
+
+# If log file permission denied
+sudo mkdir -p /var/log/hawkeye
+sudo chown $USER:$USER /var/log/hawkeye
+```
+
+### Performance Issues
+
+```bash
+# If analysis is slow
+export AI_MAX_WORKERS=1  # Reduce parallel processing
+python application.py detect analyze-threats \
+  --input results.json \
+  --sequential-processing
+
+# If memory issues
+python application.py detect analyze-threats \
+  --input results.json \
+  --confidence-threshold 0.8  # Filter results
+
+# Monitor resource usage
+htop  # Or Activity Monitor on macOS
+```
 
 ---
 
 ## Uninstallation
 
-### Complete Removal
+### Standard Uninstallation
 
 ```bash
-# 1. Deactivate virtual environment
-deactivate
+# Remove virtual environment
+rm -rf venv
 
-# 2. Remove HawkEye directory
-rm -rf /path/to/hawkeye
+# Remove project directory
+cd ..
+rm -rf hawkeye
 
-# 3. Remove configuration
-rm -rf ~/.hawkeye
-
-# 4. Remove logs (if stored separately)
-rm -rf /var/log/hawkeye
-
-# 5. Remove systemd service (if installed)
-sudo systemctl stop hawkeye
-sudo systemctl disable hawkeye
-sudo rm /etc/systemd/system/hawkeye.service
-sudo systemctl daemon-reload
+# Remove configuration files (optional)
+rm ~/.hawkeye.yaml
+rm .env
 ```
 
-### Docker Cleanup
+### Complete Cleanup
 
 ```bash
-# Remove containers
-docker rm -f $(docker ps -aq --filter ancestor=hawkeye/hawkeye)
+# Remove all HawkEye files
+rm -rf hawkeye/
+rm -rf ~/.hawkeye/
+rm -rf /var/log/hawkeye/
 
-# Remove images
+# Remove Docker images (if used)
 docker rmi hawkeye/hawkeye:latest
+docker rmi hawkeye-local
 
-# Remove volumes
-docker volume rm $(docker volume ls -q --filter name=hawkeye)
-
-# Clean up Docker system
-docker system prune -a
+# Remove Ollama models (if no longer needed)
+ollama rm llama3.1:8b
+ollama rm llama3.1:70b
 ```
 
-### Partial Removal (Keep Configuration)
+### Clean Environment Variables
 
 ```bash
-# Remove only the application
-rm -rf /path/to/hawkeye
+# Remove from shell profile (.bashrc, .zshrc, etc.)
+# Remove lines containing:
+# export AI_PROVIDER=
+# export AI_ANTHROPIC_API_KEY=
+# export AI_OPENAI_API_KEY=
+# etc.
 
-# Keep configuration and logs for future use
-# ~/.hawkeye directory remains intact
+# Or temporarily unset
+unset AI_PROVIDER
+unset AI_ANTHROPIC_API_KEY
+unset AI_OPENAI_API_KEY
 ```
 
 ---
 
 ## Next Steps
 
-After successful installation:
+After successful installation, see:
 
-1. **Read the User Manual**: `docs/user_manual.md`
-2. **Review Security Guidelines**: `docs/security_guidelines.md`
-3. **Configure for Your Environment**: Customize settings in `config.yaml`
-4. **Run Your First Scan**: Start with a small, authorized target
-5. **Set Up Monitoring**: Configure logging and alerting
-6. **Join the Community**: Participate in discussions and contribute
+- 📖 **[Workflow Guide](workflow_guide.md)** - Step-by-step usage scenarios with AI analysis
+- 📋 **[User Manual](user_manual.md)** - Comprehensive usage guide
+- 🤖 **[AI Threat Analysis README](../AI_THREAT_ANALYSIS_README.md)** - Deep dive into AI capabilities
+- 🔧 **[API Documentation](api/README.md)** - Developer reference
+
+For support, visit our [GitHub Issues](https://github.com/yourusername/hawkeye/issues) or [Discussions](https://github.com/yourusername/hawkeye/discussions).
 
 ---
 
-**Document Version**: 1.0  
-**Last Updated**: Current Version  
-**Next Review**: Quarterly 
+**HawkEye** - *Seeing beyond the visible, securing the invisible.* 

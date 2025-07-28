@@ -401,38 +401,74 @@ Focus on practical, cost-effective solutions.""",
     def _create_comprehensive_template(self) -> PromptTemplate:
         """Create comprehensive analysis prompt template."""
         return PromptTemplate(
-            system_prompt="""You are a cybersecurity expert specializing in comprehensive MCP tool security analysis.
-Your role is to provide complete threat analysis including capabilities, attack vectors, and mitigations.
+            system_prompt="""You are an expert cybersecurity analyst specializing in MCP (Model Context Protocol) tool security analysis.
+Your role is to provide detailed threat analysis with actionable attack scenarios and code examples.
 
-Provide thorough, accurate analysis that considers:
-- Tool capabilities and their security implications
-- Realistic attack scenarios and abuse cases
-- Practical mitigation strategies and security controls
-- Risk assessment and threat level determination
-- Compliance and regulatory considerations""",
+CRITICAL REQUIREMENTS:
+- Generate realistic, step-by-step attack scenarios based on actual MCP tool capabilities
+- Provide specific example code/commands that demonstrate each attack vector
+- Focus on practical attacks that could actually be executed against the tool
+- Consider the specific deployment context and security posture
+- Base analysis on real MCP tool functionality and common attack patterns
+
+For each attack vector, you MUST provide:
+1. Detailed step-by-step attack methodology
+2. Specific example code or commands showing the attack
+3. Prerequisites and access requirements
+4. Realistic impact assessment""",
             
-            user_prompt_template="""Provide a comprehensive security analysis for this MCP tool:
+            user_prompt_template="""Analyze this MCP tool for security threats and generate detailed attack scenarios:
 
+=== MCP TOOL INFORMATION ===
 TOOL: {tool_name}
 DEPLOYMENT: {deployment_type}
 SECURITY POSTURE: {security_posture}
 
-CAPABILITIES:
+=== TOOL CAPABILITIES ===
 {capabilities}
 
-ENVIRONMENT CONTEXT:
+=== ENVIRONMENT CONTEXT ===
 {context}
 
-Provide a complete analysis including:
-1. Threat level assessment (minimal/low/medium/high/critical)
-2. 3-5 detailed attack vectors with steps and prerequisites
-3. 2-3 realistic abuse scenarios with threat actor profiles
-4. Comprehensive mitigation strategies for each attack vector
-5. Risk assessment with confidence score
-6. Compliance considerations and regulatory impact
+=== ANALYSIS REQUIREMENTS ===
+Generate a comprehensive threat analysis including:
 
+1. **THREAT LEVEL**: Overall risk assessment (minimal/low/medium/high/critical)
+
+2. **ATTACK VECTORS** (3-5 detailed scenarios):
+   - Each vector must include specific attack steps (numbered list)
+   - Provide example code/commands for each attack
+   - Explain prerequisites and access requirements
+   - Assess impact and likelihood
+
+3. **ABUSE SCENARIOS** (2-3 realistic cases):
+   - Specific threat actor profiles and motivations
+   - Detailed attack flow with technical steps
+   - Business impact assessment
+
+4. **MITIGATION STRATEGIES**:
+   - Specific countermeasures for each attack vector
+   - Implementation steps and effectiveness ratings
+
+5. **RISK ASSESSMENT**:
+   - Overall risk level with justification
+   - Key security concerns and recommendations
+
+=== OUTPUT FORMAT ===
 Respond in the following JSON format:
-{response_schema}""",
+{response_schema}
+
+=== EXAMPLE ATTACK VECTOR FORMAT ===
+For attack vectors like "Information Reconnaissance", provide:
+- Name: Clear, descriptive attack name
+- Description: What the attack does and why it's dangerous
+- Attack Steps: ["Step 1: Gain access to...", "Step 2: Execute command...", etc.]
+- Example Code: Actual code/commands that demonstrate the attack
+- Prerequisites: What the attacker needs to execute this attack
+- Impact: Specific consequences of successful attack
+- Likelihood: Realistic probability assessment (0.0-1.0)
+
+Generate detailed, technical analysis based on the specific MCP tool capabilities provided.""",
             
             response_schema={
                 "type": "object",
@@ -455,11 +491,12 @@ Respond in the following JSON format:
                                 "severity": {"type": "string", "enum": ["low", "medium", "high", "critical"]},
                                 "description": {"type": "string"},
                                 "attack_steps": {"type": "array", "items": {"type": "string"}},
+                                "example_code": {"type": "string", "description": "Code example demonstrating the attack"},
                                 "prerequisites": {"type": "array", "items": {"type": "string"}},
                                 "impact": {"type": "string"},
                                 "likelihood": {"type": "number", "minimum": 0, "maximum": 1}
                             },
-                            "required": ["name", "severity", "description", "attack_steps", "impact", "likelihood"]
+                            "required": ["name", "severity", "description", "attack_steps", "example_code", "impact", "likelihood"]
                         }
                     },
                     "abuse_scenarios": {

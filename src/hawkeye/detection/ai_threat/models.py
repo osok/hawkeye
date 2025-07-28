@@ -381,6 +381,7 @@ class ThreatAnalysis:
                 severity=SeverityLevel(av_data["severity"].lower()),
                 description=av_data["description"],
                 attack_steps=av_data.get("attack_steps", []),
+                example_code=av_data.get("example_code", "# No example code available"),
                 prerequisites=av_data.get("prerequisites", []),
                 impact=av_data.get("impact", ""),
                 likelihood=av_data.get("likelihood", 0.5),

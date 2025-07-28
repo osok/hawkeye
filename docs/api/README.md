@@ -2,22 +2,48 @@
 
 ## Overview
 
-HawkEye provides a comprehensive API for MCP (Model Context Protocol) security reconnaissance and assessment. The API is organized into several core modules, each handling specific aspects of the security analysis workflow.
+HawkEye provides a comprehensive API for MCP (Model Context Protocol) security reconnaissance and AI-powered threat analysis. The API is organized into several core modules, each handling specific aspects of the security analysis workflow, including real-time AI threat assessment.
 
 ## Quick Start
 
+### Python API Usage
+
 ```python
-from hawkeye import HawkEye
-from hawkeye.config.settings import HawkEyeSettings
+from hawkeye.cli.main import cli
+from hawkeye.detection.ai_threat import AIThreatAnalyzer
+from hawkeye.detection.mcp_introspection.models import MCPServerInfo
+from hawkeye.config.settings import get_settings
 
-# Initialize HawkEye with default settings
-hawkeye = HawkEye()
+# Basic CLI usage programmatically
+import sys
+sys.argv = ['hawkeye', 'detect', 'local', '--output', 'results.json']
+cli()
 
-# Scan for MCP servers
-results = hawkeye.scan_network("192.168.1.0/24")
+# Direct API usage for AI threat analysis
+analyzer = AIThreatAnalyzer()
+# ... (see AI Threat Analysis API section for details)
+```
 
-# Generate security report
-report = hawkeye.generate_report(results, format="html")
+### Command Line Interface
+
+**Important:** The correct CLI command structure includes the `detect` group:
+
+```bash
+# ✅ Correct commands
+python application.py detect target -t 192.168.1.100 -o results.json
+python application.py detect analyze-threats -i results.json -o threats.html -f html
+python application.py detect local -o local.json
+
+# ❌ Incorrect (missing detect group)
+python application.py analyze-threats -i results.json  # This will fail
+```
+
+### AI-Powered Analysis Workflow
+
+```bash
+# Complete workflow with AI analysis
+python application.py detect target -t 192.168.1.100 -o detection.json
+python application.py detect analyze-threats -i detection.json -f html -o report.html
 ```
 
 ## API Modules
@@ -28,16 +54,16 @@ report = hawkeye.generate_report(results, format="html")
 Network scanning capabilities for discovering MCP servers.
 
 **Key Classes:**
-- `TCPScanner` - TCP port scanning
-- `UDPScanner` - UDP port scanning  
-- `ServiceFingerprinter` - Service identification
-- `TargetEnumerator` - Target enumeration
+- `TCPScanner` - TCP port scanning with MCP detection
+- `UDPScanner` - UDP port scanning
+- `ServiceFingerprinter` - Service identification and protocol verification
+- `TargetEnumerator` - Target enumeration with CIDR support
 
 **Common Use Cases:**
-- Network discovery
-- Port scanning
-- Service fingerprinting
-- Batch scanning operations
+- Network discovery and reconnaissance
+- Port scanning with MCP protocol detection
+- Service fingerprinting and banner grabbing
+- Batch scanning operations across network ranges
 
 ### 2. Detection API
 **File:** [detection.md](detection.md)
@@ -45,271 +71,390 @@ Network scanning capabilities for discovering MCP servers.
 MCP-specific detection and introspection capabilities.
 
 **Key Classes:**
-- `MCPDetector` - Main detection engine
-- `MCPIntrospector` - Advanced introspection
-- `ProcessEnumerator` - Process discovery
-- `ConfigDiscovery` - Configuration discovery
+- `MCPDetector` - Main detection engine with 7 detection methods
+- `ProcessEnumerator` - Local process discovery and analysis
+- `ConfigFileDiscovery` - Configuration file discovery
+- `DockerInspector` - Docker container MCP detection
+- `TransportDetector` - Transport layer identification
+- `ProtocolVerifier` - MCP protocol verification
 
 **Common Use Cases:**
-- Local MCP server detection
-- Remote MCP verification
-- Server capability analysis
-- Configuration discovery
+- Local MCP server detection and enumeration
+- Remote MCP server verification and analysis
+- Process-based MCP service discovery
+- Configuration file and environment analysis
 
 ### 3. MCP Introspection API
 **File:** [mcp_introspection.md](mcp_introspection.md)
 
-Deep introspection and analysis of MCP servers.
+Deep introspection and analysis of MCP servers using Python MCP SDK.
 
 **Key Classes:**
-- `MCPIntrospector` - Core introspection engine
-- `TransportFactory` - Transport layer management
-- `RiskAnalyzer` - Security risk assessment
-- `CapabilityAssessment` - Capability analysis
+- `MCPIntrospector` - Core introspection engine with connection pooling
+- `TransportFactory` - Multi-transport support (Stdio, HTTP, SSE)
+- `RiskAnalyzer` - 521+ security risk patterns and analysis
+- `CapabilityAssessment` - Tool and resource capability analysis
+- `ConnectionPool` - Efficient connection management and retry logic
 
 **Common Use Cases:**
-- Tool and resource discovery
-- Security risk assessment  
-- Protocol version compatibility
-- Transport layer analysis
+- Real-time tool and resource discovery via MCP protocol
+- Advanced security risk assessment with pattern matching
+- Protocol version compatibility checking
+- Transport layer optimization and connection pooling
 
-### 4. Assessment API
-**File:** assessment.md (TODO)
+### 4. AI Threat Analysis API
+**File:** [ai_threat_analysis.md](ai_threat_analysis.md)
+
+**NEW:** AI-powered threat analysis with multi-provider support.
+
+**Key Classes:**
+- `AIThreatAnalyzer` - Main AI analysis orchestrator
+- `OpenAIProvider` - OpenAI GPT-4/3.5 integration with cost management
+- `AnthropicProvider` - Anthropic Claude integration
+- `LocalLLMProvider` - Local LLM support (Ollama, etc.)
+- `MCPCapabilityAnalyzer` - Dynamic MCP tool capability analysis
+- `ThreatIntelligenceDB` - Threat pattern recognition and learning
+
+**Common Use Cases:**
+- Dynamic threat assessment of any detected MCP tool
+- Multi-provider AI analysis with intelligent failover
+- Attack vector identification and feasibility assessment
+- Automated security recommendation generation
+- Cost-controlled AI analysis with budget management
+
+### 5. Assessment API
+**File:** [assessment.md](assessment.md)
 
 Security assessment and risk analysis functionality.
 
 **Key Classes:**
-- `SecurityAssessor` - Main assessment engine
-- `CVSSScorer` - Vulnerability scoring
-- `ComplianceChecker` - Policy compliance
-- `RiskCalculator` - Risk calculation
+- `SecurityAssessor` - Main assessment engine with CVSS scoring
+- `CVSSScorer` - Industry-standard vulnerability scoring
+- `ComplianceChecker` - Multi-framework compliance validation
+- `RiskCalculator` - Composite risk calculation and prioritization
+- `RemediationEngine` - Automated remediation recommendation
 
-### 5. Reporting API
-**File:** reporting.md (TODO)
+**Common Use Cases:**
+- Comprehensive security risk assessment
+- CVSS-based vulnerability scoring and prioritization
+- Compliance framework mapping (PCI-DSS, HIPAA, GDPR, NIST)
+- Risk calculation with environmental context
 
-Report generation and output formatting.
+### 6. Reporting API
+**File:** [reporting.md](reporting.md)
+
+Multi-format report generation and executive dashboards.
 
 **Key Classes:**
-- `ReportGenerator` - Main reporting engine
-- `HTMLReporter` - HTML report generation
-- `JSONReporter` - JSON output
-- `ExecutiveSummary` - Executive reporting
+- `ReportGenerator` - Main reporting engine with template support
+- `HTMLReporter` - Interactive HTML reports with threat analysis
+- `JSONReporter` - Structured JSON output for API integration
+- `CSVReporter` - Tabular data export for analysis
+- `XMLReporter` - XML format for SIEM integration
+- `ExecutiveSummary` - Executive-level reporting and dashboards
+
+**Common Use Cases:**
+- Multi-format report generation (HTML, JSON, CSV, XML)
+- Executive summary generation with risk dashboards
+- SIEM integration and automated alerting
+- Historical trend analysis and reporting
 
 ## Configuration
 
-All HawkEye components are configured through the settings system:
+### Environment-Based Configuration
 
-```python
-from hawkeye.config.settings import HawkEyeSettings, ScanSettings
+HawkEye supports comprehensive configuration via environment variables:
 
-# Load configuration
-settings = HawkEyeSettings()
+```bash
+# Core settings
+export HAWKEYE_DEBUG=true
+export HAWKEYE_LOG_LEVEL=DEBUG
 
-# Customize scan settings  
-settings.scan.max_threads = 100
-settings.scan.timeout_seconds = 10
+# AI provider configuration
+export AI_PROVIDER=anthropic
+export AI_ANTHROPIC_API_KEY=your_key_here
+export AI_FALLBACK_PROVIDER=openai
+export AI_OPENAI_API_KEY=your_fallback_key
 
-# Customize detection settings
-settings.detection.enable_docker_inspect = True
-settings.detection.max_depth = 5
+# Cost management
+export AI_MAX_COST_PER_ANALYSIS=1.00
+export AI_MAX_DAILY_COST=25.00
 
-# Customize MCP introspection
-settings.mcp_introspection.connection_timeout = 30.0
-settings.mcp_introspection.enable_caching = True
+# Local LLM setup
+export AI_LOCAL_LLM_ENDPOINT=http://localhost:11434
+export AI_LOCAL_LLM_MODEL=llama3.1:8b
 ```
 
-## Data Models
+### Configuration File Support
 
-### Core Models
-
-#### ScanResult
-```python
-@dataclass
-class ScanResult:
-    target: str
-    port: int
-    protocol: str
-    is_open: bool
-    service: Optional[str] = None
-    banner: Optional[str] = None
-    response_time: Optional[float] = None
+```yaml
+# hawkeye.yaml
+ai:
+  provider: anthropic
+  fallback_provider: openai
+  max_cost_per_analysis: 1.00
+  
+  anthropic:
+    api_key: "your_key"
+    model: "claude-3-haiku-20240307"
+    
+scan:
+  max_threads: 50
+  default_timeout: 30
+  
+detection:
+  enable_ai_analysis: true
+  parallel_processing: true
+  max_workers: 3
 ```
 
-#### MCPServerInfo
+## Authentication & Security
+
+### API Key Management
+
 ```python
-@dataclass
-class MCPServerInfo:
-    name: str
-    host: str
-    port: Optional[int]
-    protocol: str
-    transport_type: str
-    process_id: Optional[int]
-    config_path: Optional[str]
+from hawkeye.detection.ai_threat.ai_providers import OpenAIProvider, AnthropicProvider
+import os
+
+# Secure API key loading
+openai_provider = OpenAIProvider(api_key=os.getenv('AI_OPENAI_API_KEY'))
+anthropic_provider = AnthropicProvider(api_key=os.getenv('AI_ANTHROPIC_API_KEY'))
 ```
 
-#### MCPCapabilities
-```python
-@dataclass
-class MCPCapabilities:
-    server_name: str
-    server_version: str
-    protocol_version: str
-    tools: List[MCPTool]
-    resources: List[MCPResource]
-    capabilities: Dict[str, Any]
-```
-
-## Integration Examples
-
-### Complete Workflow Example
+### Transport Security
 
 ```python
-from hawkeye import HawkEye
-from hawkeye.config.settings import HawkEyeSettings
+from hawkeye.detection.mcp_introspection.transport import HTTPTransport, SSETransport
 
-# Initialize HawkEye
-settings = HawkEyeSettings()
-settings.scan.max_threads = 50
-settings.mcp_introspection.enable_caching = True
-
-hawkeye = HawkEye(settings)
-
-# 1. Network scanning
-print("🔍 Scanning network for MCP servers...")
-scan_results = hawkeye.scan_network("192.168.1.0/24", ports=[3000, 8000])
-
-# 2. MCP detection and verification
-print("🎯 Detecting MCP servers...")
-mcp_servers = []
-for result in scan_results:
-    if result.is_open:
-        server = hawkeye.detect_mcp_server(result.target, result.port)
-        if server:
-            mcp_servers.append(server)
-
-# 3. Introspection and capability analysis
-print("🔬 Analyzing server capabilities...")
-detailed_results = []
-for server in mcp_servers:
-    capabilities = hawkeye.introspect_server(server)
-    if capabilities:
-        detailed_results.append(capabilities)
-
-# 4. Security assessment
-print("🛡️ Performing security assessment...")
-assessment_results = []
-for capabilities in detailed_results:
-    assessment = hawkeye.assess_security(capabilities)
-    assessment_results.append(assessment)
-
-# 5. Report generation
-print("📊 Generating reports...")
-hawkeye.generate_report(
-    assessment_results,
-    format="html",
-    output_file="security_report.html"
+# Secure transport configuration
+transport = HTTPTransport(
+    endpoint="https://secure-mcp-server.com",
+    verify_ssl=True,
+    timeout=30
 )
-
-print("✅ Security reconnaissance complete!")
-```
-
-### Local System Analysis
-
-```python
-from hawkeye.detection.base import MCPDetector
-from hawkeye.detection.mcp_introspection import MCPIntrospector
-
-# Detect local MCP servers
-detector = MCPDetector()
-local_servers = detector.detect_local_servers()
-
-# Analyze each server
-introspector = MCPIntrospector()
-for server in local_servers:
-    print(f"\n🔍 Analyzing server: {server.name}")
-    
-    # Get process information
-    process_info = detector.get_process_info(server.process_id)
-    
-    # Perform introspection
-    capabilities = introspector.introspect_server(server, process_info)
-    
-    if capabilities:
-        print(f"  📊 Tools: {capabilities.tool_count}")
-        print(f"  📁 Resources: {len(capabilities.resources)}")
-        print(f"  ⚠️ Risk Level: {capabilities.highest_risk_level}")
-        
-        # Show high-risk tools
-        high_risk_tools = [t for t in capabilities.tools if t.risk_level == "HIGH"]
-        if high_risk_tools:
-            print(f"  ⚠️ High-risk tools: {[t.name for t in high_risk_tools]}")
 ```
 
 ## Error Handling
 
-All HawkEye APIs include comprehensive error handling:
+### Comprehensive Exception Handling
 
 ```python
-from hawkeye.exceptions import (
-    HawkEyeError,
-    ScanError,
-    DetectionError,
-    IntrospectionError,
-    AssessmentError
-)
+from hawkeye.exceptions import HawkEyeError, DetectionError, AIProviderError
+from hawkeye.detection.ai_threat import AIThreatAnalyzer
 
 try:
-    results = hawkeye.scan_network("192.168.1.0/24")
-except ScanError as e:
-    print(f"Scan failed: {e}")
+    analyzer = AIThreatAnalyzer()
+    result = analyzer.analyze_threats(mcp_server, environment_context)
+except AIProviderError as e:
+    print(f"AI provider failed: {e}")
+    # Fallback to rule-based analysis
 except DetectionError as e:
     print(f"Detection failed: {e}")
-except IntrospectionError as e:
-    print(f"Introspection failed: {e}")
 except HawkEyeError as e:
-    print(f"General error: {e}")
+    print(f"General HawkEye error: {e}")
 ```
 
-## Performance Considerations
+### Graceful Degradation
 
-### Threading and Concurrency
-- Configure appropriate thread counts based on system resources
-- Use connection pooling for better performance
-- Enable caching for repeated operations
+```python
+from hawkeye.detection.ai_threat.threat_analyzer import AIThreatAnalyzer
 
-### Memory Management
-- Monitor memory usage during large network scans
-- Use streaming for large datasets
-- Clean up resources properly
+analyzer = AIThreatAnalyzer()
+# AI analysis with automatic fallback to rule-based analysis
+result = analyzer.analyze_threats_with_fallback(mcp_server, environment_context)
+```
 
-### Network Courtesy
-- Implement rate limiting to avoid network disruption
-- Use appropriate timeouts
-- Respect target system resources
+## Performance Optimization
 
-## Security Considerations
+### Connection Pooling
 
-### Ethical Usage
-- Only scan networks you own or have permission to test
-- Follow responsible disclosure practices
-- Maintain audit trails for compliance
+```python
+from hawkeye.detection.mcp_introspection.optimization import create_memory_optimizer
+from hawkeye.detection.mcp_introspection.transport.pool import ConnectionPool
 
-### Data Protection
-- Secure storage of scan results
-- Encrypt sensitive data in transit and at rest
-- Follow data retention policies
+# Optimized connection management
+pool = ConnectionPool(max_connections=10, timeout=30)
+memory_optimizer = create_memory_optimizer(optimization_level="aggressive")
+```
 
-## Contributing
+### Batch Processing
 
-To contribute to the HawkEye API:
+```python
+from hawkeye.detection.ai_threat import AIThreatAnalyzer
 
-1. Review the existing API structure
-2. Follow Python coding conventions
-3. Add comprehensive documentation
-4. Include unit tests
-5. Update API documentation
+analyzer = AIThreatAnalyzer()
 
-## License
+# Efficient batch analysis
+results = analyzer.analyze_multiple_threats(
+    mcp_servers=server_list,
+    environment_context=context,
+    analysis_type="comprehensive",
+    parallel_processing=True,
+    max_workers=5
+)
+```
 
-HawkEye API is released under the MIT License. See LICENSE file for details. 
+### Cost Optimization
+
+```python
+from hawkeye.detection.ai_threat import AIThreatAnalyzer
+
+analyzer = AIThreatAnalyzer()
+
+# Cost-controlled analysis
+result = analyzer.analyze_threats(
+    mcp_server=server, 
+    environment_context=context,
+    cost_limit=1.0,  # Maximum $1.00 per analysis
+    use_cache=True   # Enable intelligent caching
+)
+```
+
+## Examples
+
+### Complete Analysis Workflow
+
+```python
+from hawkeye.detection.pipeline import create_detection_pipeline
+from hawkeye.detection.ai_threat import AIThreatAnalyzer
+from hawkeye.detection.ai_threat.models import EnvironmentContext, DeploymentType
+
+# Step 1: Detection Pipeline
+pipeline = create_detection_pipeline(
+    target_host="192.168.1.100",
+    enable_introspection=True,
+    enable_ai_analysis=True
+)
+
+detection_results = pipeline.execute()
+
+# Step 2: AI Threat Analysis  
+analyzer = AIThreatAnalyzer()
+environment = EnvironmentContext(
+    deployment_type=DeploymentType.REMOTE,
+    security_posture="medium",
+    compliance_requirements=["OWASP_TOP_10"]
+)
+
+threat_analyses = []
+for result in detection_results:
+    if result.mcp_server:
+        analysis = analyzer.analyze_threats(
+            result.mcp_server, 
+            environment,
+            analysis_type="comprehensive"
+        )
+        threat_analyses.append(analysis)
+
+# Step 3: Report Generation
+from hawkeye.reporting.html_reporter import HTMLReporter
+
+reporter = HTMLReporter()
+html_report = reporter.generate_threat_analysis_report(
+    detection_results=detection_results,
+    threat_analyses=threat_analyses
+)
+```
+
+### Custom AI Provider Integration
+
+```python
+from hawkeye.detection.ai_threat.ai_providers import AIProvider
+from hawkeye.detection.ai_threat.models import AnalysisRequest, AnalysisResponse
+
+class CustomAIProvider(AIProvider):
+    def __init__(self, api_key: str, endpoint: str):
+        super().__init__()
+        self.api_key = api_key
+        self.endpoint = endpoint
+    
+    def generate_threat_analysis(self, request: AnalysisRequest) -> AnalysisResponse:
+        # Custom AI provider implementation
+        pass
+    
+    def estimate_cost(self, request: AnalysisRequest) -> float:
+        # Cost estimation logic
+        return 0.50
+
+# Use custom provider
+custom_provider = CustomAIProvider("your-api-key", "https://custom-ai.com/api")
+analyzer = AIThreatAnalyzer(ai_provider=custom_provider)
+```
+
+### Advanced Introspection
+
+```python
+from hawkeye.detection.mcp_introspection import MCPIntrospector
+from hawkeye.detection.mcp_introspection.transport.factory import create_transport
+
+# Advanced MCP introspection with custom transport
+transport = create_transport(
+    transport_type="http",
+    endpoint="https://mcp-server.example.com",
+    timeout=30,
+    retry_attempts=3
+)
+
+introspector = MCPIntrospector(transport=transport)
+
+# Comprehensive server analysis
+server_info = introspector.introspect_server(
+    max_tools=100,
+    include_schema_analysis=True,
+    deep_capability_assessment=True
+)
+
+# Risk analysis
+risk_analysis = introspector.analyze_security_risks(
+    server_info=server_info,
+    include_cwe_mapping=True,
+    threat_modeling=True
+)
+```
+
+## API Reference Links
+
+- **[Scanner API](scanner.md)** - Network scanning and service discovery
+- **[Detection API](detection.md)** - MCP-specific detection methods  
+- **[MCP Introspection API](mcp_introspection.md)** - Deep server analysis
+- **[AI Threat Analysis API](ai_threat_analysis.md)** - AI-powered threat assessment
+- **[Assessment API](assessment.md)** - Security risk assessment
+- **[Reporting API](reporting.md)** - Multi-format report generation
+
+## Migration Guide
+
+### From Version 1.x to 2.x
+
+**CLI Command Changes:**
+```bash
+# Old (v1.x) - DEPRECATED
+python application.py analyze-threats -i results.json
+
+# New (v2.x) - CORRECT
+python application.py detect analyze-threats -i results.json
+```
+
+**API Changes:**
+```python
+# Old approach - Basic detection only
+from hawkeye.detection.mcp_introspection import MCPIntrospector
+introspector = MCPIntrospector()
+results = introspector.detect_servers()
+
+# New approach - Detection + AI Analysis
+from hawkeye.detection.ai_threat import AIThreatAnalyzer
+analyzer = AIThreatAnalyzer()
+threat_analysis = analyzer.analyze_threats(mcp_server, environment_context)
+```
+
+## Support and Community
+
+- **GitHub Issues**: [Report bugs and request features](https://github.com/yourusername/hawkeye/issues)
+- **GitHub Discussions**: [Community support and questions](https://github.com/yourusername/hawkeye/discussions)
+- **Documentation**: [Complete user guide](../user_manual.md)
+- **Security Issues**: security@hawkeye-project.org
+
+---
+
+**Last Updated**: Version 2.0 with AI Threat Analysis Integration  
+**API Compatibility**: Python 3.8+ with MCP SDK integration 

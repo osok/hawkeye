@@ -540,10 +540,14 @@ functions = await create_module_functions("/target/project")
         
         html = ""
         for vector in attack_vectors:
+            # Handle both old format (from static scenarios) and new format (from AI analysis)
+            steps = vector.get('steps', vector.get('attack_steps', []))
+            example_code = vector.get('example_code', '# No example code available')
+            
             html += f"""
             <div class="attack-vector">
                 <h3>{vector['name']} <span class="threat-level {vector['severity'].lower()}">{vector['severity']}</span></h3>
-                <p><strong>Target:</strong> {vector['server']}</p>
+                <p><strong>Target:</strong> {vector.get('server', 'MCP Tool')}</p>
                 <p><strong>Description:</strong> {vector['description']}</p>
                 
                 <div class="attack-steps">
@@ -551,7 +555,7 @@ functions = await create_module_functions("/target/project")
                     <ol>
             """
             
-            for step in vector['steps']:
+            for step in steps:
                 html += f"<li>{step}</li>"
             
             html += f"""
@@ -559,7 +563,7 @@ functions = await create_module_functions("/target/project")
                 </div>
                 
                 <div class="code-example" data-danger="true">
-{vector['example_code']}
+{example_code}
                 </div>
                 
                 <div class="alert danger">

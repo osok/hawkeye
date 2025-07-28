@@ -4,10 +4,18 @@ mcp-hunt
 │       └── ci.yml
 ├── backups
 │   ├── legacy_backup_20250608_203549.json
-│   └── test_config_backup_20250608_203549.json
+│   ├── legacy_backup_20250615_171421.json
+│   ├── test_config_backup_20250608_203549.json
+│   └── test_config_backup_20250615_171421.json
 ├── docker
 │   └── entrypoint.sh
 ├── docs
+│   ├── api
+│   │   ├── ai_threat_analysis.md
+│   │   ├── detection.md
+│   │   ├── mcp_introspection.md
+│   │   ├── README.md
+│   │   └── scanner.md
 │   ├── conventions
 │   │   ├── docker.md
 │   │   ├── flask.md
@@ -26,10 +34,10 @@ mcp-hunt
 │   ├── task_list-inspect-mcp.md
 │   ├── task_list.md
 │   ├── tree-structure.txt
-│   ├── troubleshooting.md
 │   ├── uml.txt
 │   ├── user_manual.md
 │   └── workflow_guide.md
+├── reports
 ├── src
 │   └── hawkeye
 │       ├── assessment
@@ -57,6 +65,17 @@ mcp-hunt
 │       │   ├── __init__.py
 │       │   └── settings.py
 │       ├── detection
+│       │   ├── ai_threat
+│       │   │   ├── __init__.py
+│       │   │   ├── ai_providers.py
+│       │   │   ├── attack_chain_analyzer.py
+│       │   │   ├── capability_analyzer.py
+│       │   │   ├── models.py
+│       │   │   ├── prompts.py
+│       │   │   ├── provider_selection.py
+│       │   │   ├── threat_analysis_optimizer.py
+│       │   │   ├── threat_analyzer.py
+│       │   │   └── threat_intelligence_db.py
 │       │   ├── mcp_introspection
 │       │   │   ├── discovery
 │       │   │   │   ├── __init__.py
@@ -67,6 +86,7 @@ mcp-hunt
 │       │   │   ├── optimization
 │       │   │   │   ├── __init__.py
 │       │   │   │   ├── caching.py
+│       │   │   │   ├── memory.py
 │       │   │   │   ├── pooling.py
 │       │   │   │   └── scaling.py
 │       │   │   ├── risk
@@ -144,20 +164,35 @@ mcp-hunt
 │       │   ├── __init__.py
 │       │   └── logging.py
 │       ├── __init__.py
+│       ├── __main__.py
 │       └── exceptions.py
 ├── tests
+│   ├── compatibility
+│   │   └── test_mcp_version_compatibility.py
 │   ├── e2e
+│   │   ├── test_mcp_introspection_e2e.py
 │   │   └── test_workflows.py
+│   ├── fixtures
+│   │   └── mock_mcp_servers.py
 │   ├── integration
 │   │   ├── __init__.py
 │   │   ├── test_assessment.py
+│   │   ├── test_cli.py
+│   │   ├── test_detection.py
 │   │   ├── test_mcp_introspection_complete.py
 │   │   ├── test_mcp_risk_analysis.py
 │   │   ├── test_mcp_transport_integration.py
-│   │   └── test_reporting.py
+│   │   ├── test_real_mcp_servers.py
+│   │   ├── test_reporting.py
+│   │   └── test_scanning.py
 │   ├── performance
 │   │   ├── test_benchmarks.py
-│   │   └── test_mcp_introspection_benchmarks.py
+│   │   ├── test_mcp_introspection_benchmarks.py
+│   │   ├── test_mcp_load_testing.py
+│   │   ├── test_mcp_memory_leaks.py
+│   │   └── test_mcp_performance_regression.py
+│   ├── security
+│   │   └── test_mcp_introspection_security.py
 │   ├── test_assessment
 │   │   ├── __init__.py
 │   │   ├── test_auth_analysis.py
@@ -167,6 +202,10 @@ mcp-hunt
 │   │   ├── test_default_detect.py
 │   │   ├── test_remediation.py
 │   │   └── test_transport_security.py
+│   ├── test_cli
+│   │   ├── __init__.py
+│   │   ├── test_commands.py
+│   │   └── test_validation.py
 │   ├── test_config
 │   │   ├── __init__.py
 │   │   └── test_settings.py
@@ -174,10 +213,13 @@ mcp-hunt
 │   │   ├── test_mcp_introspection
 │   │   │   ├── __init__.py
 │   │   │   ├── test_compat.py
+│   │   │   ├── test_error_scenarios.py
+│   │   │   ├── test_fallback.py
 │   │   │   ├── test_http_transport.py
 │   │   │   ├── test_metrics.py
 │   │   │   ├── test_migration.py
 │   │   │   ├── test_models.py
+│   │   │   ├── test_optimization.py
 │   │   │   ├── test_pool.py
 │   │   │   ├── test_risk_categorizer.py
 │   │   │   ├── test_risk_scoring.py
@@ -191,7 +233,7 @@ mcp-hunt
 │   │   ├── test_config_discovery.py
 │   │   ├── test_docker_inspect.py
 │   │   ├── test_env_analysis.py
-│   │   ├── test_mcp_introspection.py
+│   │   ├── test_mcp_introspection_old.py
 │   │   ├── test_npx_detect.py
 │   │   ├── test_pipeline_integration.py
 │   │   ├── test_process_enum.py
@@ -207,25 +249,42 @@ mcp-hunt
 │   │   └── test_xml_reporter.py
 │   ├── test_scanner
 │   │   ├── __init__.py
-│   │   └── test_tcp_scanner.py
+│   │   ├── test_target_enum.py
+│   │   ├── test_tcp_scanner.py
+│   │   └── test_udp_scanner.py
 │   ├── test_utils
 │   │   ├── __init__.py
 │   │   └── test_logging.py
 │   └── __init__.py
-├── .coverage.eva.1662554.XNYtnbQx.c
 ├── .env
 ├── .env-example
+├── AI_THREAT_ANALYSIS_README.md
 ├── application.py
+├── CHANGELOG.md
+├── coverage.xml
+├── demo_ai_threat_analysis.py
 ├── docker-compose.yml
 ├── Dockerfile
+├── enhanced_environment_detection_test_20250727_153131.json
+├── enhanced_environment_detection_test_20250727_153507.json
+├── env.example
+├── example_workflow.sh
 ├── pyproject.toml
 ├── README.md
 ├── requirements.txt
+├── sample_detection.json
 ├── setup.py
+├── test-01.html
+├── test-01.json
+├── test.html
+├── test.json
+├── test_enhanced_environment_detection.py
 ├── test_introspection.py
-└── test_sync_introspection.py
+├── test_sync_introspection.py
+├── test_threats.json
+└── threat_analysis.json
 
 Statistics:
-- Files: 191
-- Directories: 34
-- Total items: 225
+- Files: 243
+- Directories: 41
+- Total items: 284

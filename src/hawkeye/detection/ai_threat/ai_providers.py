@@ -519,21 +519,8 @@ class ResponseParser:
                     self.parsing_stats["fallback_parses"] += 1
                     return threat_analysis
             
-            # Strategy 3: Partial extraction with fallback values
-            logger.debug("Structured parsing failed, attempting partial extraction")
-            partial_data = self._extract_partial_data(content, analysis_type)
-            threat_analysis = self._convert_to_threat_analysis(
-                partial_data,
-                analysis_type,
-                tool_capabilities,
-                environment_context
-            )
-            if threat_analysis:
-                self.parsing_stats["fallback_parses"] += 1
-                return threat_analysis
-            
-            # All strategies failed
-            logger.error("All parsing strategies failed")
+            # Strategy 3: Log parsing failure and return None to trigger rule-based fallback
+            logger.debug("Structured parsing failed, will use enhanced rule-based analysis")
             self.parsing_stats["failed_parses"] += 1
             return None
             
@@ -543,14 +530,17 @@ class ResponseParser:
             return None
     
     def _extract_json_data(self, content: str) -> Optional[Dict[str, Any]]:
-        """Extract JSON data from response using multiple strategies."""
+        """Extract JSON data from AI response content with improved parsing."""
+        if not content or not content.strip():
+            return None
+            
         try:
-            # Strategy 1: Look for complete JSON object
+            # Strategy 1: Look for complete JSON object with better patterns
             json_patterns = [
-                r'\{.*\}',  # Simple braces
                 r'```json\s*(\{.*?\})\s*```',  # Markdown code blocks
-                r'```\s*(\{.*?\})\s*```',  # Generic code blocks
+                r'```\s*(\{.*?\})\s*```',      # Generic code blocks  
                 r'<json>\s*(\{.*?\})\s*</json>',  # XML-style tags
+                r'\{(?:[^{}]|(?:\{[^{}]*\}))*\}',  # Balanced braces - more comprehensive
             ]
             
             for pattern in json_patterns:
@@ -564,25 +554,30 @@ class ResponseParser:
                         # Parse JSON
                         data = json.loads(json_str)
                         if isinstance(data, dict) and len(data) > 0:
-                            return data
+                            # Validate that it looks like a threat analysis response
+                            if self._validate_threat_analysis_structure(data):
+                                return data
                     except json.JSONDecodeError:
                         continue
             
             # Strategy 2: Try parsing the entire content as JSON
             try:
                 cleaned_content = self._clean_json_string(content)
-                return json.loads(cleaned_content)
+                data = json.loads(cleaned_content)
+                if isinstance(data, dict) and self._validate_threat_analysis_structure(data):
+                    return data
             except json.JSONDecodeError:
                 pass
             
-            # Strategy 3: Extract the largest JSON-like structure
+            # Strategy 3: Extract the largest JSON-like structure and validate it
             json_candidates = re.findall(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}', content)
             for candidate in sorted(json_candidates, key=len, reverse=True):
                 try:
                     cleaned = self._clean_json_string(candidate)
                     data = json.loads(cleaned)
                     if isinstance(data, dict) and len(data) > 0:
-                        return data
+                        if self._validate_threat_analysis_structure(data):
+                            return data
                 except json.JSONDecodeError:
                     continue
             
@@ -721,7 +716,6 @@ class ResponseParser:
             r'^\s*[-*+]\s+(.+)$',  # Bullet points
             r'^\s*\d+\.\s+(.+)$',  # Numbered lists
             r'^\s*[•‣▪▫]\s+(.+)$',  # Unicode bullets
-            r'^(.+)$',  # Simple lines
         ]
         
         lines = text.split('\n')
@@ -730,15 +724,67 @@ class ResponseParser:
             if not line:
                 continue
                 
+            # Skip JSON fragments - these are not valid attack vectors
+            if (line.startswith('"') and line.endswith('",') or 
+                line.startswith('"') and line.endswith('"') or
+                line.startswith('{') or line.startswith('}') or
+                line.startswith('[') or line.startswith(']') or
+                line.strip() in ['{', '}', '[', ']', ','] or
+                re.match(r'^\s*"[\w_]+"\s*:\s*', line) or  # JSON key-value pairs
+                re.match(r'^\s*\d+\.\d+\s*,?\s*$', line) or  # Standalone numbers
+                len(line) < 10):  # Too short to be meaningful
+                continue
+                
             for pattern in list_patterns:
                 match = re.match(pattern, line, re.MULTILINE)
                 if match:
                     item = match.group(1).strip()
-                    if len(item) > 5:  # Minimum meaningful length
+                    if len(item) > 10 and not self._is_json_fragment(item):  # Minimum meaningful length and not JSON
                         items.append(item)
                     break
+            else:
+                # Only add as plain text if it's not a JSON fragment and has substance
+                if (len(line) > 15 and 
+                    not self._is_json_fragment(line) and
+                    not line.startswith('//') and  # Skip comments
+                    not line.startswith('#') and   # Skip comments
+                    line.count(' ') >= 2):  # Ensure it has multiple words
+                    items.append(line)
         
         return items
+    
+    def _is_json_fragment(self, text: str) -> bool:
+        """Check if text looks like a JSON fragment that shouldn't be treated as valid content."""
+        text = text.strip()
+        
+        # Enhanced JSON fragment detection patterns
+        json_patterns = [
+            r'^"[\w_]+"\s*:\s*',                    # Key-value start like "impact": 
+            r'^\s*[\d.]+\s*$',                      # Numbers only
+            r'^"[^"]*",?\s*$',                      # Quoted strings only
+            r'^\s*[{\[\]},]\s*$',                   # JSON structural characters only
+            r'^"(name|description|severity|impact|likelihood|confidence_score|attack_steps|example_code)"\s*:',  # Common JSON keys
+            r'^"[^"]*"\s*:\s*"[^"]*"$',            # Simple key-value pairs
+            r'^\s*\[\s*\]$',                        # Empty arrays
+            r'^\s*\{\s*\}$',                        # Empty objects
+            r'.*Complete\s+compromise.*',           # The specific fragment mentioned in memory
+            r'^["\'][\w\s]+["\']$',                # Pure quoted strings
+            r'^\s*,\s*$',                          # Lone commas
+            r'^\s*:\s*$',                          # Lone colons
+        ]
+        
+        for pattern in json_patterns:
+            if re.match(pattern, text, re.IGNORECASE):
+                return True
+        
+        # Additional heuristics for detecting malformed JSON fragments
+        # Check if it's just a value without context
+        if ('"' in text and ':' in text and 
+            text.count('"') % 2 == 0 and 
+            len(text.split()) < 10):  # Short fragments are likely JSON pieces
+            return True
+            
+        return False
     
     def _extract_partial_data(self, content: str, analysis_type: str) -> Dict[str, Any]:
         """Extract partial data with fallback values when other methods fail."""
@@ -815,6 +861,40 @@ class ResponseParser:
         except Exception as e:
             logger.error(f"Schema validation error: {e}")
             return False
+    
+    def _validate_threat_analysis_structure(self, data: dict) -> bool:
+        """Validate that the parsed JSON has the expected threat analysis structure."""
+        if not isinstance(data, dict):
+            return False
+            
+        # Check for required fields
+        required_fields = ['threat_level']
+        optional_fields = ['attack_vectors', 'mitigation_strategies', 'abuse_scenarios', 'confidence_score']
+        
+        # Must have at least the threat level
+        if not any(field in data for field in required_fields):
+            return False
+            
+        # Check that attack_vectors is a list if present
+        if 'attack_vectors' in data:
+            if not isinstance(data['attack_vectors'], list):
+                return False
+            # Validate attack vector structure
+            for av in data['attack_vectors']:
+                if isinstance(av, dict):
+                    if not ('name' in av and 'description' in av):
+                        return False
+                elif isinstance(av, str):
+                    # String attack vectors should be meaningful
+                    if len(av.strip()) < 10 or self._is_json_fragment(av):
+                        return False
+                        
+        # Check that mitigation_strategies is a list if present  
+        if 'mitigation_strategies' in data:
+            if not isinstance(data['mitigation_strategies'], list):
+                return False
+                
+        return True
     
     def _convert_to_threat_analysis(self,
                                   data: Dict[str, Any],
@@ -1027,15 +1107,15 @@ class OpenAIProvider(AIProvider):
         super().__init__(config)
         
         # Always set model even if initialization fails
-        self.model = config.get("model", "gpt-4")
+        self.model = config.get("openai_model", "gpt-4")
         
         try:
             import openai
-            api_key = config.get("api_key")
+            api_key = config.get("openai_api_key")
             logger.info(f"OpenAI provider initializing with API key: {api_key[:20] if api_key else 'None'}...")
             self.client = openai.OpenAI(
                 api_key=api_key,
-                timeout=config.get("timeout", 60)
+                timeout=config.get("openai_timeout", 60)
             )
             self.available = True
             logger.info(f"OpenAI provider successfully initialized with model: {self.model}")
@@ -1234,15 +1314,46 @@ class AnthropicProvider(AIProvider):
         super().__init__(config)
         
         # Always set model even if initialization fails
-        self.model = config.get("model", "claude-3-sonnet-20240229")
+        model_name = config.get("anthropic_model", "claude-3-5-sonnet-latest")
+        # Fix invalid model names
+        if model_name in ["claude-sonnet-4-0", "claude-sonnet-4-20250514"]:
+            model_name = "claude-3-5-sonnet-latest"
+        self.model = model_name
         
         try:
             import anthropic
+            import os
+            
+            # Try multiple API key sources in order of preference
+            api_key = None
+            
+            # 1. From config (AI_ANTHROPIC_API_KEY via our settings)
+            if config.get("anthropic_api_key"):
+                api_key = config.get("anthropic_api_key")
+                logger.info("Using Anthropic API key from config (AI_ANTHROPIC_API_KEY)")
+            
+            # 2. From standard environment variable (ANTHROPIC_API_KEY)
+            elif os.environ.get("ANTHROPIC_API_KEY"):
+                api_key = os.environ.get("ANTHROPIC_API_KEY")
+                logger.info("Using Anthropic API key from ANTHROPIC_API_KEY environment variable")
+            
+            # 3. From our custom environment variable (AI_ANTHROPIC_API_KEY) 
+            elif os.environ.get("AI_ANTHROPIC_API_KEY"):
+                api_key = os.environ.get("AI_ANTHROPIC_API_KEY")
+                logger.info("Using Anthropic API key from AI_ANTHROPIC_API_KEY environment variable")
+            
+            if not api_key:
+                raise ValueError("No Anthropic API key found. Please set ANTHROPIC_API_KEY or AI_ANTHROPIC_API_KEY environment variable.")
+            
+            logger.info(f"Anthropic provider initializing with API key: {api_key[:20] if api_key else 'None'}...")
+            logger.info(f"Using model: {self.model}")
+            
             self.client = anthropic.Anthropic(
-                api_key=config.get("api_key"),
-                timeout=config.get("timeout", 60)
+                api_key=api_key,
+                timeout=config.get("anthropic_timeout", 60)
             )
             self.available = True
+            logger.info(f"Anthropic provider successfully initialized with model: {self.model}")
         except Exception as e:
             logger.error(f"Failed to initialize Anthropic provider: {e}")
             self.client = None
