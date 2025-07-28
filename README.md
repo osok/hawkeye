@@ -152,7 +152,6 @@ HawkEye is designed for authorized security testing and assessment purposes only
 
 - 🐛 **Bug Reports**: [GitHub Issues](https://github.com/yourusername/hawkeye/issues)
 - 💬 **Discussions**: [GitHub Discussions](https://github.com/yourusername/hawkeye/discussions)  
-- 📧 **Security Issues**: security@hawkeye-project.org
 
 ---
 

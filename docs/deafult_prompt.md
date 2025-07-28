@@ -12,7 +12,7 @@ Under no circumstances should you HARDCODE results to make it easier to create t
 - Use the `docs/task_list.md` previously used for the project development. **Complete - REFERENCE ONLY**
 - Use the `docs/task_list-inspect-mcp.md` current task_list to guide work **Complete - REFERENCE ONLY**
 - Use the `docs/task-list-threat-analysis.md` for threat analysis implementation status. **Complete for now - REFERENCE ONLY**
-- Use the `docs/task-list-threat-analysis-report.md` for threat analysis preport implementation status. **to be added**
+- Use the `docs/task-list-threat-analysis-report.md` for threat analysis preport implementation status. **Current ork in Progress**
 - Use the `docs/notes.md` for notable aspects of the project.
 - Use the `docs/uml.txt` for reference for the code that exists in classes.
 - Use the `docs/module-functions.txt`  for code that is not in classes.
@@ -21,6 +21,7 @@ Under no circumstances should you HARDCODE results to make it easier to create t
 - The folder `docs/conventions/` contains documents that describe the coding conventions used in this project for a number of differnt libraries.
 - Use context7 tool to find usage and examples for many code libraries.
 - Use the exa tool to search the web.
+- as things are completed on the tasklist please update the tasklist before moving on.
 
 ## Must adhere to
 - Most importantly **NEVER** use `asyncio`, this causes massive problems when coding in python.
@@ -30,3 +31,4 @@ Under no circumstances should you HARDCODE results to make it easier to create t
 - Most importantly **NEVER** use `asyncio`, this causes massive problems when coding in python.
 - Don't use `!` in bash scripts it don't work well with the tools.
 - Under no circumstances should you HARDCODE results to make it easier to create the report.  This is a tool that will need to be able to identify any of the tens of thousands of MCP Servers.
+- Make sure the tasklist completions are kept up to date.

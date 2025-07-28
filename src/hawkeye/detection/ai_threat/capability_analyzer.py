@@ -13,6 +13,7 @@ import subprocess
 import psutil
 from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass
+from datetime import datetime
 
 from .models import (
     ToolCapabilities, ToolFunction, CapabilityCategory, RiskSurface,
@@ -2557,50 +2558,488 @@ class MCPCapabilityAnalyzer:
         indicators = []
         function_lower = function_name.lower()
         
-        # High-risk function patterns
-        high_risk_patterns = {
+        # Enhanced security-relevant function patterns
+        security_patterns = {
+            # Code execution risks
             'exec': 'code_execution',
             'eval': 'code_execution', 
             'run': 'code_execution',
+            'compile': 'code_execution',
+            'interpret': 'code_execution',
+            'execute': 'code_execution',
+            
+            # System command risks
             'command': 'system_command',
             'shell': 'system_command',
+            'bash': 'system_command',
+            'powershell': 'system_command',
+            'cmd': 'system_command',
+            'terminal': 'system_command',
+            
+            # File system risks
             'write': 'file_write',
             'delete': 'file_delete',
             'remove': 'file_delete',
+            'unlink': 'file_delete',
+            'create': 'file_create',
+            'modify': 'file_modify',
+            'move': 'file_move',
+            'copy': 'file_copy',
+            'chmod': 'permission_change',
+            'chown': 'ownership_change',
+            
+            # Network risks
             'http': 'network_access',
             'url': 'network_access',
+            'request': 'network_access',
+            'fetch': 'network_access',
+            'download': 'network_download',
+            'upload': 'network_upload',
+            'socket': 'network_socket',
+            'connect': 'network_connect',
+            
+            # API and external service risks
             'api': 'external_api',
+            'service': 'external_service',
+            'webhook': 'webhook_access',
+            'oauth': 'authentication_flow',
+            'auth': 'authentication_access',
+            'login': 'authentication_access',
+            
+            # Database risks
             'sql': 'database_access',
-            'query': 'database_access'
+            'query': 'database_access',
+            'database': 'database_access',
+            'db': 'database_access',
+            'insert': 'database_write',
+            'update': 'database_write',
+            'delete': 'database_delete',
+            
+            # Process and system risks
+            'process': 'process_access',
+            'kill': 'process_control',
+            'spawn': 'process_create',
+            'fork': 'process_create',
+            'thread': 'thread_control',
+            
+            # Crypto and security risks
+            'encrypt': 'cryptographic_operation',
+            'decrypt': 'cryptographic_operation',
+            'hash': 'cryptographic_operation',
+            'sign': 'digital_signature',
+            'verify': 'signature_verification',
+            'key': 'key_management',
+            'certificate': 'certificate_handling',
+            
+            # Privilege and access risks
+            'admin': 'privileged_access',
+            'root': 'privileged_access',
+            'sudo': 'privilege_escalation',
+            'elevation': 'privilege_escalation',
+            'impersonate': 'identity_impersonation',
+            
+            # Data handling risks
+            'sensitive': 'sensitive_data',
+            'secret': 'secret_handling',
+            'token': 'token_handling',
+            'password': 'credential_handling',
+            'credential': 'credential_handling',
         }
         
-        for pattern, indicator in high_risk_patterns.items():
+        for pattern, indicator in security_patterns.items():
             if pattern in function_lower:
                 indicators.append(indicator)
         
         return indicators
     
     def _function_requires_privileges(self, function_name: str) -> bool:
-        """Check if function requires elevated privileges."""
+        """Check if a function requires elevated privileges based on its name."""
         function_lower = function_name.lower()
         
+        # Privilege-requiring patterns
         privilege_patterns = [
-            'admin', 'root', 'sudo', 'exec', 'command', 'shell',
-            'system', 'install', 'delete', 'remove', 'kill'
+            'admin', 'root', 'sudo', 'execute', 'run', 'command', 'shell',
+            'system', 'process', 'service', 'daemon', 'install', 'uninstall',
+            'chmod', 'chown', 'mount', 'unmount', 'kill', 'stop', 'start'
         ]
         
         return any(pattern in function_lower for pattern in privilege_patterns)
     
     def _function_has_external_access(self, function_name: str) -> bool:
-        """Check if function has external access capabilities."""
+        """Check if a function has external access capabilities based on its name."""
         function_lower = function_name.lower()
         
+        # External access patterns
         external_patterns = [
-            'http', 'url', 'api', 'web', 'download', 'upload',
-            'fetch', 'request', 'curl', 'wget', 'socket'
+            'http', 'https', 'url', 'web', 'api', 'request', 'fetch',
+            'download', 'upload', 'connect', 'socket', 'network',
+            'external', 'remote', 'service', 'cloud'
         ]
         
         return any(pattern in function_lower for pattern in external_patterns)
+
+    def identify_security_relevant_functions(self, tool_functions: List[ToolFunction]) -> List[ToolFunction]:
+        """
+        Identify functions that are particularly relevant for security analysis.
+        
+        This enhanced method focuses on functions that could be used in attack scenarios
+        or that represent significant security risks.
+        
+        Args:
+            tool_functions: List of tool functions to analyze
+            
+        Returns:
+            List of security-relevant functions with enhanced analysis
+        """
+        security_relevant = []
+        
+        for func in tool_functions:
+            # Check if function has security-relevant patterns
+            risk_indicators = self._get_function_risk_indicators(func.name)
+            
+            if risk_indicators:
+                # Enhanced security analysis for this function
+                enhanced_func = func.__class__(
+                    name=func.name,
+                    description=func.description,
+                    parameters=func.parameters,
+                    # Add enhanced security metadata
+                    security_risk_level=self._calculate_function_security_risk(func, risk_indicators),
+                    attack_vectors=self._identify_function_attack_vectors(func, risk_indicators),
+                    abuse_scenarios=self._generate_function_abuse_scenarios(func, risk_indicators),
+                    security_controls=self._recommend_function_security_controls(func, risk_indicators)
+                )
+                security_relevant.append(enhanced_func)
+            
+        return security_relevant
+
+    def _calculate_function_security_risk(self, func: ToolFunction, risk_indicators: List[str]) -> str:
+        """Calculate security risk level for a function based on indicators."""
+        high_risk_indicators = [
+            'code_execution', 'system_command', 'privilege_escalation', 
+            'privileged_access', 'file_delete', 'database_delete',
+            'process_control', 'network_socket'
+        ]
+        
+        medium_risk_indicators = [
+            'file_write', 'file_create', 'network_access', 'database_access',
+            'external_api', 'authentication_access', 'cryptographic_operation'
+        ]
+        
+        # Check for high-risk patterns
+        if any(indicator in high_risk_indicators for indicator in risk_indicators):
+            return "critical"
+        elif any(indicator in medium_risk_indicators for indicator in risk_indicators):
+            return "high" 
+        elif risk_indicators:
+            return "medium"
+        else:
+            return "low"
+
+    def _identify_function_attack_vectors(self, func: ToolFunction, risk_indicators: List[str]) -> List[Dict[str, Any]]:
+        """Identify potential attack vectors for a function."""
+        attack_vectors = []
+        
+        # Map risk indicators to attack vectors
+        attack_vector_mapping = {
+            'code_execution': {
+                'name': 'Code Injection',
+                'description': f'Function {func.name} could be exploited to execute arbitrary code',
+                'technique': 'Code injection through parameter manipulation',
+                'impact': 'Complete system compromise'
+            },
+            'system_command': {
+                'name': 'Command Injection',
+                'description': f'Function {func.name} could be exploited to execute system commands',
+                'technique': 'OS command injection through parameter manipulation',
+                'impact': 'System command execution'
+            },
+            'file_write': {
+                'name': 'Arbitrary File Write',
+                'description': f'Function {func.name} could be exploited to write arbitrary files',
+                'technique': 'Path traversal and file content manipulation',
+                'impact': 'File system corruption or web shell deployment'
+            },
+            'network_access': {
+                'name': 'Network Pivot',
+                'description': f'Function {func.name} could be used for network reconnaissance',
+                'technique': 'Internal network scanning and service discovery',
+                'impact': 'Network reconnaissance and lateral movement'
+            },
+            'database_access': {
+                'name': 'Data Extraction',
+                'description': f'Function {func.name} could be exploited for unauthorized data access',
+                'technique': 'SQL injection or direct database access',
+                'impact': 'Sensitive data exposure'
+            }
+        }
+        
+        for indicator in risk_indicators:
+            if indicator in attack_vector_mapping:
+                attack_vectors.append(attack_vector_mapping[indicator])
+        
+        return attack_vectors
+
+    def _generate_function_abuse_scenarios(self, func: ToolFunction, risk_indicators: List[str]) -> List[Dict[str, Any]]:
+        """Generate realistic abuse scenarios for a function."""
+        scenarios = []
+        
+        # Generate scenarios based on risk indicators
+        scenario_templates = {
+            'code_execution': {
+                'title': 'Malicious Code Execution',
+                'description': f'An attacker exploits {func.name} to execute malicious code',
+                'steps': [
+                    'Attacker identifies function parameters',
+                    'Crafts malicious payload',
+                    'Exploits parameter validation weakness',
+                    'Executes arbitrary code on target system'
+                ],
+                'prerequisites': ['Access to MCP server', 'Knowledge of function parameters'],
+                'impact': 'Complete system compromise'
+            },
+            'file_write': {
+                'title': 'Web Shell Deployment',
+                'description': f'An attacker uses {func.name} to deploy a web shell',
+                'steps': [
+                    'Attacker identifies writable directory',
+                    'Crafts web shell payload',
+                    'Uses function to write shell to web directory',
+                    'Gains persistent access through web shell'
+                ],
+                'prerequisites': ['Write access to web directory', 'Knowledge of web server paths'],
+                'impact': 'Persistent system access'
+            },
+            'network_access': {
+                'title': 'Internal Network Reconnaissance',
+                'description': f'An attacker leverages {func.name} for network discovery',
+                'steps': [
+                    'Attacker gains access to MCP server',
+                    'Uses function to scan internal networks',
+                    'Identifies additional targets',
+                    'Plans lateral movement attacks'
+                ],
+                'prerequisites': ['MCP server access', 'Network connectivity'],
+                'impact': 'Network reconnaissance and mapping'
+            }
+        }
+        
+        for indicator in risk_indicators:
+            if indicator in scenario_templates:
+                scenarios.append(scenario_templates[indicator])
+        
+        return scenarios
+
+    def _recommend_function_security_controls(self, func: ToolFunction, risk_indicators: List[str]) -> List[Dict[str, Any]]:
+        """Recommend security controls for a function based on its risks."""
+        controls = []
+        
+        # Base security controls for all functions
+        controls.append({
+            'name': 'Input Validation',
+            'description': f'Implement strict input validation for {func.name} parameters',
+            'implementation': 'Validate and sanitize all input parameters',
+            'effectiveness': 'High'
+        })
+        
+        # Specific controls based on risk indicators
+        control_mapping = {
+            'code_execution': {
+                'name': 'Code Execution Prevention',
+                'description': 'Prevent dynamic code execution',
+                'implementation': 'Disable eval/exec functions, use allowlists',
+                'effectiveness': 'Critical'
+            },
+            'system_command': {
+                'name': 'Command Injection Prevention',
+                'description': 'Prevent OS command injection',
+                'implementation': 'Use parameterized commands, avoid shell=True',
+                'effectiveness': 'Critical'
+            },
+            'file_write': {
+                'name': 'Path Traversal Prevention',
+                'description': 'Restrict file write operations',
+                'implementation': 'Validate file paths, use chroot/sandbox',
+                'effectiveness': 'High'
+            },
+            'network_access': {
+                'name': 'Network Access Control',
+                'description': 'Restrict network access',
+                'implementation': 'Use firewall rules, network segmentation',
+                'effectiveness': 'Medium'
+            }
+        }
+        
+        for indicator in risk_indicators:
+            if indicator in control_mapping:
+                controls.append(control_mapping[indicator])
+        
+        return controls
+
+    def analyze_attack_surface(self, tool_capabilities: ToolCapabilities) -> Dict[str, Any]:
+        """
+        Analyze the attack surface exposed by tool capabilities.
+        
+        This method performs comprehensive attack surface analysis to identify
+        potential security weaknesses and attack vectors.
+        
+        Args:
+            tool_capabilities: Tool capabilities to analyze
+            
+        Returns:
+            Dict containing detailed attack surface analysis
+        """
+        attack_surface = {
+            'total_functions': len(tool_capabilities.tool_functions),
+            'security_relevant_functions': 0,
+            'attack_vectors': [],
+            'risk_categories': {},
+            'attack_paths': [],
+            'security_gaps': [],
+            'mitigation_priorities': []
+        }
+        
+        # Analyze each function for security relevance
+        for func in tool_capabilities.tool_functions:
+            risk_indicators = self._get_function_risk_indicators(func.name)
+            
+            if risk_indicators:
+                attack_surface['security_relevant_functions'] += 1
+                
+                # Add function-specific attack vectors
+                function_vectors = self._identify_function_attack_vectors(func, risk_indicators)
+                attack_surface['attack_vectors'].extend(function_vectors)
+                
+                # Update risk categories
+                for indicator in risk_indicators:
+                    if indicator not in attack_surface['risk_categories']:
+                        attack_surface['risk_categories'][indicator] = 0
+                    attack_surface['risk_categories'][indicator] += 1
+        
+        # Identify attack paths (combinations of functions)
+        attack_surface['attack_paths'] = self._identify_attack_paths(tool_capabilities)
+        
+        # Identify security gaps
+        attack_surface['security_gaps'] = self._identify_security_gaps(tool_capabilities)
+        
+        # Prioritize mitigations
+        attack_surface['mitigation_priorities'] = self._prioritize_mitigations(attack_surface)
+        
+        return attack_surface
+
+    def _identify_attack_paths(self, tool_capabilities: ToolCapabilities) -> List[Dict[str, Any]]:
+        """Identify potential attack paths using combinations of functions."""
+        attack_paths = []
+        
+        # Look for dangerous function combinations
+        function_names = [func.name.lower() for func in tool_capabilities.tool_functions]
+        
+        # Define attack path patterns
+        attack_patterns = [
+            {
+                'name': 'File Write + Code Execution',
+                'description': 'Write malicious file then execute it',
+                'functions': ['write', 'exec'],
+                'impact': 'Critical - Complete compromise'
+            },
+            {
+                'name': 'Network Access + File Write',
+                'description': 'Download and deploy malicious payloads',
+                'functions': ['http', 'write'],
+                'impact': 'High - Malware deployment'
+            },
+            {
+                'name': 'Database Access + Network Access',
+                'description': 'Extract data and exfiltrate over network',
+                'functions': ['database', 'http'],
+                'impact': 'High - Data exfiltration'
+            },
+            {
+                'name': 'System Command + Network Access',
+                'description': 'Execute commands and communicate with C&C',
+                'functions': ['command', 'http'],
+                'impact': 'Critical - Remote control'
+            }
+        ]
+        
+        # Check which patterns are present
+        for pattern in attack_patterns:
+            if all(any(func_pattern in fname for fname in function_names) 
+                   for func_pattern in pattern['functions']):
+                attack_paths.append(pattern)
+        
+        return attack_paths
+
+    def _identify_security_gaps(self, tool_capabilities: ToolCapabilities) -> List[Dict[str, Any]]:
+        """Identify security gaps in tool capabilities."""
+        gaps = []
+        
+        # Check for common security weaknesses
+        if any('auth' not in func.name.lower() for func in tool_capabilities.tool_functions):
+            gaps.append({
+                'type': 'Authentication Gap',
+                'description': 'Functions may lack proper authentication checks',
+                'severity': 'High',
+                'recommendation': 'Implement authentication for all sensitive functions'
+            })
+        
+        if any('validate' not in func.name.lower() for func in tool_capabilities.tool_functions):
+            gaps.append({
+                'type': 'Input Validation Gap', 
+                'description': 'Functions may lack input validation',
+                'severity': 'High',
+                'recommendation': 'Implement comprehensive input validation'
+            })
+        
+        # Check for dangerous combinations without safeguards
+        dangerous_functions = [func for func in tool_capabilities.tool_functions 
+                             if any(pattern in func.name.lower() 
+                                   for pattern in ['exec', 'eval', 'command', 'shell'])]
+        
+        if dangerous_functions:
+            gaps.append({
+                'type': 'Code Execution Risk',
+                'description': f'{len(dangerous_functions)} functions allow code execution',
+                'severity': 'Critical',
+                'recommendation': 'Implement sandboxing and strict validation for code execution'
+            })
+        
+        return gaps
+
+    def _prioritize_mitigations(self, attack_surface: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Prioritize mitigation strategies based on attack surface analysis."""
+        priorities = []
+        
+        # Critical priority items
+        if attack_surface['attack_paths']:
+            priorities.append({
+                'priority': 1,
+                'category': 'Attack Path Mitigation',
+                'description': f'Address {len(attack_surface["attack_paths"])} identified attack paths',
+                'actions': ['Implement function isolation', 'Add access controls', 'Enable logging']
+            })
+        
+        # High priority items
+        critical_gaps = [gap for gap in attack_surface['security_gaps'] 
+                        if gap['severity'] == 'Critical']
+        if critical_gaps:
+            priorities.append({
+                'priority': 2,
+                'category': 'Critical Security Gaps',
+                'description': f'Fix {len(critical_gaps)} critical security gaps',
+                'actions': [gap['recommendation'] for gap in critical_gaps]
+            })
+        
+        # Medium priority items
+        if attack_surface['security_relevant_functions'] > 0:
+            priorities.append({
+                'priority': 3,
+                'category': 'Function Security Hardening',
+                'description': f'Harden {attack_surface["security_relevant_functions"]} security-relevant functions',
+                'actions': ['Add input validation', 'Implement rate limiting', 'Enable monitoring']
+            })
+        
+        return priorities
     
     def _create_minimal_capabilities(self, mcp_server: MCPServerInfo) -> ToolCapabilities:
         """Create minimal capabilities object for failed analysis."""
@@ -2620,3 +3059,742 @@ class MCPCapabilityAnalyzer:
             access_requirements=AccessRequirements(),
             external_dependencies=[]
         ) 
+    
+    def map_capabilities_to_threats(self, 
+                                  tool_capabilities: ToolCapabilities,
+                                  environment_context: Optional[EnvironmentContext] = None) -> Dict[str, Any]:
+        """
+        Map tool capabilities to specific threats using pattern-based analysis.
+        
+        This implements the Capability-to-Threat Mapping Algorithm from the design:
+        1. Extract function signatures and parameters
+        2. Categorize by security impact
+        3. Assess privilege requirements
+        4. Map to attack techniques using pattern database
+        5. Calculate exploitation difficulty
+        6. Generate specific threat scenarios
+        
+        Args:
+            tool_capabilities: Tool capabilities to analyze
+            environment_context: Optional environment context for threat modeling
+            
+        Returns:
+            Dictionary containing threat mappings and analysis
+        """
+        try:
+            self.logger.debug(f"Starting capability-to-threat mapping for {tool_capabilities.tool_name}")
+            
+            # Step 1: Extract function signatures and parameters
+            function_analysis = self._extract_function_signatures(tool_capabilities)
+            
+            # Step 2: Categorize by security impact
+            impact_categorization = self._categorize_security_impact(tool_capabilities, function_analysis)
+            
+            # Step 3: Assess privilege requirements
+            privilege_assessment = self._assess_privilege_requirements_detailed(tool_capabilities, environment_context)
+            
+            # Step 4: Map to attack techniques using pattern database
+            attack_technique_mapping = self._map_to_attack_techniques(
+                tool_capabilities, 
+                function_analysis, 
+                impact_categorization
+            )
+            
+            # Step 5: Calculate exploitation difficulty
+            exploitation_difficulty = self._calculate_exploitation_difficulty(
+                tool_capabilities,
+                privilege_assessment,
+                environment_context
+            )
+            
+            # Step 6: Generate specific threat scenarios
+            threat_scenarios = self._generate_threat_scenarios(
+                tool_capabilities,
+                attack_technique_mapping,
+                exploitation_difficulty,
+                environment_context
+            )
+            
+            # Compile comprehensive threat mapping
+            threat_mapping = {
+                'tool_name': tool_capabilities.tool_name,
+                'analysis_timestamp': datetime.now().isoformat(),
+                'function_analysis': function_analysis,
+                'security_impact': impact_categorization,
+                'privilege_requirements': privilege_assessment,
+                'attack_techniques': attack_technique_mapping,
+                'exploitation_difficulty': exploitation_difficulty,
+                'threat_scenarios': threat_scenarios,
+                'overall_threat_score': self._calculate_overall_threat_score(
+                    impact_categorization,
+                    exploitation_difficulty,
+                    len(attack_technique_mapping)
+                ),
+                'confidence_level': self._calculate_mapping_confidence(
+                    tool_capabilities,
+                    function_analysis,
+                    environment_context
+                )
+            }
+            
+            self.logger.info(f"Capability-to-threat mapping completed for {tool_capabilities.tool_name}")
+            return threat_mapping
+            
+        except Exception as e:
+            self.logger.error(f"Capability-to-threat mapping failed: {e}")
+            return {
+                'tool_name': tool_capabilities.tool_name,
+                'error': str(e),
+                'threat_scenarios': [],
+                'overall_threat_score': 0.5,
+                'confidence_level': 0.1
+            }
+    
+    def _extract_function_signatures(self, tool_capabilities: ToolCapabilities) -> Dict[str, Any]:
+        """Extract detailed function signatures and parameter analysis."""
+        signatures = {}
+        
+        for func in tool_capabilities.tool_functions:
+            signature_analysis = {
+                'name': func.name,
+                'description': func.description,
+                'parameters': [],
+                'risk_indicators': [],
+                'parameter_count': len(func.parameters) if func.parameters else 0,
+                'has_file_params': False,
+                'has_network_params': False,
+                'has_command_params': False
+            }
+            
+            # Analyze parameters
+            if func.parameters:
+                for param in func.parameters:
+                    param_analysis = {
+                        'name': param.get('name', ''),
+                        'type': param.get('type', 'unknown'),
+                        'required': param.get('required', False),
+                        'risk_level': self._assess_parameter_risk(param)
+                    }
+                    signature_analysis['parameters'].append(param_analysis)
+                    
+                    # Check for high-risk parameter types
+                    param_str = str(param).lower()
+                    if any(keyword in param_str for keyword in ['file', 'path', 'directory']):
+                        signature_analysis['has_file_params'] = True
+                        signature_analysis['risk_indicators'].append('file_system_access')
+                    
+                    if any(keyword in param_str for keyword in ['url', 'endpoint', 'host', 'server']):
+                        signature_analysis['has_network_params'] = True
+                        signature_analysis['risk_indicators'].append('network_access')
+                    
+                    if any(keyword in param_str for keyword in ['command', 'cmd', 'script', 'execute']):
+                        signature_analysis['has_command_params'] = True
+                        signature_analysis['risk_indicators'].append('command_execution')
+            
+            signatures[func.name] = signature_analysis
+        
+        return signatures
+    
+    def _categorize_security_impact(self, 
+                                  tool_capabilities: ToolCapabilities,
+                                  function_analysis: Dict[str, Any]) -> Dict[str, Any]:
+        """Categorize functions by their security impact level."""
+        impact_categories = {
+            'critical': [],  # Direct system access, code execution
+            'high': [],      # File system, network access
+            'medium': [],    # Data processing, information disclosure
+            'low': [],       # Read-only operations, benign functions
+            'unknown': []    # Unable to categorize
+        }
+        
+        for func_name, analysis in function_analysis.items():
+            impact_level = 'unknown'
+            
+            # Critical impact - code execution
+            if any(indicator in analysis['risk_indicators'] for indicator in ['command_execution']):
+                impact_level = 'critical'
+                
+            # High impact - file system or network access
+            elif any(indicator in analysis['risk_indicators'] for indicator in ['file_system_access', 'network_access']):
+                impact_level = 'high'
+                
+            # Medium impact - data processing
+            elif analysis['parameter_count'] > 0:
+                impact_level = 'medium'
+                
+            # Low impact - read-only or minimal parameters
+            else:
+                impact_level = 'low'
+            
+            impact_categories[impact_level].append({
+                'function': func_name,
+                'description': analysis['description'],
+                'risk_indicators': analysis['risk_indicators'],
+                'justification': self._get_impact_justification(impact_level, analysis)
+            })
+        
+        # Calculate overall impact metrics
+        total_functions = len(function_analysis)
+        impact_distribution = {
+            level: len(funcs) / total_functions if total_functions > 0 else 0
+            for level, funcs in impact_categories.items()
+        }
+        
+        return {
+            'categories': impact_categories,
+            'distribution': impact_distribution,
+            'dominant_impact': max(impact_distribution.items(), key=lambda x: x[1])[0],
+            'risk_concentration': impact_distribution.get('critical', 0) + impact_distribution.get('high', 0)
+        }
+    
+    def _assess_privilege_requirements_detailed(self, 
+                                     tool_capabilities: ToolCapabilities,
+                                     environment_context: Optional[EnvironmentContext]) -> Dict[str, Any]:
+        """Assess privilege requirements for tool exploitation."""
+        privilege_assessment = {
+            'requires_admin': False,
+            'requires_user_auth': False,
+            'requires_network_access': False,
+            'requires_file_permissions': False,
+            'privilege_escalation_potential': False,
+            'assessment_reasoning': []
+        }
+        
+        # Check capability categories for privilege requirements
+        if CapabilityCategory.CODE_EXECUTION in tool_capabilities.capability_categories:
+            privilege_assessment['requires_admin'] = True
+            privilege_assessment['privilege_escalation_potential'] = True
+            privilege_assessment['assessment_reasoning'].append('Code execution capabilities require elevated privileges')
+        
+        if CapabilityCategory.FILE_SYSTEM in tool_capabilities.capability_categories:
+            privilege_assessment['requires_file_permissions'] = True
+            privilege_assessment['assessment_reasoning'].append('File system access requires appropriate file permissions')
+        
+        if CapabilityCategory.NETWORK_ACCESS in tool_capabilities.capability_categories:
+            privilege_assessment['requires_network_access'] = True
+            privilege_assessment['assessment_reasoning'].append('Network operations require network connectivity')
+        
+        # Check access requirements from tool capabilities
+        if hasattr(tool_capabilities, 'access_requirements'):
+            access_req = tool_capabilities.access_requirements
+            if access_req.requires_authentication:
+                privilege_assessment['requires_user_auth'] = True
+                privilege_assessment['assessment_reasoning'].append('Tool requires user authentication')
+            
+            if access_req.requires_admin_privileges:
+                privilege_assessment['requires_admin'] = True
+                privilege_assessment['assessment_reasoning'].append('Tool explicitly requires admin privileges')
+        
+        # Environment context considerations
+        if environment_context:
+            if environment_context.has_admin_access:
+                privilege_assessment['privilege_escalation_potential'] = True
+                privilege_assessment['assessment_reasoning'].append('Admin access available in environment')
+        
+        return privilege_assessment
+    
+    def _map_to_attack_techniques(self,
+                                tool_capabilities: ToolCapabilities,
+                                function_analysis: Dict[str, Any],
+                                impact_categorization: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Map capabilities to specific attack techniques."""
+        attack_techniques = []
+        
+        # MITRE ATT&CK technique mappings based on capabilities
+        technique_mappings = {
+            'command_execution': {
+                'technique_id': 'T1059',
+                'technique_name': 'Command and Scripting Interpreter',
+                'description': 'Execute arbitrary commands through tool functions',
+                'severity': 'critical'
+            },
+            'file_system_access': {
+                'technique_id': 'T1083',
+                'technique_name': 'File and Directory Discovery',
+                'description': 'Access and manipulate file system through tool capabilities',
+                'severity': 'high'
+            },
+            'network_access': {
+                'technique_id': 'T1071',
+                'technique_name': 'Application Layer Protocol',
+                'description': 'Abuse network capabilities for command and control',
+                'severity': 'high'
+            }
+        }
+        
+        # Analyze each function for attack techniques
+        for func_name, analysis in function_analysis.items():
+            for risk_indicator in analysis['risk_indicators']:
+                if risk_indicator in technique_mappings:
+                    technique = technique_mappings[risk_indicator].copy()
+                    technique.update({
+                        'applicable_function': func_name,
+                        'function_description': analysis['description'],
+                        'exploitation_vector': self._generate_exploitation_vector(func_name, analysis),
+                        'prerequisites': self._identify_prerequisites(analysis),
+                        'detection_difficulty': self._assess_detection_difficulty(analysis)
+                    })
+                    attack_techniques.append(technique)
+        
+        # Add capability-based techniques
+        for category in tool_capabilities.capability_categories:
+            category_techniques = self._get_category_specific_techniques(category, tool_capabilities)
+            attack_techniques.extend(category_techniques)
+        
+        # Remove duplicates and rank by severity
+        unique_techniques = []
+        seen_techniques = set()
+        
+        for tech in attack_techniques:
+            tech_key = f"{tech['technique_id']}_{tech['applicable_function']}"
+            if tech_key not in seen_techniques:
+                seen_techniques.add(tech_key)
+                unique_techniques.append(tech)
+        
+        # Sort by severity (critical > high > medium > low)
+        severity_order = {'critical': 0, 'high': 1, 'medium': 2, 'low': 3}
+        unique_techniques.sort(key=lambda x: severity_order.get(x['severity'], 4))
+        
+        return unique_techniques[:10]  # Top 10 most relevant techniques
+    
+    def _calculate_exploitation_difficulty(self,
+                                         tool_capabilities: ToolCapabilities,
+                                         privilege_assessment: Dict[str, Any],
+                                         environment_context: Optional[EnvironmentContext]) -> Dict[str, Any]:
+        """Calculate the difficulty of exploiting the tool capabilities."""
+        difficulty_factors = {
+            'authentication_required': 0.0,
+            'privilege_escalation_needed': 0.0,
+            'technical_complexity': 0.0,
+            'environment_constraints': 0.0,
+            'detection_likelihood': 0.0
+        }
+        
+        # Authentication factor
+        if privilege_assessment['requires_user_auth']:
+            difficulty_factors['authentication_required'] = 0.3
+        if privilege_assessment['requires_admin']:
+            difficulty_factors['authentication_required'] = 0.5
+        
+        # Privilege escalation factor
+        if privilege_assessment['privilege_escalation_potential']:
+            difficulty_factors['privilege_escalation_needed'] = 0.2
+        
+        # Technical complexity based on function count and complexity
+        func_count = len(tool_capabilities.tool_functions)
+        if func_count > 10:
+            difficulty_factors['technical_complexity'] = 0.1
+        elif func_count > 5:
+            difficulty_factors['technical_complexity'] = 0.05
+        
+        # Environment constraints
+        if environment_context:
+            if not environment_context.has_network_access:
+                difficulty_factors['environment_constraints'] = 0.3
+            if environment_context.security_controls_enabled:
+                difficulty_factors['environment_constraints'] += 0.2
+        
+        # Detection likelihood based on monitoring capabilities
+        if tool_capabilities.requires_privileges:
+            difficulty_factors['detection_likelihood'] = 0.4
+        
+        # Calculate overall difficulty score (0.0 = very easy, 1.0 = very difficult)
+        overall_difficulty = sum(difficulty_factors.values())
+        overall_difficulty = min(1.0, overall_difficulty)  # Cap at 1.0
+        
+        # Determine difficulty level
+        if overall_difficulty >= 0.7:
+            difficulty_level = 'very_high'
+        elif overall_difficulty >= 0.5:
+            difficulty_level = 'high'
+        elif overall_difficulty >= 0.3:
+            difficulty_level = 'medium'
+        elif overall_difficulty >= 0.1:
+            difficulty_level = 'low'
+        else:
+            difficulty_level = 'very_low'
+        
+        return {
+            'overall_score': overall_difficulty,
+            'difficulty_level': difficulty_level,
+            'factors': difficulty_factors,
+            'explanation': self._generate_difficulty_explanation(difficulty_factors, difficulty_level)
+        }
+    
+    def _generate_threat_scenarios(self,
+                                 tool_capabilities: ToolCapabilities,
+                                 attack_techniques: List[Dict[str, Any]],
+                                 exploitation_difficulty: Dict[str, Any],
+                                 environment_context: Optional[EnvironmentContext]) -> List[Dict[str, Any]]:
+        """Generate specific threat scenarios based on capability analysis."""
+        scenarios = []
+        
+        # Generate scenarios for each attack technique
+        for technique in attack_techniques[:5]:  # Top 5 techniques
+            scenario = {
+                'scenario_id': f"scenario_{len(scenarios) + 1}",
+                'title': f"{technique['technique_name']} via {technique['applicable_function']}",
+                'severity': technique['severity'],
+                'attack_technique': technique,
+                'steps': self._generate_attack_steps(technique, tool_capabilities),
+                'prerequisites': technique.get('prerequisites', []),
+                'potential_impact': self._assess_scenario_impact(technique, tool_capabilities),
+                'likelihood': self._calculate_scenario_likelihood(
+                    technique,
+                    exploitation_difficulty,
+                    environment_context
+                ),
+                'detection_indicators': self._generate_detection_indicators(technique),
+                'mitigation_strategies': self._suggest_mitigations(technique, tool_capabilities)
+            }
+            scenarios.append(scenario)
+        
+        # Add capability-combination scenarios
+        if len(tool_capabilities.tool_functions) > 3:
+            combination_scenario = self._generate_combination_scenario(
+                tool_capabilities,
+                exploitation_difficulty,
+                environment_context
+            )
+            if combination_scenario:
+                scenarios.append(combination_scenario)
+        
+        return scenarios
+    
+    def _calculate_overall_threat_score(self,
+                                      impact_categorization: Dict[str, Any],
+                                      exploitation_difficulty: Dict[str, Any],
+                                      technique_count: int) -> float:
+        """Calculate overall threat score for the tool."""
+        # Impact score (0.0 - 1.0)
+        impact_score = impact_categorization['risk_concentration']
+        
+        # Exploitation ease score (inverse of difficulty)
+        ease_score = 1.0 - exploitation_difficulty['overall_score']
+        
+        # Technique diversity score
+        diversity_score = min(1.0, technique_count / 10.0)
+        
+        # Weighted combination
+        overall_score = (
+            impact_score * 0.5 +      # 50% weight for impact
+            ease_score * 0.3 +        # 30% weight for exploitation ease
+            diversity_score * 0.2     # 20% weight for technique diversity
+        )
+        
+        return round(overall_score, 3)
+    
+    def _calculate_mapping_confidence(self,
+                                    tool_capabilities: ToolCapabilities,
+                                    function_analysis: Dict[str, Any],
+                                    environment_context: Optional[EnvironmentContext]) -> float:
+        """Calculate confidence level in the threat mapping."""
+        confidence_factors = []
+        
+        # Function analysis completeness
+        if function_analysis:
+            analyzed_funcs = len([f for f in function_analysis.values() if f['risk_indicators']])
+            total_funcs = len(function_analysis)
+            if total_funcs > 0:
+                confidence_factors.append(analyzed_funcs / total_funcs)
+        
+        # Tool metadata completeness
+        metadata_score = 0.0
+        if tool_capabilities.tool_name:
+            metadata_score += 0.25
+        if tool_capabilities.tool_functions:
+            metadata_score += 0.5
+        if tool_capabilities.capability_categories:
+            metadata_score += 0.25
+        confidence_factors.append(metadata_score)
+        
+        # Environment context availability
+        if environment_context:
+            confidence_factors.append(0.9)
+        else:
+            confidence_factors.append(0.6)
+        
+        # Calculate average confidence
+        if confidence_factors:
+            return round(sum(confidence_factors) / len(confidence_factors), 3)
+        else:
+            return 0.5
+    
+    # Helper methods for the algorithm implementation
+    
+    def _assess_parameter_risk(self, param: Dict[str, Any]) -> str:
+        """Assess risk level of a function parameter."""
+        param_str = str(param).lower()
+        
+        # High-risk patterns
+        high_risk_patterns = ['command', 'execute', 'eval', 'script', 'shell']
+        if any(pattern in param_str for pattern in high_risk_patterns):
+            return 'high'
+        
+        # Medium-risk patterns
+        medium_risk_patterns = ['file', 'path', 'url', 'host', 'server', 'query']
+        if any(pattern in param_str for pattern in medium_risk_patterns):
+            return 'medium'
+        
+        return 'low'
+    
+    def _get_impact_justification(self, impact_level: str, analysis: Dict[str, Any]) -> str:
+        """Get justification for impact level assessment."""
+        if impact_level == 'critical':
+            return f"Critical impact due to command execution capabilities: {', '.join(analysis['risk_indicators'])}"
+        elif impact_level == 'high':
+            return f"High impact due to system access: {', '.join(analysis['risk_indicators'])}"
+        elif impact_level == 'medium':
+            return f"Medium impact due to data processing with {analysis['parameter_count']} parameters"
+        else:
+            return "Low impact - limited functionality or read-only operations"
+    
+    def _generate_exploitation_vector(self, func_name: str, analysis: Dict[str, Any]) -> str:
+        """Generate specific exploitation vector description."""
+        risk_indicators = analysis['risk_indicators']
+        
+        if 'command_execution' in risk_indicators:
+            return f"Execute arbitrary commands through {func_name} function parameters"
+        elif 'file_system_access' in risk_indicators:
+            return f"Access or modify files through {func_name} function"
+        elif 'network_access' in risk_indicators:
+            return f"Establish network connections through {func_name} function"
+        else:
+            return f"Abuse {func_name} function for unintended purposes"
+    
+    def _identify_prerequisites(self, analysis: Dict[str, Any]) -> List[str]:
+        """Identify prerequisites for exploiting a function."""
+        prerequisites = []
+        
+        if analysis['has_command_params']:
+            prerequisites.append("Access to command parameters")
+        if analysis['has_file_params']:
+            prerequisites.append("File system permissions")
+        if analysis['has_network_params']:
+            prerequisites.append("Network connectivity")
+        if analysis['parameter_count'] > 5:
+            prerequisites.append("Understanding of complex parameter structure")
+        
+        return prerequisites or ["Basic tool access"]
+    
+    def _assess_detection_difficulty(self, analysis: Dict[str, Any]) -> str:
+        """Assess how difficult it would be to detect exploitation."""
+        if 'command_execution' in analysis['risk_indicators']:
+            return 'easy'  # Command execution is usually logged
+        elif 'file_system_access' in analysis['risk_indicators']:
+            return 'medium'  # File access can be monitored
+        elif 'network_access' in analysis['risk_indicators']:
+            return 'medium'  # Network activity can be monitored
+        else:
+            return 'hard'  # Data processing might be harder to detect
+    
+    def _get_category_specific_techniques(self, category: CapabilityCategory, tool_capabilities: ToolCapabilities) -> List[Dict[str, Any]]:
+        """Get attack techniques specific to capability categories."""
+        techniques = []
+        
+        category_mappings = {
+            CapabilityCategory.DATABASE_ACCESS: {
+                'technique_id': 'T1505',
+                'technique_name': 'Server Software Component',
+                'description': 'Abuse database access for persistence or data theft',
+                'severity': 'high'
+            },
+            CapabilityCategory.CLOUD_SERVICES: {
+                'technique_id': 'T1078',
+                'technique_name': 'Valid Accounts',
+                'description': 'Abuse cloud service credentials for lateral movement',
+                'severity': 'high'
+            },
+            CapabilityCategory.AUTHENTICATION: {
+                'technique_id': 'T1110',
+                'technique_name': 'Brute Force',
+                'description': 'Abuse authentication functions for credential attacks',
+                'severity': 'medium'
+            }
+        }
+        
+        if category in category_mappings:
+            technique = category_mappings[category].copy()
+            technique.update({
+                'applicable_function': f"category_{category.value}",
+                'function_description': f"Functions in {category.value} category",
+                'exploitation_vector': f"Abuse {category.value} capabilities",
+                'prerequisites': [f"Access to {category.value} functions"],
+                'detection_difficulty': 'medium'
+            })
+            techniques.append(technique)
+        
+        return techniques
+    
+    def _generate_difficulty_explanation(self, factors: Dict[str, float], level: str) -> str:
+        """Generate human-readable explanation of exploitation difficulty."""
+        explanations = []
+        
+        if factors['authentication_required'] > 0.3:
+            explanations.append("requires administrative privileges")
+        elif factors['authentication_required'] > 0.0:
+            explanations.append("requires user authentication")
+        
+        if factors['privilege_escalation_needed'] > 0.0:
+            explanations.append("needs privilege escalation")
+        
+        if factors['technical_complexity'] > 0.0:
+            explanations.append("has moderate technical complexity")
+        
+        if factors['environment_constraints'] > 0.2:
+            explanations.append("limited by environment constraints")
+        
+        if factors['detection_likelihood'] > 0.3:
+            explanations.append("likely to be detected")
+        
+        base_explanation = f"Exploitation difficulty is {level.replace('_', ' ')}"
+        if explanations:
+            return f"{base_explanation} because it {' and '.join(explanations)}"
+        else:
+            return f"{base_explanation} with minimal barriers to exploitation"
+    
+    def _generate_attack_steps(self, technique: Dict[str, Any], tool_capabilities: ToolCapabilities) -> List[str]:
+        """Generate specific attack steps for a technique."""
+        steps = [
+            "1. Gain access to MCP tool interface",
+            f"2. Identify exploitable function: {technique['applicable_function']}",
+            f"3. {technique['exploitation_vector']}",
+            "4. Execute malicious payload or commands",
+            "5. Establish persistence or exfiltrate data"
+        ]
+        
+        # Customize steps based on technique
+        if technique['technique_id'] == 'T1059':  # Command execution
+            steps[3] = "3. Inject malicious commands into function parameters"
+            steps[4] = "4. Execute arbitrary system commands"
+        elif technique['technique_id'] == 'T1083':  # File discovery
+            steps[3] = "3. Use file system functions to explore directory structure"
+            steps[4] = "4. Locate and access sensitive files"
+        
+        return steps
+    
+    def _assess_scenario_impact(self, technique: Dict[str, Any], tool_capabilities: ToolCapabilities) -> Dict[str, Any]:
+        """Assess potential impact of a threat scenario."""
+        impact = {
+            'confidentiality': 'low',
+            'integrity': 'low', 
+            'availability': 'low',
+            'scope': 'limited'
+        }
+        
+        if technique['severity'] == 'critical':
+            impact.update({
+                'confidentiality': 'high',
+                'integrity': 'high',
+                'availability': 'medium',
+                'scope': 'extensive'
+            })
+        elif technique['severity'] == 'high':
+            impact.update({
+                'confidentiality': 'medium',
+                'integrity': 'medium',
+                'availability': 'low',
+                'scope': 'moderate'
+            })
+        
+        return impact
+    
+    def _calculate_scenario_likelihood(self,
+                                     technique: Dict[str, Any],
+                                     exploitation_difficulty: Dict[str, Any],
+                                     environment_context: Optional[EnvironmentContext]) -> str:
+        """Calculate likelihood of scenario occurrence."""
+        difficulty_score = exploitation_difficulty['overall_score']
+        
+        if difficulty_score < 0.3:
+            return 'high'
+        elif difficulty_score < 0.6:
+            return 'medium'
+        else:
+            return 'low'
+    
+    def _generate_detection_indicators(self, technique: Dict[str, Any]) -> List[str]:
+        """Generate detection indicators for a technique."""
+        indicators = [
+            f"Unusual {technique['applicable_function']} function calls",
+            "Abnormal parameter patterns or values"
+        ]
+        
+        if technique['technique_id'] == 'T1059':
+            indicators.extend([
+                "Process execution monitoring alerts",
+                "Command line argument analysis"
+            ])
+        elif technique['technique_id'] == 'T1083':
+            indicators.extend([
+                "File access pattern analysis",
+                "Directory traversal attempts"
+            ])
+        
+        return indicators
+    
+    def _suggest_mitigations(self, technique: Dict[str, Any], tool_capabilities: ToolCapabilities) -> List[str]:
+        """Suggest specific mitigation strategies."""
+        mitigations = [
+            "Implement strict input validation",
+            "Enable comprehensive logging and monitoring",
+            "Apply principle of least privilege"
+        ]
+        
+        if technique['technique_id'] == 'T1059':
+            mitigations.extend([
+                "Disable or restrict command execution functions",
+                "Implement command filtering and sanitization",
+                "Use application sandboxing"
+            ])
+        elif technique['technique_id'] == 'T1083':
+            mitigations.extend([
+                "Implement file access controls",
+                "Use directory access restrictions",
+                "Enable file integrity monitoring"
+            ])
+        
+        return mitigations
+    
+    def _generate_combination_scenario(self,
+                                     tool_capabilities: ToolCapabilities,
+                                     exploitation_difficulty: Dict[str, Any],
+                                     environment_context: Optional[EnvironmentContext]) -> Optional[Dict[str, Any]]:
+        """Generate scenario combining multiple tool functions."""
+        if len(tool_capabilities.tool_functions) < 3:
+            return None
+        
+        return {
+            'scenario_id': 'combination_attack',
+            'title': 'Multi-Function Attack Chain',
+            'severity': 'high',
+            'attack_technique': {
+                'technique_id': 'T1105',  # Ingress Tool Transfer
+                'technique_name': 'Multi-Stage Attack',
+                'description': 'Combine multiple tool functions for complex attack'
+            },
+            'steps': [
+                "1. Reconnaissance using information gathering functions",
+                "2. Initial access through authentication functions", 
+                "3. Privilege escalation using system functions",
+                "4. Lateral movement with network functions",
+                "5. Data exfiltration using file system functions"
+            ],
+            'prerequisites': ["Access to multiple tool functions"],
+            'potential_impact': {
+                'confidentiality': 'high',
+                'integrity': 'high',
+                'availability': 'medium',
+                'scope': 'extensive'
+            },
+            'likelihood': 'medium',
+            'detection_indicators': [
+                "Sequential function calls across categories",
+                "Unusual function combination patterns"
+            ],
+            'mitigation_strategies': [
+                "Implement function call rate limiting",
+                "Monitor for suspicious function sequences",
+                "Segregate function categories by privilege level"
+            ]
+        }

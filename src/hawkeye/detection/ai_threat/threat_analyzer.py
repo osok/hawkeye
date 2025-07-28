@@ -1086,7 +1086,7 @@ class AIThreatAnalyzer:
             mitigation_strategies=mitigation_strategies,
             detection_indicators=detection_indicators,
             compliance_impact=ComplianceImpact(
-                affected_frameworks=[ComplianceFramework.SOC2_TYPE_II, ComplianceFramework.ISO_27001],
+                affected_frameworks=["SOC2", "ISO_27001"],  # Use strings instead of enum
                 violation_risk=threat_level,
                 required_controls=["Access controls", "Monitoring", "Incident response"]
             ),
@@ -1479,7 +1479,7 @@ for capability in tool_info:
         """Calculate threat level based on detected MCP tool capabilities."""
         # Analyze capabilities to determine threat level
         capability_categories = [cat.value.lower() for cat in tool_capabilities.capability_categories]
-        tools_available = [tool.name.lower() for tool in tool_capabilities.server_info.tools] if tool_capabilities.server_info.tools else []
+        tools_available = [tool.name.lower() for tool in tool_capabilities.tool_functions] if tool_capabilities.tool_functions else []
         
         threat_score = 0
         

@@ -866,22 +866,35 @@ def analyze_threats(ctx, input: str, output: Optional[str], format: str, analysi
                 cmdline = process_data.get('cmdline', [])
                 server_name = 'unknown'
                 if cmdline and len(cmdline) > 1:
-                    # Try to extract server name from path (e.g., exa-mcp-server, context7-mcp)
-                    for arg in reversed(cmdline):  # Look from end to beginning
-                        if 'mcp' in arg.lower() or 'server' in arg.lower():
+                    # Try to extract server name from executable path (not arguments)
+                    # Look for the actual server binary, not directory arguments
+                    for i, arg in enumerate(cmdline):
+                        # Skip the first argument if it's an interpreter (node, python, etc.)
+                        if i == 0 and arg.split('/')[-1] in ['node', 'python', 'python3', 'uv']:
+                            continue
+                        
+                        # Look for MCP server binaries (not directory paths)
+                        if ('mcp' in arg.lower() and ('server' in arg.lower() or 'mcp-server' in arg.lower())):
+                            # Extract just the binary name from the path
                             if '/' in arg:
-                                server_name = arg.split('/')[-1]
+                                binary_name = arg.split('/')[-1]
+                                # Make sure it's actually a server binary, not a directory
+                                if any(term in binary_name.lower() for term in ['server', 'mcp']):
+                                    server_name = binary_name
+                                    break
                             else:
                                 server_name = arg
-                            break
+                                break
                     
-                    # If no MCP-related arg found, use the last argument
+                    # Fallback: if still unknown, look for any executable-like argument
                     if server_name == 'unknown':
-                        server_path = cmdline[-1] if cmdline else ''
-                        if '/' in server_path:
-                            server_name = server_path.split('/')[-1]
-                        else:
-                            server_name = server_path
+                        for i, arg in enumerate(cmdline[1:], 1):  # Skip first arg (interpreter)
+                            if '/' in arg and not arg.startswith('/tmp/') and not arg.startswith('/ai/work/'):
+                                # This looks like an executable path, not a directory argument
+                                potential_name = arg.split('/')[-1]
+                                if potential_name and not potential_name.startswith('.'):
+                                    server_name = potential_name
+                                    break
                 
                 # Clean up server name
                 if server_name and server_name != 'unknown':
@@ -1088,20 +1101,20 @@ def analyze_threats(ctx, input: str, output: Optional[str], format: str, analysi
                     'abuse_scenarios': [
                         {
                             'scenario_name': scenario.scenario_name,
-                            'threat_actor': scenario.threat_actor.value,
+                            'threat_actor': scenario.threat_actor.value if hasattr(scenario.threat_actor, 'value') else str(scenario.threat_actor),
                             'motivation': scenario.motivation,
-                            'required_access': scenario.required_access.value,
-                            'detection_difficulty': scenario.detection_difficulty.value,
+                            'required_access': scenario.required_access.value if hasattr(scenario.required_access, 'value') else str(scenario.required_access),
+                            'detection_difficulty': scenario.detection_difficulty.value if hasattr(scenario.detection_difficulty, 'value') else str(scenario.detection_difficulty),
                             'business_impact': {
-                                'confidentiality': scenario.business_impact.confidentiality.value,
-                                'integrity': scenario.business_impact.integrity.value,
-                                'availability': scenario.business_impact.availability.value
+                                'financial_impact': scenario.business_impact.financial_impact,
+                                'operational_impact': scenario.business_impact.operational_impact,
+                                'reputation_impact': scenario.business_impact.reputation_impact
                             }
                         } for scenario in analysis.abuse_scenarios
                     ],
                     'compliance_impact': {
-                        'affected_frameworks': [fw.value for fw in analysis.compliance_impact.affected_frameworks],
-                        'violation_risk': analysis.compliance_impact.violation_risk.value,
+                        'affected_frameworks': [fw.value if hasattr(fw, 'value') else str(fw) for fw in analysis.compliance_impact.affected_frameworks],
+                        'violation_risk': analysis.compliance_impact.violation_risk.value if hasattr(analysis.compliance_impact.violation_risk, 'value') else str(analysis.compliance_impact.violation_risk),
                         'required_controls': analysis.compliance_impact.required_controls
                     },
                     'confidence_score': analysis.confidence_score,

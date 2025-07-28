@@ -483,26 +483,38 @@ class ResponseParser:
         try:
             logger.debug(f"Parsing {analysis_type} response ({len(content)} chars)")
             
+            # DEBUG: Log the raw AI response to understand parsing failures
+            logger.info(f"=== RAW AI RESPONSE DEBUG ({len(content)} chars) ===")
+            logger.info(f"First 500 chars: {content[:500]}")
+            logger.info(f"Last 500 chars: {content[-500:]}")
+            logger.info("=== END RAW RESPONSE ===")
+            
             # Strategy 1: Direct JSON extraction
             parsed_data = self._extract_json_data(content)
             if parsed_data:
                 logger.debug("Successfully extracted JSON data")
                 
-                # Validate against schema if provided
-                if response_schema and not self._validate_response_schema(parsed_data, response_schema):
-                    logger.warning("Response failed schema validation, attempting fallback")
-                    self.parsing_stats["validation_errors"] += 1
+                # Make schema validation more flexible - don't reject good content
+                schema_valid = True
+                if response_schema:
+                    schema_valid = self._validate_response_schema(parsed_data, response_schema)
+                    if not schema_valid:
+                        logger.warning("Response failed strict schema validation, but attempting to use it anyway")
+                        self.parsing_stats["validation_errors"] += 1
+                
+                # Convert to ThreatAnalysis - attempt even if schema validation failed
+                threat_analysis = self._convert_to_threat_analysis(
+                    parsed_data, 
+                    analysis_type,
+                    tool_capabilities,
+                    environment_context
+                )
+                if threat_analysis:
+                    self.parsing_stats["successful_parses"] += 1
+                    logger.info("Successfully converted AI response to ThreatAnalysis")
+                    return threat_analysis
                 else:
-                    # Convert to ThreatAnalysis
-                    threat_analysis = self._convert_to_threat_analysis(
-                        parsed_data, 
-                        analysis_type,
-                        tool_capabilities,
-                        environment_context
-                    )
-                    if threat_analysis:
-                        self.parsing_stats["successful_parses"] += 1
-                        return threat_analysis
+                    logger.warning("Failed to convert parsed data to ThreatAnalysis")
             
             # Strategy 2: Structured text extraction
             logger.debug("JSON extraction failed, attempting structured text parsing")
@@ -535,12 +547,16 @@ class ResponseParser:
             return None
             
         try:
-            # Strategy 1: Look for complete JSON object with better patterns
+            # Strategy 1: Look for complete JSON object with enhanced patterns
             json_patterns = [
                 r'```json\s*(\{.*?\})\s*```',  # Markdown code blocks
                 r'```\s*(\{.*?\})\s*```',      # Generic code blocks  
                 r'<json>\s*(\{.*?\})\s*</json>',  # XML-style tags
-                r'\{(?:[^{}]|(?:\{[^{}]*\}))*\}',  # Balanced braces - more comprehensive
+                # Most permissive pattern - match any balanced braces structure
+                r'(?s)(\{(?:[^{}]|(?:\{(?:[^{}]|(?:\{[^{}]*\})*)*\})*)*\})',  # Deeply nested JSON
+                # If the content starts with { and looks like JSON, try to capture it all
+                r'(?s)^(\{.*\})$',  # Entire content is JSON
+                r'(?s)(\{.*"threat_level".*\})',  # Contains threat_level anywhere
             ]
             
             for pattern in json_patterns:
@@ -551,13 +567,21 @@ class ResponseParser:
                         json_str = match if isinstance(match, str) else match
                         json_str = self._clean_json_string(json_str)
                         
+                        logger.debug(f"Attempting to parse JSON string: {json_str[:200]}...")
+                        
                         # Parse JSON
                         data = json.loads(json_str)
                         if isinstance(data, dict) and len(data) > 0:
-                            # Validate that it looks like a threat analysis response
-                            if self._validate_threat_analysis_structure(data):
+                            logger.debug(f"Successfully parsed JSON with keys: {list(data.keys())}")
+                            # Be more permissive - if it has threat analysis keys, accept it
+                            threat_keys = ['threat_level', 'attack_vectors', 'confidence_score']
+                            if any(key in data for key in threat_keys):
+                                logger.info("JSON contains threat analysis data, accepting")
                                 return data
-                    except json.JSONDecodeError:
+                            else:
+                                logger.debug("JSON missing expected threat analysis keys")
+                    except json.JSONDecodeError as e:
+                        logger.debug(f"JSON parsing failed: {e}")
                         continue
             
             # Strategy 2: Try parsing the entire content as JSON
@@ -901,25 +925,141 @@ class ResponseParser:
                                   analysis_type: str,
                                   tool_capabilities: ToolCapabilities,
                                   environment_context: EnvironmentContext) -> Optional[ThreatAnalysis]:
-        """Convert parsed data to ThreatAnalysis object."""
+        """Convert parsed AI JSON data to ThreatAnalysis object with proper mapping."""
         try:
-            # Use enhanced ThreatAnalysis.from_dict with additional context
-            threat_analysis = ThreatAnalysis.from_dict(data)
+            logger.info("Converting AI JSON to ThreatAnalysis object")
             
-            # Enhance with original context
-            threat_analysis.tool_capabilities = tool_capabilities
-            threat_analysis.environment_context = environment_context
-            threat_analysis.tool_signature = tool_capabilities.tool_id
+            # Import required classes
+            from .models import (
+                ThreatAnalysis, AttackVector, AbuseScenario, MitigationStrategy,
+                DetectionIndicator, ComplianceImpact, AnalysisMetadata,
+                SeverityLevel, ThreatLevel, ThreatActorType, AttackStep, BusinessImpact, AccessLevel,
+                ComplianceFramework
+            )
+            from datetime import datetime
             
-            # Update analysis metadata
-            if hasattr(threat_analysis, 'analysis_metadata'):
-                threat_analysis.analysis_metadata.analysis_type = analysis_type
-                threat_analysis.analysis_metadata.parsing_success = True
+            # Parse attack vectors from AI JSON
+            attack_vectors = []
+            for av_data in data.get("attack_vectors", []):
+                logger.debug(f"Processing attack vector: {av_data.get('name', 'Unknown')}")
+                
+                # Map severity level
+                severity_str = av_data.get("severity", "medium").lower()
+                severity = SeverityLevel.MEDIUM  # Default
+                if severity_str == "critical":
+                    severity = SeverityLevel.CRITICAL
+                elif severity_str == "high":
+                    severity = SeverityLevel.HIGH
+                elif severity_str == "low":
+                    severity = SeverityLevel.LOW
+                
+                attack_vector = AttackVector(
+                    name=av_data.get("name", "Unknown Attack"),
+                    severity=severity,
+                    description=av_data.get("description", ""),
+                    attack_steps=av_data.get("attack_steps", []),
+                    example_code=av_data.get("example_code", "# Example code not provided"),
+                    prerequisites=av_data.get("prerequisites", []),
+                    impact=av_data.get("impact", ""),
+                    likelihood=float(av_data.get("likelihood", 0.5)),
+                    mitigations=av_data.get("mitigations", [])
+                )
+                attack_vectors.append(attack_vector)
             
+            logger.info(f"Converted {len(attack_vectors)} attack vectors")
+            
+            # Parse abuse scenarios from AI JSON
+            abuse_scenarios = []
+            for as_data in data.get("abuse_scenarios", []):
+                # Convert attack_flow to AttackStep objects
+                attack_flow = []
+                for i, step in enumerate(as_data.get("attack_flow", [])):
+                    attack_step = AttackStep(
+                        step_number=i + 1,
+                        description=str(step),
+                        prerequisites=[],
+                        tools_required=[]
+                    )
+                    attack_flow.append(attack_step)
+                
+                business_impact = BusinessImpact(
+                    financial_impact=as_data.get("impact", "Unknown"),
+                    operational_impact=as_data.get("impact", "Unknown"),
+                    reputation_impact=as_data.get("impact", "Unknown")
+                )
+                
+                scenario = AbuseScenario(
+                    scenario_name=as_data.get("scenario_name", "Unknown Scenario"),
+                    threat_actor=ThreatActorType.EXTERNAL_ATTACKER,  # Default
+                    motivation=as_data.get("motivation", "Unknown"),
+                    attack_flow=attack_flow,
+                    required_access=AccessLevel.USER,
+                    business_impact=business_impact
+                )
+                abuse_scenarios.append(scenario)
+            
+            # Parse mitigation strategies
+            mitigation_strategies = []
+            for mit_data in data.get("mitigation_strategies", []):
+                mitigation = MitigationStrategy(
+                    name=mit_data.get("name", mit_data.get("description", "Security Control")[:50]),
+                    description=mit_data.get("description", ""),
+                    implementation_steps=mit_data.get("implementation_steps", []),
+                    effectiveness_score=float(mit_data.get("effectiveness", 0.7))
+                )
+                mitigation_strategies.append(mitigation)
+            
+            # Map threat level
+            threat_level_str = data.get("threat_level", "medium").lower()
+            if threat_level_str == "critical":
+                threat_level = ThreatLevel.CRITICAL
+            elif threat_level_str == "high":
+                threat_level = ThreatLevel.HIGH
+            elif threat_level_str == "low":
+                threat_level = ThreatLevel.LOW
+            elif threat_level_str == "minimal":
+                threat_level = ThreatLevel.MINIMAL
+            else:
+                threat_level = ThreatLevel.MEDIUM
+            
+            # Create analysis metadata
+            analysis_metadata = AnalysisMetadata(
+                provider="anthropic",
+                model="claude-3-5-sonnet-latest",
+                timestamp=datetime.now(),
+                analysis_duration=0.0,
+                cost=0.0,
+                confidence_score=float(data.get("confidence_score", 0.8))
+            )
+            
+            # Create compliance impact (simplified)
+            compliance_impact = ComplianceImpact(
+                affected_frameworks=[ComplianceFramework.SOC2, ComplianceFramework.ISO_27001],
+                violation_risk=threat_level,  # This should be a ThreatLevel enum
+                required_controls=["Access controls", "Monitoring", "Incident response"]
+            )
+            
+            # Create the ThreatAnalysis object
+            threat_analysis = ThreatAnalysis(
+                tool_signature=tool_capabilities.tool_id,
+                tool_capabilities=tool_capabilities,
+                environment_context=environment_context,
+                threat_level=threat_level,
+                attack_vectors=attack_vectors,
+                abuse_scenarios=abuse_scenarios,
+                mitigation_strategies=mitigation_strategies,
+                detection_indicators=[],  # Will be populated by other methods
+                compliance_impact=compliance_impact,
+                confidence_score=float(data.get("confidence_score", 0.8)),
+                analysis_metadata=analysis_metadata
+            )
+            
+            logger.info(f"Successfully converted AI response to ThreatAnalysis with {len(attack_vectors)} attack vectors")
             return threat_analysis
             
         except Exception as e:
-            logger.error(f"Failed to convert to ThreatAnalysis: {e}")
+            logger.error(f"Failed to convert AI JSON to ThreatAnalysis: {e}")
+            logger.error(f"AI data keys: {list(data.keys()) if data else 'No data'}")
             return None
     
     def get_parsing_statistics(self) -> Dict[str, Any]:

@@ -1,16 +1,15 @@
 """
-Base template system for HTML report generation.
+HTML report templates for HawkEye security reconnaissance tool.
 
-This module provides the foundational template engine and base classes
-for creating dynamic HTML reports with data binding, conditional rendering,
-and template inheritance.
+This package provides base template classes and the template engine for generating
+professional, formatted HTML reports with dynamic content generation capabilities.
 """
 
 import re
 import time
+import logging
 from abc import ABC, abstractmethod
-from pathlib import Path
-from typing import Dict, Any, Optional, List, Union
+from typing import Dict, Any, List, Optional, Union, Callable
 from string import Template
 
 from ..base import ReportData, ReportingError
@@ -479,4 +478,349 @@ class TemplateEngine:
     def clear_templates(self) -> None:
         """Clear all registered templates."""
         self._templates.clear()
-        self.logger.debug("Cleared all templates") 
+        self.logger.debug("Cleared all templates")
+
+
+class AdaptiveTemplateEngine(TemplateEngine):
+    """Enhanced template engine with adaptive templates for dynamic content generation."""
+    
+    def __init__(self):
+        """Initialize the adaptive template engine."""
+        super().__init__()
+        self.content_generators: Dict[str, Callable] = {}
+        self.context_injectors: Dict[str, Callable] = {}
+        self.severity_formatters: Dict[str, Dict[str, str]] = {}
+        
+    def register_content_generator(self, name: str, generator: Callable) -> None:
+        """
+        Register a content generator function.
+        
+        Args:
+            name: Name of the generator
+            generator: Function that generates dynamic content
+        """
+        self.content_generators[name] = generator
+        self.logger.debug(f"Registered content generator: {name}")
+    
+    def register_context_injector(self, context_type: str, injector: Callable) -> None:
+        """
+        Register a context injection function.
+        
+        Args:
+            context_type: Type of context (e.g., 'server_specific', 'environment')
+            injector: Function that injects context-specific details
+        """
+        self.context_injectors[context_type] = injector
+        self.logger.debug(f"Registered context injector: {context_type}")
+    
+    def register_severity_formatter(self, severity: str, formats: Dict[str, str]) -> None:
+        """
+        Register severity-based formatting rules.
+        
+        Args:
+            severity: Severity level (e.g., 'critical', 'high', 'medium', 'low')
+            formats: Dictionary of format rules (css_class, color, icon, etc.)
+        """
+        self.severity_formatters[severity] = formats
+        self.logger.debug(f"Registered severity formatter: {severity}")
+    
+    def select_adaptive_template(self, 
+                                base_template_name: str,
+                                threat_analysis: Optional[Any] = None,
+                                server_capabilities: Optional[List[str]] = None) -> str:
+        """
+        Select the most appropriate template based on analysis context.
+        
+        Args:
+            base_template_name: Base template name
+            threat_analysis: Threat analysis results
+            server_capabilities: List of server capabilities
+            
+        Returns:
+            str: Selected template name
+        """
+        # Determine complexity level
+        complexity = self._assess_content_complexity(threat_analysis, server_capabilities)
+        
+        # Select template variant based on complexity
+        if complexity == "high":
+            return f"{base_template_name}_detailed"
+        elif complexity == "medium":
+            return f"{base_template_name}_standard"
+        else:
+            return f"{base_template_name}_basic"
+    
+    def generate_dynamic_content(self, 
+                               content_type: str,
+                               data: ReportData,
+                               context: Optional[Dict[str, Any]] = None) -> str:
+        """
+        Generate dynamic content using registered generators.
+        
+        Args:
+            content_type: Type of content to generate
+            data: Report data
+            context: Additional context for generation
+            
+        Returns:
+            str: Generated content
+        """
+        generator = self.content_generators.get(content_type)
+        if not generator:
+            self.logger.warning(f"No generator found for content type: {content_type}")
+            return f"<!-- Dynamic content for {content_type} not available -->"
+        
+        try:
+            return generator(data, context or {})
+        except Exception as e:
+            self.logger.error(f"Content generation failed for {content_type}: {e}")
+            return f"<!-- Content generation error: {e} -->"
+    
+    def inject_context(self, 
+                      template_content: str,
+                      context_data: Dict[str, Any]) -> str:
+        """
+        Inject context-specific details into template content.
+        
+        Args:
+            template_content: Original template content
+            context_data: Context data for injection
+            
+        Returns:
+            str: Template content with injected context
+        """
+        content = template_content
+        
+        for context_type, injector in self.context_injectors.items():
+            if context_type in context_data:
+                try:
+                    content = injector(content, context_data[context_type])
+                except Exception as e:
+                    self.logger.error(f"Context injection failed for {context_type}: {e}")
+        
+        return content
+    
+    def apply_severity_formatting(self, 
+                                 content: str,
+                                 severity: str) -> str:
+        """
+        Apply severity-based formatting to content.
+        
+        Args:
+            content: Content to format
+            severity: Severity level
+            
+        Returns:
+            str: Formatted content
+        """
+        formatter = self.severity_formatters.get(severity.lower())
+        if not formatter:
+            return content
+        
+        # Apply formatting rules
+        for format_type, format_value in formatter.items():
+            placeholder = f"${{{format_type}}}"
+            content = content.replace(placeholder, format_value)
+        
+        return content
+    
+    def render_adaptive_template(self, 
+                               template_name: str,
+                               data: ReportData,
+                               threat_analysis: Optional[Any] = None,
+                               **kwargs) -> str:
+        """
+        Render a template with adaptive content generation.
+        
+        Args:
+            template_name: Name of the template to render
+            data: Report data to render
+            threat_analysis: Threat analysis data for adaptation
+            **kwargs: Additional template variables
+            
+        Returns:
+            str: Rendered HTML content with dynamic adaptations
+        """
+        # Select the most appropriate template
+        selected_template = self.select_adaptive_template(
+            template_name, threat_analysis, 
+            kwargs.get('server_capabilities')
+        )
+        
+        # Get template (fallback to base if variant not found)
+        template = self.get_template(selected_template)
+        if not template:
+            template = self.get_template(template_name)
+            if not template:
+                raise TemplateError(f"Template not found: {template_name}")
+        
+        # Generate dynamic content
+        dynamic_content = {}
+        for content_type in ['attack_scenarios', 'mitigation_strategies', 'detection_indicators']:
+            dynamic_content[content_type] = self.generate_dynamic_content(
+                content_type, data, {'threat_analysis': threat_analysis}
+            )
+        
+        # Merge dynamic content with kwargs
+        kwargs.update(dynamic_content)
+        
+        # Render base template
+        content = template.render(data, **kwargs)
+        
+        # Inject context-specific details
+        if threat_analysis:
+            context_data = {
+                'server_specific': {
+                    'threat_analysis': threat_analysis,
+                    'server_info': kwargs.get('server_info')
+                }
+            }
+            content = self.inject_context(content, context_data)
+        
+        # Apply severity-based formatting
+        if threat_analysis and hasattr(threat_analysis, 'threat_level'):
+            content = self.apply_severity_formatting(
+                content, str(threat_analysis.threat_level.value)
+            )
+        
+        return content
+    
+    def _assess_content_complexity(self, 
+                                 threat_analysis: Optional[Any],
+                                 server_capabilities: Optional[List[str]]) -> str:
+        """
+        Assess the complexity level for template selection.
+        
+        Args:
+            threat_analysis: Threat analysis results
+            server_capabilities: List of server capabilities
+            
+        Returns:
+            str: Complexity level ('low', 'medium', 'high')
+        """
+        complexity_score = 0
+        
+        if threat_analysis:
+            # Check threat level
+            if hasattr(threat_analysis, 'threat_level'):
+                threat_level = str(threat_analysis.threat_level.value).lower()
+                if threat_level in ['critical', 'high']:
+                    complexity_score += 3
+                elif threat_level == 'medium':
+                    complexity_score += 2
+                else:
+                    complexity_score += 1
+            
+            # Check number of attack vectors
+            if hasattr(threat_analysis, 'attack_vectors'):
+                complexity_score += min(len(threat_analysis.attack_vectors), 3)
+            
+            # Check abuse scenarios
+            if hasattr(threat_analysis, 'abuse_scenarios'):
+                complexity_score += min(len(threat_analysis.abuse_scenarios), 2)
+        
+        if server_capabilities:
+            # More capabilities = higher complexity
+            complexity_score += min(len(server_capabilities) // 3, 2)
+        
+        if complexity_score >= 7:
+            return "high"
+        elif complexity_score >= 4:
+            return "medium"
+        else:
+            return "low"
+
+
+class TemplateCapabilityMatcher:
+    """Matches templates to specific MCP tool capabilities for adaptive rendering."""
+    
+    def __init__(self):
+        """Initialize the capability matcher."""
+        self.capability_templates: Dict[str, str] = {}
+        self.capability_patterns: Dict[str, List[str]] = {}
+    
+    def register_capability_template(self, 
+                                   capability: str,
+                                   template_name: str,
+                                   patterns: Optional[List[str]] = None) -> None:
+        """
+        Register a template for a specific capability.
+        
+        Args:
+            capability: Capability name (e.g., 'file_system', 'network_access')
+            template_name: Template name to use for this capability
+            patterns: Optional regex patterns for capability matching
+        """
+        self.capability_templates[capability] = template_name
+        if patterns:
+            self.capability_patterns[capability] = patterns
+    
+    def match_template_for_capabilities(self, 
+                                      capabilities: List[str]) -> Optional[str]:
+        """
+        Find the best template match for given capabilities.
+        
+        Args:
+            capabilities: List of capability names
+            
+        Returns:
+            Optional[str]: Best matching template name
+        """
+        # Direct capability match
+        for capability in capabilities:
+            if capability in self.capability_templates:
+                return self.capability_templates[capability]
+        
+        # Pattern matching
+        for capability in capabilities:
+            for cap_name, patterns in self.capability_patterns.items():
+                for pattern in patterns:
+                    if re.search(pattern, capability, re.IGNORECASE):
+                        return self.capability_templates.get(cap_name)
+        
+        return None
+
+
+# Initialize default severity formatters
+def initialize_default_severity_formatters(engine: AdaptiveTemplateEngine) -> None:
+    """Initialize default severity-based formatters."""
+    
+    engine.register_severity_formatter('critical', {
+        'css_class': 'severity-critical',
+        'color': '#dc3545',
+        'bg_color': '#f8d7da',
+        'icon': '🚨',
+        'border_color': '#dc3545'
+    })
+    
+    engine.register_severity_formatter('high', {
+        'css_class': 'severity-high',
+        'color': '#fd7e14',
+        'bg_color': '#fff3cd',
+        'icon': '⚠️',
+        'border_color': '#fd7e14'
+    })
+    
+    engine.register_severity_formatter('medium', {
+        'css_class': 'severity-medium',
+        'color': '#ffc107',
+        'bg_color': '#fff3cd',
+        'icon': '⚡',
+        'border_color': '#ffc107'
+    })
+    
+    engine.register_severity_formatter('low', {
+        'css_class': 'severity-low',
+        'color': '#20c997',
+        'bg_color': '#d1ecf1',
+        'icon': 'ℹ️',
+        'border_color': '#20c997'
+    })
+    
+    engine.register_severity_formatter('minimal', {
+        'css_class': 'severity-minimal',
+        'color': '#6c757d',
+        'bg_color': '#f8f9fa',
+        'icon': '✓',
+        'border_color': '#6c757d'
+    }) 
