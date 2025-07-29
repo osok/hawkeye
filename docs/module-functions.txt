@@ -878,10 +878,10 @@ comprehensive threat analysis using the AI-powered threat analysis system.
 
 Examples:
 hawkeye detect target -t 192.168.1.100 -o results.json
-hawkeye detect analyze-threats -i results.json -o threats.json
+hawkeye analyze-threats -i results.json -o threats.json
 
 hawkeye detect local -o local_results.json
-hawkeye detect analyze-threats -i local_results.json -f html -o threat_report.html
+hawkeye analyze-threats -i local_results.json -f html -o threat_report.html
 
 **Line:** 710
 

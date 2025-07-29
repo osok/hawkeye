@@ -795,6 +795,10 @@ class ResponseParser:
             r'^["\'][\w\s]+["\']$',                # Pure quoted strings
             r'^\s*,\s*$',                          # Lone commas
             r'^\s*:\s*$',                          # Lone colons
+            r'^"_?[\w_]+"\s*:\s*.*,?\s*$',         # JSON key-value patterns like "_actor": "value",
+            r'^.*"\s*:\s*".*",?\s*$',              # Any key-value pattern with quotes
+            r'^\s*"[^"]*"\s*:\s*.*$',              # Quoted key with any value
+            r'.*Corporate\s+Espionage\s+Agent.*',   # Specific problematic fragment
         ]
         
         for pattern in json_patterns:
@@ -943,6 +947,17 @@ class ResponseParser:
             for av_data in data.get("attack_vectors", []):
                 logger.debug(f"Processing attack vector: {av_data.get('name', 'Unknown')}")
                 
+                # Validate and sanitize attack vector data before processing
+                vector_name = av_data.get("name", "Unknown Attack")
+                vector_description = av_data.get("description", "")
+                
+                # Skip if name or description contains JSON fragments
+                if (self._is_json_fragment(vector_name) or 
+                    self._is_json_fragment(vector_description) or
+                    len(vector_name.strip()) < 5):
+                    logger.warning(f"Skipping malformed attack vector with name: {vector_name[:50]}...")
+                    continue
+                
                 # Map severity level
                 severity_str = av_data.get("severity", "medium").lower()
                 severity = SeverityLevel.MEDIUM  # Default
@@ -954,9 +969,9 @@ class ResponseParser:
                     severity = SeverityLevel.LOW
                 
                 attack_vector = AttackVector(
-                    name=av_data.get("name", "Unknown Attack"),
+                    name=vector_name,
                     severity=severity,
-                    description=av_data.get("description", ""),
+                    description=vector_description,
                     attack_steps=av_data.get("attack_steps", []),
                     example_code=av_data.get("example_code", "# Example code not provided"),
                     prerequisites=av_data.get("prerequisites", []),
@@ -965,6 +980,27 @@ class ResponseParser:
                     mitigations=av_data.get("mitigations", [])
                 )
                 attack_vectors.append(attack_vector)
+            
+            # If all attack vectors were filtered out as JSON fragments, create a fallback
+            if not attack_vectors and data.get("attack_vectors"):
+                logger.warning("All attack vectors were filtered as JSON fragments, creating fallback attack vector")
+                attack_vectors.append(AttackVector(
+                    name="MCP Tool Security Analysis",
+                    severity=SeverityLevel.MEDIUM,
+                    description="General security concerns with detected MCP tool",
+                    attack_steps=[
+                        "Analyze MCP tool interfaces and capabilities",
+                        "Identify potential input validation issues", 
+                        "Test for authorization bypass vulnerabilities",
+                        "Attempt privilege escalation through tool misuse",
+                        "Evaluate data exposure risks"
+                    ],
+                    example_code="# Generic MCP tool security testing\n# Note: Approach varies based on specific tool capabilities\ntool_info = await mcp_tool.get_capabilities()\nfor capability in tool_info:\n    # Test each capability for security issues\n    test_result = await security_test(capability)",
+                    prerequisites=["Access to MCP tool interface"],
+                    impact="Varies based on tool capabilities and vulnerabilities",
+                    likelihood=0.5,
+                    mitigations=[]
+                ))
             
             logger.info(f"Converted {len(attack_vectors)} attack vectors")
             

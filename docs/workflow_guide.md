@@ -45,7 +45,7 @@ python application.py [GLOBAL_OPTIONS] COMMAND [SUB_COMMAND] [OPTIONS]
 
 **Important:** The `analyze-threats` command is under the `detect` group:
 ```bash
-python application.py detect analyze-threats [OPTIONS]
+python application.py analyze-threats [OPTIONS]
 ```
 
 **Global Options:**
@@ -190,29 +190,62 @@ python application.py detect local \
   --output minimal_local.json
 ```
 
-### Scenario 6: Comprehensive Detection with Introspection
+### Scenario 6: Network-Wide CIDR Detection
 
-**Use Case:** Deep analysis with MCP introspection
+**Use Case:** Comprehensive MCP detection across network ranges
+**Risk Level:** Medium-High
+**Time Required:** 10-60 minutes (depending on network size)
+
+```bash
+# Basic CIDR detection for small networks
+python application.py detect comprehensive --target 192.168.1.0/24 \
+  --output network_detection.json
+
+# Large enterprise network with optimized settings
+python application.py detect comprehensive --target 10.0.0.0/16 \
+  --confidence-threshold 0.5 \
+  --introspection-timeout 120 \
+  --output enterprise_detection.json
+
+# Multi-subnet detection workflow
+python application.py detect comprehensive --target 192.168.0.0/22 \
+  --enable-risk-assessment \
+  --format html \
+  --output network_report.html
+
+# CIDR detection with AI threat analysis
+python application.py detect comprehensive --target 192.168.1.0/24 --output cidr_results.json
+python application.py analyze-threats -i cidr_results.json -f html -o network_threats.html
+```
+
+### Scenario 7: Comprehensive Detection with Introspection
+
+**Use Case:** Deep analysis with MCP introspection (single target)
 **Risk Level:** Medium
 **Time Required:** 5-20 minutes
 
 ```bash
-# Comprehensive detection of target
+# Comprehensive detection of single target
 python application.py detect comprehensive --target 192.168.1.100 \
   --output comprehensive_results.json
 
 # Comprehensive with custom introspection settings
 python application.py --verbose detect comprehensive --target api.example.com \
   --introspection-timeout 30 \
-  --max-tools-per-server 50 \
   --output detailed_introspection.json
+
+# Hostname-based comprehensive detection
+python application.py detect comprehensive --target api.internal.company.com \
+  --enable-risk-assessment \
+  --generate-introspection-report \
+  --format html
 ```
 
 ---
 
 ## AI-Powered Threat Analysis Workflows
 
-### Scenario 7: Basic AI Threat Analysis
+### Scenario 8: Basic AI Threat Analysis
 
 **Use Case:** AI-powered analysis of detected MCP servers
 **Risk Level:** Low
@@ -220,20 +253,24 @@ python application.py --verbose detect comprehensive --target api.example.com \
 **Requirements:** OpenAI or Anthropic API key
 
 ```bash
-# Step 1: Detect MCP servers and save to JSON
-python application.py detect target --target 192.168.1.100 \
+# Step 1: Detect MCP servers (supports CIDR) and save to JSON
+python application.py detect comprehensive --target 192.168.1.100 \
   --output detection_results.json
 
 # Step 2: Analyze threats using AI
-python application.py detect analyze-threats \
+python application.py analyze-threats \
   --input detection_results.json \
   --output threat_analysis.json
 
-# Step 3: Generate HTML report
-python application.py detect analyze-threats \
+# Step 3: Generate HTML report with visualization
+python application.py analyze-threats \
   --input detection_results.json \
   --format html \
   --output threat_report.html
+
+# Alternative: Network-wide detection and analysis
+python application.py detect comprehensive --target 192.168.1.0/24 --output network_results.json
+python application.py analyze-threats -i network_results.json -f html -o network_threats.html
 ```
 
 **Expected Output:**
@@ -273,7 +310,7 @@ Parallel processing: ✅
 HTML threat analysis report saved to threat_report.html
 ```
 
-### Scenario 8: Local System AI Analysis
+### Scenario 9: Local System AI Analysis
 
 **Use Case:** AI analysis of local MCP development environment
 **Risk Level:** Low
@@ -284,20 +321,20 @@ HTML threat analysis report saved to threat_report.html
 python application.py detect local --output local_results.json
 
 # Step 2: AI analysis with cost control
-python application.py detect analyze-threats \
+python application.py analyze-threats \
   --input local_results.json \
   --cost-limit 5.0 \
   --output local_threats.json
 
 # Step 3: Generate detailed HTML report
-python application.py detect analyze-threats \
+python application.py analyze-threats \
   --input local_results.json \
   --format html \
   --analysis-type detailed \
   --output local_security_report.html
 ```
 
-### Scenario 9: Batch AI Analysis with Parallel Processing
+### Scenario 10: Batch AI Analysis with Parallel Processing
 
 **Use Case:** High-performance analysis of multiple servers
 **Risk Level:** Medium
@@ -310,7 +347,7 @@ python application.py detect comprehensive --target api.company.com \
   --output comprehensive_results.json
 
 # Step 2: Parallel AI analysis with optimization
-python application.py detect analyze-threats \
+python application.py analyze-threats \
   --input comprehensive_results.json \
   --parallel-processing \
   --max-workers 5 \
@@ -319,7 +356,7 @@ python application.py detect analyze-threats \
   --output batch_analysis.csv
 
 # Step 3: Generate executive summary
-python application.py detect analyze-threats \
+python application.py analyze-threats \
   --input comprehensive_results.json \
   --format html \
   --analysis-type comprehensive \
@@ -334,7 +371,7 @@ python application.py detect analyze-threats \
 
 ```bash
 # Quick analysis with strict cost limits
-python application.py detect analyze-threats \
+python application.py analyze-threats \
   --input detection_results.json \
   --analysis-type quick \
   --cost-limit 2.0 \
@@ -342,7 +379,7 @@ python application.py detect analyze-threats \
   --output budget_analysis.json
 
 # Sequential processing to minimize costs
-python application.py detect analyze-threats \
+python application.py analyze-threats \
   --input bulk_detection.json \
   --sequential-processing \
   --cost-limit 10.0 \
@@ -361,25 +398,25 @@ python application.py detect target --target 192.168.1.100 \
   --output detection.json
 
 # Generate JSON for technical teams
-python application.py detect analyze-threats \
+python application.py analyze-threats \
   --input detection.json \
   --format json \
   --output technical_analysis.json
 
 # Generate CSV for data analysis
-python application.py detect analyze-threats \
+python application.py analyze-threats \
   --input detection.json \
   --format csv \
   --output analysis_data.csv
 
 # Generate XML for SIEM integration
-python application.py detect analyze-threats \
+python application.py analyze-threats \
   --input detection.json \
   --format xml \
   --output siem_feed.xml
 
 # Generate HTML for executives
-python application.py detect analyze-threats \
+python application.py analyze-threats \
   --input detection.json \
   --format html \
   --analysis-type comprehensive \
@@ -427,18 +464,18 @@ python application.py detect comprehensive --target api.internal.com \
 
 # Phase 5: AI Threat Analysis
 echo "Phase 5: AI-Powered Threat Analysis"
-python application.py detect analyze-threats \
+python application.py analyze-threats \
   --input phase1_network_discovery.json \
   --parallel-processing \
   --cost-limit 50.0 \
   --output phase5_network_threats.json
 
-python application.py detect analyze-threats \
+python application.py analyze-threats \
   --input phase2_local_audit.json \
   --analysis-type detailed \
   --output phase5_local_threats.json
 
-python application.py detect analyze-threats \
+python application.py analyze-threats \
   --input phase4_introspection.json \
   --analysis-type comprehensive \
   --format html \
@@ -482,7 +519,7 @@ python application.py --verbose detect local \
 
 # Step 2: AI-powered threat analysis of local findings
 echo "Step 2: AI Threat Analysis of Local Systems"
-python application.py detect analyze-threats \
+python application.py analyze-threats \
   --input incident_local_snapshot.json \
   --analysis-type detailed \
   --confidence-threshold 0.2 \
@@ -497,7 +534,7 @@ python application.py detect comprehensive --target $SUSPICIOUS_IP \
 
 # Step 4: AI analysis of network findings
 echo "Step 4: AI Analysis of Network Findings"
-python application.py detect analyze-threats \
+python application.py analyze-threats \
   --input incident_network_analysis.json \
   --analysis-type comprehensive \
   --output incident_network_threats.json
@@ -534,13 +571,13 @@ python application.py scan --target 192.168.1.0/24 --output compliance_network.j
 
 # Phase 2: Detailed AI Analysis for Compliance
 echo "Phase 2: Compliance-Focused AI Analysis"
-python application.py detect analyze-threats \
+python application.py analyze-threats \
   --input compliance_local.json \
   --analysis-type detailed \
   --confidence-threshold 0.8 \
   --output compliance_local_analysis.json
 
-python application.py detect analyze-threats \
+python application.py analyze-threats \
   --input compliance_network.json \
   --analysis-type comprehensive \
   --output compliance_network_analysis.json
@@ -571,7 +608,7 @@ echo "📊 Report: Compliance_Audit_Report.html"
 
 ```bash
 # Generate all report formats from AI analysis
-python application.py detect analyze-threats \
+python application.py analyze-threats \
   --input detection_results.json \
   --format json \
   --output analysis.json
@@ -626,7 +663,7 @@ python application.py detect local \
   --output "$RESULTS_DIR/local_$DATE.json"
 
 # AI analysis of local changes
-python application.py detect analyze-threats \
+python application.py analyze-threats \
   --input "$RESULTS_DIR/local_$DATE.json" \
   --cost-limit 1.0 \
   --output "$RESULTS_DIR/threats_$DATE.json"
@@ -660,18 +697,18 @@ fi
 ```bash
 # Run same analysis with different providers
 export AI_PROVIDER=openai
-python application.py detect analyze-threats \
+python application.py analyze-threats \
   --input detection_results.json \
   --output openai_analysis.json
 
 export AI_PROVIDER=anthropic
-python application.py detect analyze-threats \
+python application.py analyze-threats \
   --input detection_results.json \
   --output anthropic_analysis.json
 
 export AI_PROVIDER=local_llm
 export AI_LOCAL_LLM_ENDPOINT=http://localhost:11434
-python application.py detect analyze-threats \
+python application.py analyze-threats \
   --input detection_results.json \
   --output local_llm_analysis.json
 
@@ -696,7 +733,7 @@ echo "📊 Local LLM Analysis: local_llm_analysis.json"
 python application.py analyze-threats -i results.json
 
 # ✅ Correct
-python application.py detect analyze-threats -i results.json
+python application.py analyze-threats -i results.json
 ```
 
 ### Issue 2: AI Provider API Errors
@@ -709,14 +746,14 @@ python application.py detect analyze-threats -i results.json
 python application.py config show
 
 # Test with cost limit
-python application.py detect analyze-threats \
+python application.py analyze-threats \
   --input results.json \
   --cost-limit 1.0 \
   --analysis-type quick
 
 # Use fallback provider
 export AI_FALLBACK_PROVIDER=anthropic
-python application.py detect analyze-threats --input results.json
+python application.py analyze-threats --input results.json
 ```
 
 ### Issue 3: "'NoneType' object has no attribute 'verbose'"
@@ -726,10 +763,10 @@ python application.py detect analyze-threats --input results.json
 
 ```bash
 # Ensure using correct command structure
-python application.py detect analyze-threats --input results.json
+python application.py analyze-threats --input results.json
 
 # Use verbose mode for debugging
-python application.py --verbose detect analyze-threats --input results.json
+python application.py --verbose analyze-threats --input results.json
 ```
 
 ### Issue 4: High AI Analysis Costs
@@ -739,17 +776,17 @@ python application.py --verbose detect analyze-threats --input results.json
 
 ```bash
 # Use cost limits
-python application.py detect analyze-threats \
+python application.py analyze-threats \
   --input results.json \
   --cost-limit 5.0
 
 # Use quick analysis mode
-python application.py detect analyze-threats \
+python application.py analyze-threats \
   --input results.json \
   --analysis-type quick
 
 # Use sequential processing
-python application.py detect analyze-threats \
+python application.py analyze-threats \
   --input results.json \
   --sequential-processing
 ```
@@ -761,7 +798,7 @@ python application.py detect analyze-threats \
 
 ```bash
 # Filter by confidence threshold
-python application.py detect analyze-threats \
+python application.py analyze-threats \
   --input large_results.json \
   --confidence-threshold 0.7
 
@@ -783,7 +820,7 @@ with open('large_results.json') as f:
 1. **Cost Management:**
    ```bash
    # Always use cost limits for production
-   python application.py detect analyze-threats \
+   python application.py analyze-threats \
      --input results.json \
      --cost-limit 10.0
    ```

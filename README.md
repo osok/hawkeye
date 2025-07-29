@@ -53,22 +53,26 @@ cp env.example .env
 | `scan` | Network scanning with MCP detection | `python application.py scan --target 192.168.1.0/24` |
 | `detect target` | Target-specific MCP detection | `python application.py detect target -t 192.168.1.100 -o results.json` |
 | `detect local` | Local system MCP detection | `python application.py detect local -o local_results.json` |
-| `detect comprehensive` | Full detection with introspection | `python application.py detect comprehensive -t api.com -o report.json` |
-| `detect analyze-threats` | **AI threat analysis from JSON** | `python application.py detect analyze-threats -i results.json -o threats.html -f html` |
+| `detect comprehensive` | **Full detection with CIDR support** | `python application.py detect comprehensive -t 192.168.1.0/24 -o report.json` |
+| `analyze-threats` | **AI threat analysis from JSON** | `python application.py analyze-threats -i results.json -o threats.html -f html` |
 | `report generate` | Generate formatted reports | `python application.py report generate -i scan.json -f html` |
 
 ### AI-Powered Threat Analysis Workflow
 
 ```bash
-# Step 1: Detect MCP servers and save to JSON
-python application.py detect target -t 192.168.1.100 -o detection.json
+# Step 1: Detect MCP servers on network (supports CIDR) and save to JSON
+python application.py detect comprehensive -t 192.168.1.0/24 -o detection.json
 
 # Step 2: Analyze threats using AI (REAL API calls to OpenAI/Anthropic)
-python application.py detect analyze-threats -i detection.json -f html -o threat_report.html
+python application.py analyze-threats -i detection.json -f html -o threat_report.html
+
+# Single target analysis
+python application.py detect comprehensive -t 192.168.1.100 -o single_target.json
+python application.py analyze-threats -i single_target.json --cost-limit 5.0
 
 # Local system analysis
 python application.py detect local -o local.json
-python application.py detect analyze-threats -i local.json --cost-limit 5.0
+python application.py analyze-threats -i local.json --cost-limit 5.0
 ```
 
 ## 📖 Documentation
@@ -111,16 +115,19 @@ python application.py detect analyze-threats -i local.json --cost-limit 5.0
 ## 🚀 Quick Examples
 
 ```bash
-# Network assessment
-python application.py scan --target 192.168.1.0/24 --output network_scan.json
+# Network MCP detection (CIDR support)
+python application.py detect comprehensive --target 192.168.1.0/24 --output network_results.json
 
-# Complete security workflow  
-python application.py detect comprehensive -t api.example.com -o results.json
-python application.py detect analyze-threats -i results.json -f html -o security_report.html
+# Complete security workflow with AI analysis
+python application.py detect comprehensive -t 192.168.1.0/24 -o results.json
+python application.py analyze-threats -i results.json -f html -o security_report.html
+
+# Single target with detailed introspection
+python application.py detect comprehensive -t api.example.com -o detailed_results.json
 
 # Local system audit
 python application.py detect local --output local_audit.json
-python application.py detect analyze-threats -i local_audit.json --analysis-type detailed
+python application.py analyze-threats -i local_audit.json --analysis-type detailed
 ```
 
 ## 🧪 Testing

@@ -31,7 +31,7 @@ analyzer = AIThreatAnalyzer()
 ```bash
 # ✅ Correct commands
 python application.py detect target -t 192.168.1.100 -o results.json
-python application.py detect analyze-threats -i results.json -o threats.html -f html
+python application.py analyze-threats -i results.json -o threats.html -f html
 python application.py detect local -o local.json
 
 # ❌ Incorrect (missing detect group)
@@ -43,7 +43,7 @@ python application.py analyze-threats -i results.json  # This will fail
 ```bash
 # Complete workflow with AI analysis
 python application.py detect target -t 192.168.1.100 -o detection.json
-python application.py detect analyze-threats -i detection.json -f html -o report.html
+python application.py analyze-threats -i detection.json -f html -o report.html
 ```
 
 ## API Modules
@@ -431,7 +431,7 @@ risk_analysis = introspector.analyze_security_risks(
 python application.py analyze-threats -i results.json
 
 # New (v2.x) - CORRECT
-python application.py detect analyze-threats -i results.json
+python application.py analyze-threats -i results.json
 ```
 
 **API Changes:**

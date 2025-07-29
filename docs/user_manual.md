@@ -565,14 +565,14 @@ python application.py detect config --path /opt/mcp --include-hidden --max-depth
 
 ##### `detect comprehensive` - Comprehensive MCP Detection
 
-Performs comprehensive MCP detection using the integrated detection pipeline with Python-based introspection. This command combines traditional detection methods with advanced MCP introspection for complete analysis.
+Performs comprehensive MCP detection using the integrated detection pipeline with Python-based introspection. This command combines traditional detection methods with advanced MCP introspection for complete analysis. **Supports CIDR notation for network-wide scanning.**
 
 ```bash
 python application.py detect comprehensive [OPTIONS]
 ```
 
 **Required Options:**
-- `--target <IP|hostname>`: Target IP address or hostname
+- `--target <IP|CIDR|hostname>`: Target IP address, CIDR range, or hostname (e.g., 192.168.1.100, 192.168.1.0/24, example.com)
 
 **Optional Parameters:**
 - `--enable-introspection/--disable-introspection`: Enable enhanced MCP introspection (default: enabled)
@@ -586,8 +586,11 @@ python application.py detect comprehensive [OPTIONS]
 
 **Examples:**
 ```bash
-# Basic comprehensive detection
+# Basic comprehensive detection (single target)
 python application.py detect comprehensive --target 192.168.1.100
+
+# Network-wide CIDR detection
+python application.py detect comprehensive --target 192.168.1.0/24
 
 # Full detection with risk analysis and reporting
 python application.py detect comprehensive --target api.example.com \
@@ -595,10 +598,15 @@ python application.py detect comprehensive --target api.example.com \
   --generate-introspection-report \
   --format html
 
-# High-confidence detection with extended timeout
-python application.py detect comprehensive --target 192.168.1.100 \
+# Large network scan with custom settings
+python application.py detect comprehensive --target 10.0.0.0/16 \
   --confidence-threshold 0.8 \
-  --introspection-timeout 300
+  --introspection-timeout 300 \
+  --output enterprise_scan.json
+
+# CIDR scan with AI threat analysis workflow
+python application.py detect comprehensive --target 192.168.1.0/24 --output results.json
+python application.py analyze-threats -i results.json -f html -o threat_report.html
 ```
 
 **Detection Methods Included:**
@@ -1733,7 +1741,7 @@ The `analyze-threats` command provides a production-ready CLI interface for proc
 #### Command Syntax
 
 ```bash
-python application.py detect analyze-threats [OPTIONS]
+python application.py analyze-threats [OPTIONS]
 ```
 
 #### Required Parameters
@@ -1763,7 +1771,7 @@ python application.py detect analyze-threats [OPTIONS]
 python application.py detect target --target 192.168.1.100 --output detection_results.json
 
 # Step 2: Analyze threats from detection results
-python application.py detect analyze-threats --input detection_results.json --output threat_analysis.json
+python application.py analyze-threats --input detection_results.json --output threat_analysis.json
 ```
 
 **Comprehensive Analysis:**
@@ -1772,7 +1780,7 @@ python application.py detect analyze-threats --input detection_results.json --ou
 python application.py detect comprehensive --target api.example.com --output comprehensive_results.json
 
 # Step 2: Detailed AI threat analysis with custom settings
-python application.py detect analyze-threats \
+python application.py analyze-threats \
   --input comprehensive_results.json \
   --output detailed_threats.json \
   --analysis-type detailed \
@@ -1784,7 +1792,7 @@ python application.py detect analyze-threats \
 **HTML Report Generation:**
 ```bash
 # Generate HTML threat analysis report
-python application.py detect analyze-threats \
+python application.py analyze-threats \
   --input detection_results.json \
   --format html \
   --output security_report.html \
@@ -1795,14 +1803,14 @@ python application.py detect analyze-threats \
 ```bash
 # Local environment analysis
 python application.py detect local --output local_detection.json
-python application.py detect analyze-threats \
+python application.py analyze-threats \
   --input local_detection.json \
   --output local_threats.json \
   --confidence-threshold 0.6
 
 # Production environment analysis with cost controls
 python application.py detect target --target prod.company.com --output prod_detection.json
-python application.py detect analyze-threats \
+python application.py analyze-threats \
   --input prod_detection.json \
   --output prod_threats.json \
   --cost-limit 5.0 \
@@ -1963,7 +1971,7 @@ Structured XML output for integration with other security tools and systems.
 python application.py detect target --target $CI_TARGET --output detection.json
 
 # Analyze threats with cost controls
-python application.py detect analyze-threats \
+python application.py analyze-threats \
   --input detection.json \
   --output threats.json \
   --cost-limit 2.0 \
@@ -1994,14 +2002,14 @@ for target in "${TARGETS[@]}"; do
   python application.py detect target --target "$target" --output "detection_${target}_${DATE}.json"
   
   # Threat analysis
-  python application.py detect analyze-threats \
+  python application.py analyze-threats \
     --input "detection_${target}_${DATE}.json" \
     --output "threats_${target}_${DATE}.json" \
     --format json \
     --cost-limit 5.0
   
   # Generate HTML report
-  python application.py detect analyze-threats \
+  python application.py analyze-threats \
     --input "detection_${target}_${DATE}.json" \
     --output "report_${target}_${DATE}.html" \
     --format html
@@ -2014,7 +2022,7 @@ python send_security_alerts.py --date "$DATE"
 **Security Dashboard Integration:**
 ```bash
 # Export threat data to security dashboard
-python application.py detect analyze-threats \
+python application.py analyze-threats \
   --input detection_results.json \
   --format json \
   --output dashboard_data.json
@@ -2060,7 +2068,7 @@ curl -X POST https://dashboard.company.com/api/security-threats \
 ```bash
 # Development environment
 python application.py detect local --output dev_detection.json
-python application.py detect analyze-threats \
+python application.py analyze-threats \
   --input dev_detection.json \
   --output dev_threats.json \
   --analysis-type quick \
@@ -2068,7 +2076,7 @@ python application.py detect analyze-threats \
 
 # Staging environment  
 python application.py detect target --target staging.company.com --output staging_detection.json
-python application.py detect analyze-threats \
+python application.py analyze-threats \
   --input staging_detection.json \
   --output staging_threats.json \
   --analysis-type comprehensive \
@@ -2076,7 +2084,7 @@ python application.py detect analyze-threats \
 
 # Production environment (detailed analysis)
 python application.py detect comprehensive --target prod.company.com --output prod_detection.json
-python application.py detect analyze-threats \
+python application.py analyze-threats \
   --input prod_detection.json \
   --output prod_threats.json \
   --analysis-type detailed \
@@ -2088,7 +2096,7 @@ python application.py detect analyze-threats \
 **Compliance and Audit Support:**
 ```bash
 # Generate compliance-ready reports
-python application.py detect analyze-threats \
+python application.py analyze-threats \
   --input audit_detection.json \
   --output compliance_analysis.xml \
   --format xml \
@@ -2096,7 +2104,7 @@ python application.py detect analyze-threats \
   --confidence-threshold 0.9
 
 # Create executive summary for stakeholders
-python application.py detect analyze-threats \
+python application.py analyze-threats \
   --input audit_detection.json \
   --output executive_summary.html \
   --format html \

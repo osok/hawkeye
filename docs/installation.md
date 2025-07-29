@@ -142,7 +142,7 @@ print('✅ OpenAI connection successful')
 
 # Test with HawkEye
 python application.py detect local --output test.json
-python application.py detect analyze-threats --input test.json --cost-limit 0.50
+python application.py analyze-threats --input test.json --cost-limit 0.50
 ```
 
 ### 2. Anthropic Setup
@@ -186,7 +186,7 @@ print('✅ Anthropic connection successful')
 
 # Test with HawkEye
 python application.py detect local --output test.json
-python application.py detect analyze-threats --input test.json --cost-limit 0.50
+python application.py analyze-threats --input test.json --cost-limit 0.50
 ```
 
 ### 3. Local LLM Setup (Ollama)
@@ -234,7 +234,7 @@ curl http://localhost:11434/api/tags
 
 # Test with HawkEye
 python application.py detect local --output test.json
-python application.py detect analyze-threats --input test.json
+python application.py analyze-threats --input test.json
 ```
 
 ### 4. Multi-Provider Setup (Recommended)
@@ -264,7 +264,7 @@ echo "AI_MAX_COST_PER_ANALYSIS=1.00" >> .env
 echo "AI_MAX_DAILY_COST=25.00" >> .env
 
 # Or via command line for each analysis
-python application.py detect analyze-threats --input results.json --cost-limit 5.0
+python application.py analyze-threats --input results.json --cost-limit 5.0
 ```
 
 #### Monitor Usage
@@ -467,7 +467,7 @@ docker run -it --rm \
   -v $(pwd)/.env:/app/.env \
   -v $(pwd)/results:/app/results \
   hawkeye/hawkeye:latest \
-  detect analyze-threats -i /app/results/detection.json
+  analyze-threats -i /app/results/detection.json
 ```
 
 ### Build from Source
@@ -532,7 +532,7 @@ docker-compose up -d
 
 # Run analysis
 docker-compose exec hawkeye python application.py detect local -o /app/results/local.json
-docker-compose exec hawkeye python application.py detect analyze-threats -i /app/results/local.json
+docker-compose exec hawkeye python application.py analyze-threats -i /app/results/local.json
 ```
 
 ---
@@ -740,14 +740,14 @@ python application.py detect local --output workflow_test.json
 echo "✅ Detection completed"
 
 # Step 2: AI Analysis (with cost limit for safety)
-python application.py detect analyze-threats \
+python application.py analyze-threats \
   --input workflow_test.json \
   --cost-limit 0.50 \
   --output workflow_analysis.json
 echo "✅ AI analysis completed"
 
 # Step 3: Report generation
-python application.py detect analyze-threats \
+python application.py analyze-threats \
   --input workflow_test.json \
   --format html \
   --cost-limit 0.50 \
@@ -859,12 +859,12 @@ sudo chown $USER:$USER /var/log/hawkeye
 ```bash
 # If analysis is slow
 export AI_MAX_WORKERS=1  # Reduce parallel processing
-python application.py detect analyze-threats \
+python application.py analyze-threats \
   --input results.json \
   --sequential-processing
 
 # If memory issues
-python application.py detect analyze-threats \
+python application.py analyze-threats \
   --input results.json \
   --confidence-threshold 0.8  # Filter results
 

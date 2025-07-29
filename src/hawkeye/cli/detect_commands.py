@@ -27,6 +27,7 @@ from ..detection.npx_detect import NPXDetector
 from ..detection.docker_inspect import DockerInspector
 from ..detection.env_analysis import EnvironmentAnalyzer
 from ..detection.pipeline import DetectionPipeline, PipelineConfig, create_detection_pipeline
+from ..scanner.target_enum import TargetEnumerator  # Import TargetEnumerator for CIDR handling
 from ..exceptions import HawkEyeError, DetectionError
 from ..utils import get_logger
 from ..reporting.pipeline_converter import convert_pipeline_results_to_report
@@ -46,7 +47,7 @@ def detect():
 @click.option(
     "--target", "-t",
     required=True,
-    help="Target IP address or hostname"
+    help="Target IP address, CIDR range, or hostname (e.g., 192.168.1.100, 192.168.1.0/24, example.com)"
 )
 @click.option(
     "--enable-introspection/--disable-introspection",
@@ -99,11 +100,12 @@ def comprehensive(ctx, target: str, enable_introspection: bool, introspection_ti
     Comprehensive MCP detection using integrated pipeline.
     
     Performs complete MCP detection including traditional methods and
-    enhanced introspection with risk assessment.
+    enhanced introspection with risk assessment. Supports CIDR notation.
     
     Examples:
     \b
         hawkeye detect comprehensive -t 192.168.1.100
+        hawkeye detect comprehensive -t 192.168.1.0/24
         hawkeye detect comprehensive -t localhost --disable-introspection
         hawkeye detect comprehensive -t example.com --confidence-threshold 0.5
     """
@@ -115,6 +117,21 @@ def comprehensive(ctx, target: str, enable_introspection: bool, introspection_ti
         console.print(f"Confidence Threshold: {confidence_threshold}")
         console.print()
         
+        # Handle CIDR notation - enumerate individual targets
+        enumerator = TargetEnumerator()
+        try:
+            # Check if target is CIDR notation
+            if '/' in target:
+                console.print(f"[yellow]Detected CIDR notation, enumerating targets...[/yellow]")
+                targets = enumerator.enumerate_targets(target)
+                console.print(f"[green]Enumerated {len(targets)} targets from CIDR {target}[/green]")
+            else:
+                # Single target
+                targets = [target]
+        except Exception as e:
+            console.print(f"[red]Error parsing target '{target}': {e}[/red]")
+            raise click.ClickException(f"Invalid target specification: {target}")
+        
         # Create pipeline configuration
         pipeline_config = PipelineConfig(
             enable_mcp_introspection=enable_introspection,
@@ -123,24 +140,59 @@ def comprehensive(ctx, target: str, enable_introspection: bool, introspection_ti
             min_confidence_threshold=confidence_threshold
         )
         
-        # Create and execute pipeline
+        # Create pipeline
         pipeline = create_detection_pipeline(pipeline_config, ctx.obj.settings)
+        
+        # Execute detection on all targets
+        all_results = []
         
         with Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
+            BarColumn(),
+            TaskProgressColumn(),
             console=console
         ) as progress:
             
-            task = progress.add_task("Executing comprehensive detection...", total=None)
+            task = progress.add_task("Executing comprehensive detection...", total=len(targets))
             
-            # Execute the pipeline
-            result = pipeline.execute_pipeline(target)
+            for i, individual_target in enumerate(targets):
+                try:
+                    progress.update(task, description=f"Detecting on {individual_target}...")
+                    
+                    # Execute the pipeline for this target
+                    result = pipeline.execute_pipeline(individual_target)
+                    all_results.append(result)
+                    
+                    progress.advance(task, 1)
+                    
+                except Exception as e:
+                    logger.warning(f"Detection failed for {individual_target}: {e}")
+                    progress.advance(task, 1)
+                    continue
             
-            progress.update(task, description="Detection complete", total=1, completed=1)
+            progress.update(task, description="Detection complete")
         
-        # Display comprehensive results
-        display_comprehensive_results(result)
+        # Filter successful results
+        successful_results = [r for r in all_results if r.success]
+        
+        # Display comprehensive results for each target
+        for result in all_results:
+            if result.success:
+                console.print(f"\n[bold green]Results for {result.target_host}:[/bold green]")
+                display_comprehensive_results(result)
+        
+        # Display overall summary
+        console.print(f"\n[bold cyan]Overall Summary:[/bold cyan]")
+        console.print(f"  Targets Processed: {len(all_results)}")
+        console.print(f"  Successful Detections: {len(successful_results)}")
+        console.print(f"  Failed Detections: {len(all_results) - len(successful_results)}")
+        
+        total_mcp_servers = sum(r.mcp_servers_found for r in successful_results)
+        if total_mcp_servers > 0:
+            console.print(f"  [bold green]Total MCP Servers Found: {total_mcp_servers}[/bold green]")
+        else:
+            console.print(f"  [yellow]No MCP Servers Found[/yellow]")
         
         # Display pipeline statistics
         stats = pipeline.get_pipeline_statistics()
@@ -148,9 +200,9 @@ def comprehensive(ctx, target: str, enable_introspection: bool, introspection_ti
         
         # Generate and save reports if requested
         if output or generate_introspection_report:
-            # Convert pipeline result to report data
+            # Convert pipeline results to report data (use all results, not just successful ones)
             report_data = convert_pipeline_results_to_report(
-                [result],
+                all_results,
                 report_title=f"MCP Detection Report - {target}",
                 report_format=format
             )
@@ -717,11 +769,11 @@ def analyze_threats(ctx, input: str, output: Optional[str], format: str, analysi
     comprehensive threat analysis using the AI-powered threat analysis system.
     
     Examples:
-        hawkeye detect target -t 192.168.1.100 -o results.json
-        hawkeye detect analyze-threats -i results.json -o threats.json
+        hawkeye detect comprehensive -t 192.168.1.100 -o results.json
+        hawkeye analyze-threats -i results.json -o threats.json
         
         hawkeye detect local -o local_results.json
-        hawkeye detect analyze-threats -i local_results.json -f html -o threat_report.html
+        hawkeye analyze-threats -i local_results.json -f html -o threat_report.html
     """
     logger = ctx.obj.logger
     
@@ -742,6 +794,7 @@ def analyze_threats(ctx, input: str, output: Optional[str], format: str, analysi
             DataSensitivity, NetworkExposure, UserPrivileges, ComplianceFramework
         )
         from ..detection.mcp_introspection.models import MCPServerInfo, MCPTool
+        from ..detection.base import TransportType, MCPServerType
         from ..reporting.html_reporter import HTMLReporter
         from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn
         
@@ -794,13 +847,67 @@ def analyze_threats(ctx, input: str, output: Optional[str], format: str, analysi
                     }
                     detection_method = method_mapping.get(detection_method_str, DetectionMethod.PROCESS_ENUMERATION)
                     
+                    # Extract MCP server data from JSON if present
+                    mcp_server = None
+                    if 'mcp_server' in result_data and result_data['mcp_server']:
+                        server_data = result_data['mcp_server']
+                        
+                        # Convert string values to enums
+                        transport_type_str = server_data.get('transport_type', 'http')
+                        transport_type = TransportType.HTTP  # Default
+                        try:
+                            # Map transport type strings to enum values
+                            transport_mapping = {
+                                'http': TransportType.HTTP,
+                                'websocket': TransportType.WEBSOCKET, 
+                                'stdio': TransportType.STDIO,
+                                'sse': TransportType.SSE
+                            }
+                            transport_type = transport_mapping.get(transport_type_str.lower(), TransportType.HTTP)
+                        except (AttributeError, KeyError):
+                            transport_type = TransportType.HTTP
+                        
+                        server_type_str = server_data.get('server_type', 'standalone')
+                        server_type = MCPServerType.STANDALONE  # Default
+                        try:
+                            # Map server type strings to enum values  
+                            server_type_mapping = {
+                                'standalone': MCPServerType.STANDALONE,
+                                'embedded': MCPServerType.EMBEDDED,
+                                'managed': MCPServerType.MANAGED,
+                                'unknown': MCPServerType.UNKNOWN,
+                                'npx_package': MCPServerType.NPX_PACKAGE,
+                                'docker_container': MCPServerType.DOCKER_CONTAINER
+                            }
+                            server_type = server_type_mapping.get(server_type_str.lower(), MCPServerType.STANDALONE)
+                        except (AttributeError, KeyError):
+                            server_type = MCPServerType.STANDALONE
+                        
+                        # Create MCPServerInfo from JSON data
+                        mcp_server = MCPServerInfo(
+                            server_id=server_data.get('server_id', f"json-server-{len(converted_detection_results)}"),
+                            server_url=server_data.get('endpoint_url', ''),
+                            tools=[],  # Tools will be empty from JSON as they aren't fully introspected
+                            capabilities=server_data.get('capabilities', []),
+                            metadata={},
+                            transport_type=transport_type,
+                            host=server_data.get('host', result_data.get('target_host', 'unknown')),
+                            port=server_data.get('port'),
+                            has_authentication=server_data.get('has_authentication', False),
+                            is_secure=server_data.get('is_secure', False),
+                            security_config=server_data.get('security_config', {}),
+                            endpoint_url=server_data.get('endpoint_url', ''),
+                            server_type=server_type,
+                            detected_via=result_data.get('detection_method', 'unknown')
+                        )
+                    
                     # Create DetectionResult object
                     detection_result = DetectionResult(
                         target_host=result_data.get('target_host', 'unknown'),
                         detection_method=detection_method,
                         timestamp=result_data.get('timestamp', time.time()),
                         success=result_data.get('success', False),
-                        mcp_server=None,  # Will be populated if needed
+                        mcp_server=mcp_server,
                         confidence=result_data.get('confidence', 0.0),
                         error=result_data.get('error'),
                         raw_data=result_data.get('raw_data', {}),
@@ -820,8 +927,22 @@ def analyze_threats(ctx, input: str, output: Optional[str], format: str, analysi
         for result in detection_results:
             result_data = result.raw_data if hasattr(result, 'raw_data') else {}
             
-            # Extract MCP server information
-            if 'mcp_server' in result_data and result_data['mcp_server']:
+            # Extract MCP server information - check direct mcp_server field first
+            if hasattr(result, 'mcp_server') and result.mcp_server:
+                server_data = result.mcp_server
+                
+                # server_data is already an MCPServerInfo object, just use it directly
+                mcp_server = server_data
+                # Update the detected_via field to include detection method info
+                if hasattr(mcp_server, 'detected_via'):
+                    mcp_server.detected_via = result.detection_method.value if hasattr(result.detection_method, 'value') else str(result.detection_method)
+                
+                # Only include servers above confidence threshold
+                if result.confidence >= confidence_threshold:
+                    mcp_servers.append(mcp_server)
+            
+            # Fallback: Extract from raw_data in case of old format (for backward compatibility)
+            elif 'mcp_server' in result_data and result_data['mcp_server']:
                 server_data = result_data['mcp_server']
                 
                 # Create MCPServerInfo from the detection result
