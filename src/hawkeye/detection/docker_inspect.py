@@ -61,7 +61,12 @@ class DockerInspector(MCPDetector):
         ]
         
         # Common MCP server ports
-        self.common_mcp_ports = [3000, 8000, 8080, 9000, 3001, 8001]
+        self.common_mcp_ports = [
+            # Node.js development range
+            3000, 3001, 3002, 3003, 3004, 3005, 3006, 3007, 3008, 3009, 3010,
+            # Common HTTP server ports
+            4000, 5000, 8000, 8001, 8080, 8888, 9000, 9001, 9002
+        ]
     
     def get_detection_method(self) -> DetectionMethod:
         """Return the detection method identifier."""

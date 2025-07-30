@@ -21,6 +21,7 @@ from .models import (
 from .utils import ErrorHandler
 from .discovery.aggregator import ServerInfoAggregator, AggregatorConfig
 from .transport.factory import TransportFactory
+from .mcp_client import SyncMCPClient, MCPClientConfig  # Add new import
 
 
 logger = logging.getLogger(__name__)
@@ -70,6 +71,16 @@ class MCPIntrospection:
         self.transport_factory = TransportFactory()
         self.aggregator = ServerInfoAggregator(self.config.aggregator_config)
         
+        # Initialize MCP SDK client
+        mcp_client_config = MCPClientConfig(
+            timeout=self.config.timeout,
+            max_retries=self.config.max_retries,
+            enable_tool_testing=False,  # Disable for security scanning
+            enable_resource_enumeration=True,
+            enable_capability_detection=True
+        )
+        self.mcp_client = SyncMCPClient(mcp_client_config)
+        
         self._introspection_cache: Dict[str, IntrospectionResult] = {}
         
     def introspect_server(
@@ -98,56 +109,45 @@ class MCPIntrospection:
                     logger.debug(f"Using cached introspection for {server_config.server_id}")
                     return cached_result
             
-            # Perform introspection with timeout
-            introspection_start = time.time()
-            server_info = self._introspect_single_server(server_config)
+            # Use new MCP SDK client for introspection (handle async/sync)
+            import asyncio
+            try:
+                # Get or create event loop
+                loop = asyncio.get_event_loop()
+                if loop.is_running():
+                    # If loop is already running, create a new one in thread
+                    import concurrent.futures
+                    with concurrent.futures.ThreadPoolExecutor() as executor:
+                        future = executor.submit(asyncio.run, self.mcp_client.introspect_server(server_config))
+                        result = future.result(timeout=self.config.timeout)
+                else:
+                    # Use existing loop
+                    result = loop.run_until_complete(self.mcp_client.introspect_server(server_config))
+            except Exception as async_error:
+                logger.error(f"Async introspection error for {server_config.server_id}: {async_error}")
+                # Fall back to creating new event loop
+                try:
+                    result = asyncio.run(self.mcp_client.introspect_server(server_config))
+                except Exception as fallback_error:
+                    logger.error(f"Fallback introspection error for {server_config.server_id}: {fallback_error}")
+                    raise fallback_error
             
-            # Check timeout
-            if time.time() - introspection_start > self.config.timeout:
-                raise TimeoutError("Server introspection timeout")
-            
-            # Create introspection result
-            introspection_time = datetime.now() - start_time
-            result = IntrospectionResult(
-                timestamp=start_time,
-                duration=introspection_time,
-                success=True,
-                servers=[server_info],
-                total_servers=1,
-                successful_servers=1 if not server_info.metadata.get('error') else 0,
-                failed_servers=1 if server_info.metadata.get('error') else 0,
-                overall_risk_level=server_info.overall_risk_level,
-                metadata={
-                    "introspection_method": "synchronous",
-                    "detailed_analysis": self.config.enable_detailed_analysis,
-                    "risk_assessment": self.config.enable_risk_assessment,
-                    "server_id": server_config.server_id
-                }
-            )
-            
-            # Cache result
-            self._introspection_cache[cache_key] = result
-            
-            logger.info(
-                f"Introspection complete for {server_config.server_id}: "
-                f"{len(server_info.tools)} tools, {len(server_info.resources)} resources, "
-                f"{len(server_info.capabilities)} capabilities, "
-                f"risk level: {server_info.overall_risk_level.value}, "
-                f"{introspection_time.total_seconds():.2f}s"
-            )
+            # Cache successful results
+            if result.success:
+                self._introspection_cache[cache_key] = result
             
             return result
             
         except TimeoutError:
             logger.error(f"Server introspection timeout for {server_config.server_id}")
-            return self._create_error_result(
-                server_config, start_time, "Introspection timeout"
+            return self._create_error_result_simple(
+                server_config.server_id, start_time, "Introspection timeout"
             )
             
         except Exception as e:
             logger.error(f"Unexpected error during introspection of {server_config.server_id}: {e}")
-            return self._create_error_result(
-                server_config, start_time, f"Unexpected error: {str(e)}"
+            return self._create_error_result_simple(
+                server_config.server_id, start_time, f"Unexpected error: {str(e)}"
             )
     
     def introspect_multiple_servers(
@@ -252,12 +252,9 @@ class MCPIntrospection:
             MCPServerInfo with server analysis
         """
         try:
-            # Create server command from config
-            server_command = self._create_server_command(server_config)
-            
-            # Aggregate server information
+            # Aggregate server information using the server configuration
             server_info = self.aggregator.aggregate_server_info(
-                server_command=server_command,
+                server_config=server_config,
                 server_id=server_config.server_id,
                 server_url=getattr(server_config, 'url', None)
             )
@@ -338,6 +335,27 @@ class MCPIntrospection:
             return RiskLevel.MEDIUM
         else:
             return RiskLevel.LOW
+    
+    def _create_error_result_simple(
+        self,
+        server_id: str,
+        start_time: datetime,
+        error_message: str
+    ) -> IntrospectionResult:
+        """Create a simple error result for failed introspection."""
+        return IntrospectionResult(
+            server_id=server_id,
+            timestamp=start_time,
+            duration=datetime.now() - start_time,
+            success=False,
+            server_info=None,
+            security_risks=[],
+            risk_level=RiskLevel.UNKNOWN,
+            metadata={
+                "error": error_message,
+                "connection_method": "mcp_sdk_failed"
+            }
+        )
     
     def _create_error_result(
         self,

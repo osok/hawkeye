@@ -113,7 +113,7 @@ class MCPDataAnalyzer:
         
         return {
             # Basic metadata
-            "scan_target": "localhost",
+            "scan_target": self._extract_scan_target(data),
             "scan_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC"),
             "scan_duration": "~1 second",
             "total_detections": stats["total_detections"],
@@ -818,7 +818,8 @@ class MCPDataAnalyzer:
     
     def _get_risk_class(self, risk_level) -> str:
         """Get CSS class for risk level."""
-        if hasattr(risk_level, 'value'):
+        from enum import Enum
+        if isinstance(risk_level, Enum):
             level = risk_level.value
         else:
             level = str(risk_level).lower()
@@ -849,4 +850,28 @@ class MCPDataAnalyzer:
             'modify', 'create', 'network', 'external', 'api'
         ]
         
-        return any(keyword in name_lower or keyword in desc_lower for keyword in dangerous_keywords) 
+        return any(keyword in name_lower or keyword in desc_lower for keyword in dangerous_keywords)
+    
+    def _extract_scan_target(self, data: ReportData) -> str:
+        """Extract actual scan target from detection results."""
+        if hasattr(data, 'detection_results') and data.detection_results:
+            # Get unique target hosts from detection results
+            target_hosts = set()
+            for result in data.detection_results:
+                if hasattr(result, 'target_host') and result.target_host:
+                    target_hosts.add(result.target_host)
+                elif hasattr(result, 'mcp_server') and result.mcp_server and hasattr(result.mcp_server, 'host'):
+                    target_hosts.add(result.mcp_server.host)
+            
+            if target_hosts:
+                if len(target_hosts) == 1:
+                    return list(target_hosts)[0]
+                else:
+                    # Multiple targets - create a summary
+                    sorted_hosts = sorted(target_hosts)
+                    if len(sorted_hosts) <= 3:
+                        return ", ".join(sorted_hosts)
+                    else:
+                        return f"{', '.join(sorted_hosts[:2])} and {len(sorted_hosts)-2} others"
+        
+        return "localhost"  # Fallback 

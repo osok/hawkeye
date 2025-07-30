@@ -268,16 +268,20 @@ def quick_scan(ctx, target: str, ports: Optional[str], threads: Optional[int],
         
         # Set defaults
         if ports is None:
-            ports = "3000,8000,8080,9000"  # Common MCP ports
+            port_list = ctx.obj.settings.scan.default_ports
+        else:
+            # Parse ports later
+            pass
         if threads is None:
             threads = 50
         if timeout is None:
             timeout = 5
         
-        # Parse ports
-        port_list = parse_ports(ports)
-        if not port_list:
-            port_list = [3000, 8000, 8080, 9000]
+        # Parse ports (if not already set above)
+        if ports is not None:
+            port_list = parse_ports(ports)
+            if not port_list:
+                port_list = ctx.obj.settings.scan.default_ports
         
         console.print(f"Ports: {len(port_list)} ports")
         console.print(f"Threads: {threads}, Timeout: {timeout}s")

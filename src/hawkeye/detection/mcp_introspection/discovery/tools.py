@@ -10,16 +10,19 @@ import json
 import logging
 import subprocess
 import time
+import requests
 from typing import Dict, List, Optional, Any, Set
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from urllib.parse import urljoin
 
 from ..models import (
     MCPTool, 
     MCPToolParameter,
     RiskLevel,
     SecurityRisk,
-    DiscoveryResult
+    DiscoveryResult,
+    MCPServerConfig
 )
 from ..utils import ErrorHandler
 
@@ -52,6 +55,7 @@ class ToolDiscovery:
     
     Provides comprehensive tool enumeration with schema analysis,
     risk assessment, and security evaluation using synchronous methods.
+    Supports both subprocess and HTTP transport communication.
     """
     
     def __init__(self, config: Optional[ToolDiscoveryConfig] = None):
@@ -67,19 +71,22 @@ class ToolDiscovery:
         
     def discover_tools(
         self,
-        server_command: List[str],
-        server_id: str
+        server_config: MCPServerConfig,
+        server_id: Optional[str] = None
     ) -> DiscoveryResult:
         """
         Discover tools from an MCP server.
         
         Args:
-            server_command: Command to start the MCP server
-            server_id: Unique identifier for the server
+            server_config: Server configuration for connection
+            server_id: Optional server identifier (uses config.server_id if not provided)
             
         Returns:
             DiscoveryResult containing discovered tools and metadata
         """
+        if server_id is None:
+            server_id = server_config.server_id
+            
         start_time = datetime.now()
         
         try:
@@ -95,7 +102,7 @@ class ToolDiscovery:
             
             # Discover tools with timeout
             start_discovery = time.time()
-            tools_data = self._list_tools_with_retry(server_command)
+            tools_data = self._list_tools_with_retry(server_config)
             
             # Check timeout
             if time.time() - start_discovery > self.config.timeout:
@@ -134,7 +141,7 @@ class ToolDiscovery:
                 metadata={
                     "tool_count": len(mcp_tools),
                     "risk_count": len(security_risks),
-                    "discovery_method": "subprocess_communication",
+                    "discovery_method": f"{server_config.transport_type}_communication",
                     "schema_analysis": self.config.enable_schema_analysis,
                     "risk_assessment": self.config.enable_risk_assessment
                 }
@@ -162,13 +169,13 @@ class ToolDiscovery:
             return self._create_error_result(
                 server_id, start_time, f"Unexpected error: {str(e)}"
             )
-    
-    def _list_tools_with_retry(self, server_command: List[str]) -> Optional[List[Dict[str, Any]]]:
+
+    def _list_tools_with_retry(self, server_config: MCPServerConfig) -> Optional[List[Dict[str, Any]]]:
         """
-        List tools with retry logic using subprocess communication.
+        List tools with retry logic using appropriate communication method.
         
         Args:
-            server_command: Command to start the MCP server
+            server_config: Server configuration for connection
             
         Returns:
             List of discovered tools or None
@@ -177,7 +184,7 @@ class ToolDiscovery:
         
         for attempt in range(self.config.max_retries):
             try:
-                logger.debug(f"Tool discovery attempt {attempt + 1}")
+                logger.debug(f"Tool discovery attempt {attempt + 1} using {server_config.transport_type} transport")
                 
                 # Create MCP request for tools/list
                 request = {
@@ -187,15 +194,22 @@ class ToolDiscovery:
                     "params": {}
                 }
                 
-                # Communicate with server
-                result = self._communicate_with_server(server_command, request)
+                # Choose communication method based on transport type
+                if server_config.transport_type.value in ["http", "sse"]:
+                    result = self._communicate_via_http(server_config, request)
+                else:
+                    # Default to subprocess communication for stdio
+                    server_command = self._build_server_command(server_config)
+                    result = self._communicate_with_server(server_command, request)
                 
                 if result and "result" in result:
                     tools = result["result"].get("tools", [])
+                    logger.debug(f"Successfully discovered {len(tools)} tools via {server_config.transport_type}")
                     return tools
                 elif result and "error" in result:
                     raise Exception(f"MCP error: {result['error']}")
                 else:
+                    logger.debug(f"No tools returned from server {server_config.server_id}")
                     return []
                     
             except Exception as e:
@@ -208,6 +222,185 @@ class ToolDiscovery:
         # All retries failed
         logger.error(f"Tool discovery failed after all retries: {last_error}")
         return None
+
+    def _communicate_via_http(self, server_config: MCPServerConfig, request: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """
+        Communicate with MCP server via HTTP with session management.
+        
+        Args:
+            server_config: Server configuration with URL and headers
+            request: JSON-RPC request to send
+            
+        Returns:
+            Server response or None
+        """
+        try:
+            url = server_config.url
+            if not url:
+                logger.error("No URL configured for HTTP transport")
+                return None
+            
+            # Ensure URL has /mcp endpoint if it doesn't already
+            if not url.endswith('/mcp') and not url.endswith('/mcp/'):
+                url = urljoin(url.rstrip('/') + '/', 'mcp')
+            
+            # Initialize session first if needed
+            session_id = self._initialize_mcp_session(url, server_config)
+            if not session_id:
+                logger.error("Failed to initialize MCP session")
+                return None
+            
+            # Prepare headers with session ID (if required)
+            headers = {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+            
+            # Add session ID header if required
+            if session_id != "no-session-required":
+                headers["Mcp-Session-Id"] = session_id
+            
+            # Add any additional headers from transport config
+            if hasattr(server_config, 'transport_config') and server_config.transport_config:
+                config_headers = server_config.transport_config.get('headers', {})
+                headers.update(config_headers)
+            
+            session_info = session_id[:8] + "..." if session_id != "no-session-required" else "no-session"
+            logger.debug(f"Sending HTTP request to {url} with session {session_info}")
+            
+            # Send HTTP POST request with session
+            response = requests.post(
+                url,
+                json=request,
+                headers=headers,
+                timeout=self.config.timeout
+            )
+            
+            # Check response status
+            if response.status_code == 200:
+                try:
+                    result = response.json()
+                    logger.debug(f"HTTP response received successfully from {url}")
+                    return result
+                except json.JSONDecodeError as e:
+                    logger.error(f"Failed to parse HTTP response JSON: {e}")
+                    logger.debug(f"Raw response: {response.text}")
+                    return None
+            else:
+                logger.warning(f"HTTP request failed with status {response.status_code}: {response.text}")
+                return None
+                
+        except requests.RequestException as e:
+            logger.error(f"HTTP communication failed: {e}")
+            return None
+        except Exception as e:
+            logger.error(f"Unexpected error in HTTP communication: {e}")
+            return None
+
+    def _initialize_mcp_session(self, url: str, server_config: MCPServerConfig) -> Optional[str]:
+        """
+        Initialize MCP session and return session ID.
+        
+        Args:
+            url: MCP server URL
+            server_config: Server configuration
+            
+        Returns:
+            Session ID if successful, None otherwise
+        """
+        try:
+            # Prepare initialization request
+            init_request = {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "initialize",
+                "params": {
+                    "protocolVersion": "2024-11-05",
+                    "capabilities": {
+                        "roots": {"listChanged": False}
+                    },
+                    "clientInfo": {
+                        "name": "hawkeye-security-scanner",
+                        "version": "1.0.0"
+                    }
+                }
+            }
+            
+            # Prepare basic headers
+            headers = {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+            
+            # Add any additional headers from transport config
+            if hasattr(server_config, 'transport_config') and server_config.transport_config:
+                config_headers = server_config.transport_config.get('headers', {})
+                headers.update(config_headers)
+            
+            logger.debug(f"Initializing MCP session at {url}")
+            
+            # Send initialization request
+            response = requests.post(
+                url,
+                json=init_request,
+                headers=headers,
+                timeout=self.config.timeout
+            )
+            
+            # Check if initialization was successful
+            if response.status_code == 200:
+                # Look for session ID in response headers
+                session_id = None
+                for header_name, header_value in response.headers.items():
+                    if header_name.lower() == 'mcp-session-id':
+                        session_id = header_value.strip()
+                        break
+                
+                if session_id:
+                    logger.debug(f"MCP session initialized successfully: {session_id[:8]}...")
+                    return session_id
+                else:
+                    logger.warning("MCP session initialization succeeded but no session ID returned")
+                    # Try to parse response body for session info
+                    try:
+                        response_data = response.json()
+                        if response_data.get("result"):
+                            logger.debug("MCP server initialized without session management")
+                            return "no-session-required"
+                    except:
+                        pass
+                    return None
+            else:
+                logger.error(f"MCP session initialization failed with status {response.status_code}: {response.text}")
+                return None
+                
+        except requests.RequestException as e:
+            logger.error(f"MCP session initialization failed: {e}")
+            return None
+        except Exception as e:
+            logger.error(f"Unexpected error during MCP session initialization: {e}")
+            return None
+
+    def _build_server_command(self, server_config: MCPServerConfig) -> List[str]:
+        """
+        Build server command from configuration.
+        
+        Args:
+            server_config: Server configuration
+            
+        Returns:
+            Command list to start the server
+        """
+        if server_config.command:
+            return server_config.command
+        elif server_config.executable:
+            command = [server_config.executable]
+            if server_config.args:
+                command.extend(server_config.args)
+            return command
+        else:
+            # Fallback command
+            return ['mcp-server', server_config.server_id]
     
     def _communicate_with_server(self, server_command: List[str], request: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """

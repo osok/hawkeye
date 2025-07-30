@@ -140,7 +140,9 @@ class PipelineToReportConverter:
         
         for server in mcp_servers:
             risk_level = getattr(server, 'overall_risk_level', 'low')
-            if hasattr(risk_level, 'value'):
+            # Check if it's actually an enum before accessing .value
+            from enum import Enum
+            if isinstance(risk_level, Enum):
                 risk_level = risk_level.value
             if risk_level in risk_counts:
                 risk_counts[risk_level] += 1

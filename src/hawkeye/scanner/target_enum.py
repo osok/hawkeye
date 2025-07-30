@@ -96,19 +96,6 @@ class TargetEnumerator:
                     ports=ports.copy(),
                     scan_types=scan_types
                 )
-            
-            # Also include network and broadcast addresses for completeness
-            if network.num_addresses > 2:  # Skip for /31 and /32 networks
-                yield ScanTarget(
-                    host=str(network.network_address),
-                    ports=ports.copy(),
-                    scan_types=scan_types
-                )
-                yield ScanTarget(
-                    host=str(network.broadcast_address),
-                    ports=ports.copy(),
-                    scan_types=scan_types
-                )
                 
         except ValueError as e:
             self.logger.error(f"Invalid CIDR notation '{cidr}': {e}")
@@ -359,8 +346,9 @@ class TargetEnumerator:
         common_ports = [
             21, 22, 23, 25, 53, 80, 110, 111, 135, 139, 143, 443, 993, 995,
             1723, 3306, 3389, 5432, 5900, 8080, 8443, 8888, 9000, 9001, 9002,
-            # MCP common ports
-            3000, 8000, 8080, 9000
+            # MCP common ports (expanded range)
+            3000, 3001, 3002, 3003, 3004, 3005, 3006, 3007, 3008, 3009, 3010,
+            4000, 5000, 8000, 8001, 8080, 9000
         ]
         
         # Add configured default ports

@@ -74,7 +74,9 @@ class JSONReporter(BaseReporter):
             return result
             
         except Exception as e:
+            import traceback
             self.logger.error(f"Failed to generate JSON report: {e}")
+            self.logger.error(f"Full traceback: {traceback.format_exc()}")
             raise ReportingError(f"JSON report generation failed: {e}")
         
         finally:
@@ -618,7 +620,9 @@ class JSONReporter(BaseReporter):
         risk_distribution = {}
         for server in data.introspected_servers:
             risk_level = getattr(server, 'overall_risk_level', 'unknown')
-            if hasattr(risk_level, 'value'):
+            # Check if it's actually an enum before accessing .value
+            from enum import Enum
+            if isinstance(risk_level, Enum):
                 risk_level = risk_level.value
             risk_distribution[risk_level] = risk_distribution.get(risk_level, 0) + 1
         
@@ -659,20 +663,27 @@ class JSONReporter(BaseReporter):
         Returns:
             Serializable representation of object
         """
-        # Handle Path objects
-        if isinstance(obj, Path):
+        try:
+            # Handle Path objects
+            if isinstance(obj, Path):
+                return str(obj)
+            
+            # Handle enum objects - check explicitly for Enum type
+            from enum import Enum
+            if isinstance(obj, Enum):
+                return obj.value
+            
+            # Handle dataclass objects
+            if hasattr(obj, '__dataclass_fields__'):
+                return obj.__dict__
+            
+            # Fallback to string representation
             return str(obj)
-        
-        # Handle enum objects
-        if hasattr(obj, 'value'):
-            return obj.value
-        
-        # Handle dataclass objects
-        if hasattr(obj, '__dataclass_fields__'):
-            return obj.__dict__
-        
-        # Fallback to string representation
-        return str(obj)
+            
+        except Exception as e:
+            self.logger.error(f"JSON serializer error for object {type(obj)} {repr(obj)}: {e}")
+            # Safe fallback
+            return str(obj)
     
     def validate_json_output(self, json_content: str) -> bool:
         """

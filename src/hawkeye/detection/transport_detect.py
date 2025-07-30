@@ -33,8 +33,12 @@ class TransportDetector(MCPDetector):
         super().__init__(settings)
         
         # Common MCP ports for different transports
-        self.common_http_ports = [3000, 8000, 8080, 9000, 3001, 8001, 8081]
-        self.common_websocket_ports = [3000, 8000, 8080, 9000, 3001, 8001, 8081]
+        # Use expanded port list from settings
+        self.common_http_ports = settings.scan.default_ports if settings else [
+            3000, 3001, 3002, 3003, 3004, 3005, 3006, 3007, 3008, 3009, 3010,
+            4000, 5000, 8000, 8001, 8080, 8081, 8888, 9000, 9001, 9002
+        ]
+        self.common_websocket_ports = self.common_http_ports
         self.common_https_ports = [443, 8443, 9443]
         self.common_wss_ports = [443, 8443, 9443]
         

@@ -37,7 +37,6 @@ class ThreatAnalysisTemplate(BaseTemplate):
                 ⚠️ <strong>SECURITY AWARENESS DOCUMENT</strong> - For Educational and Defense Purposes Only
             </div>
             <div class="metadata">
-                <span><strong>Target:</strong> $scan_target</span> |
                 <span><strong>Analysis Date:</strong> $scan_date</span> |
                 <span><strong>Threat Level:</strong> $overall_threat_level</span>
             </div>
@@ -68,6 +67,14 @@ class ThreatAnalysisTemplate(BaseTemplate):
                 <h3>🔥 Key Attack Scenarios Identified</h3>
                 $key_attack_scenarios
             </div>
+        </div>
+        
+        <div class="section detected-servers">
+            <h2>🖥️ Detected Servers and Tools</h2>
+            <div class="servers-intro">
+                <p>The following MCP servers and their associated tools were discovered during the reconnaissance scan:</p>
+            </div>
+            $detected_servers_analysis
         </div>
         
         <div class="section attack-vectors">
@@ -381,6 +388,106 @@ class ThreatAnalysisTemplate(BaseTemplate):
             margin-bottom: 15px;
         }
         
+        .server-item {
+            background: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            margin: 20px 0;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .server-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f8f9fa;
+        }
+        
+        .server-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #495057;
+        }
+        
+        .server-type {
+            background: #6c757d;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            text-transform: uppercase;
+        }
+        
+        .server-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .server-detail {
+            padding: 8px 0;
+        }
+        
+        .server-detail strong {
+            color: #495057;
+        }
+        
+        .tools-section {
+            margin-top: 20px;
+        }
+        
+        .tools-header {
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 6px 6px 0 0;
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 0;
+        }
+        
+        .tools-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #dee2e6;
+            border-radius: 0 0 6px 6px;
+            overflow: hidden;
+        }
+        
+        .tools-table th,
+        .tools-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .tools-table th {
+            background: #f8f9fa;
+            font-weight: bold;
+            color: #495057;
+        }
+        
+        .tools-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .tools-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .no-tools {
+            padding: 20px;
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 0 0 6px 6px;
+        }
+        
         .disclaimer {
             background: #f8f9fa;
             border: 1px solid #dee2e6;
@@ -454,6 +561,25 @@ class ThreatAnalysisTemplate(BaseTemplate):
             
             .chain-arrow {
                 transform: rotate(90deg);
+            }
+            
+            .server-details {
+                grid-template-columns: 1fr;
+            }
+            
+            .server-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .tools-table {
+                font-size: 0.9em;
+            }
+            
+            .tools-table th,
+            .tools-table td {
+                padding: 8px 10px;
             }
         }
         """

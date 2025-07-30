@@ -68,10 +68,15 @@ class ReportMetadata:
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert metadata to dictionary."""
+        # Safe enum to value conversion
+        from enum import Enum
+        report_type_val = self.report_type.value if isinstance(self.report_type, Enum) else self.report_type
+        format_val = self.format.value if isinstance(self.format, Enum) else self.format
+        
         return {
             'title': self.title,
-            'report_type': self.report_type.value,
-            'format': self.format.value,
+            'report_type': report_type_val,
+            'format': format_val,
             'generated_at': self.generated_at,
             'generated_timestamp': self.generated_timestamp,
             'generated_by': self.generated_by,
@@ -414,7 +419,17 @@ class ReportData:
         """Get total number of tools discovered across all servers."""
         total = 0
         for server in self.introspected_servers:
-            total += server.get_tool_count()
+            # Handle different server object types safely
+            if hasattr(server, 'get_tool_count'):
+                total += server.get_tool_count()
+            elif hasattr(server, 'tools'):
+                # Fallback to tools attribute if method not available
+                total += len(getattr(server, 'tools', []))
+            else:
+                # Log the issue for debugging
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.warning(f"Server object {type(server)} has no tool count method or attribute")
         return total
     
     @property
@@ -422,7 +437,17 @@ class ReportData:
         """Get total number of resources discovered across all servers."""
         total = 0
         for server in self.introspected_servers:
-            total += server.get_resource_count()
+            # Handle different server object types safely
+            if hasattr(server, 'get_resource_count'):
+                total += server.get_resource_count()
+            elif hasattr(server, 'resources'):
+                # Fallback to resources attribute if method not available
+                total += len(getattr(server, 'resources', []))
+            else:
+                # Log the issue for debugging
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.warning(f"Server object {type(server)} has no resource count method or attribute")
         return total
     
     def get_targets_by_risk_level(self, risk_level: RiskLevel) -> List[str]:

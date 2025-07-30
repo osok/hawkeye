@@ -1128,8 +1128,7 @@ class AIThreatAnalyzer:
 results = await mcp_tool.execute("research", {"target": "organization.com"})
 # Process results for intelligence gathering""",
                 prerequisites=["Access to AI assistant", "Network-enabled MCP server"],
-                impact="Organizational intelligence gathering",
-                likelihood=0.7
+                impact="Organizational intelligence gathering"
             ))
         
         if any('file' in cat or 'filesystem' in cat for cat in capability_categories) or \
@@ -1153,8 +1152,7 @@ for file_path in file_list:
     content = await mcp_tool.execute("read_file", {"path": file_path})
     # Process and exfiltrate sensitive content""",
                     prerequisites=["AI assistant access", "File system MCP server"],
-                    impact="Data breach and intellectual property theft",
-                    likelihood=0.8
+                    impact="Data breach and intellectual property theft"
                 ),
                 AttackVector(
                     name="Malicious File Modification",
@@ -1173,8 +1171,7 @@ original_content = await mcp_tool.execute("read_file", {"path": "app.py"})
 malicious_content = original_content + "\\n# Hidden backdoor code"
 await mcp_tool.execute("write_file", {"path": "app.py", "content": malicious_content})""",
                     prerequisites=["Write access to file system", "Knowledge of file structure"],
-                    impact="System compromise and persistent access",
-                    likelihood=0.6
+                    impact="System compromise and persistent access"
                 )
             ])
         
@@ -1197,32 +1194,31 @@ payload = "legitimate_command; malicious_command"
 result = await mcp_tool.execute("run_command", {"command": payload})
 # Attacker gains command execution on host system""",
                 prerequisites=["Access to command execution interface"],
-                impact="Full system compromise",
-                likelihood=0.9
+                impact="Full system compromise"
             ))
         
         # Add generic security analysis if no specific capabilities detected
         if not attack_vectors:
             attack_vectors.append(AttackVector(
-                name="MCP Tool Security Analysis",
+                name="MCP Server Security Analysis",
                 severity=SeverityLevel.MEDIUM,
-                description="General security concerns with detected MCP tool",
+                description="Security analysis of detected MCP server",
                 attack_steps=[
-                    "Analyze MCP tool interfaces and capabilities",
-                    "Identify potential input validation issues",
-                    "Test for authorization bypass vulnerabilities",
-                    "Attempt privilege escalation through tool misuse",
-                    "Evaluate data exposure risks"
+                    "Enumerate MCP server endpoints and capabilities",
+                    "Test for authentication bypass vulnerabilities",
+                    "Analyze transport security configuration", 
+                    "Evaluate access control mechanisms",
+                    "Assess potential for privilege escalation"
                 ],
-                example_code="""# Generic MCP tool security testing
-# Note: Approach varies based on specific tool capabilities
-tool_info = await mcp_tool.get_capabilities()
-for capability in tool_info:
-    # Test each capability for security issues
-    test_result = await security_test(capability)""",
-                prerequisites=["Access to MCP tool interface"],
-                impact="Varies based on tool capabilities and vulnerabilities",
-                likelihood=0.5
+                example_code="""# MCP server security assessment
+# Analyze detected server for security vulnerabilities
+# Check authentication, authorization, and transport security
+import requests
+# Test server endpoints for security issues
+response = requests.get('http://server:port/mcp')
+# Analyze response headers and authentication requirements""",
+                prerequisites=["Network access to target system"],
+                impact="Potential unauthorized access to MCP server functionality"
             ))
         
         return attack_vectors

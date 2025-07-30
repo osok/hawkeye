@@ -120,7 +120,8 @@ class IntrospectionReporter(BaseReporter):
         risk_distribution = {level.value: 0 for level in RiskLevel}
         for server in servers:
             risk_level = server.overall_risk_level
-            if hasattr(risk_level, 'value'):
+            from enum import Enum
+            if isinstance(risk_level, Enum):
                 risk_distribution[risk_level.value] += 1
             else:
                 risk_distribution[str(risk_level)] += 1

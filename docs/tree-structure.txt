@@ -16,27 +16,51 @@ mcp-hunt
 │   │   ├── mcp_introspection.md
 │   │   ├── README.md
 │   │   └── scanner.md
+│   ├── architecture
 │   ├── conventions
 │   │   ├── docker.md
 │   │   ├── flask.md
 │   │   ├── langchain.md
 │   │   ├── python.md
 │   │   └── sqlAlchemy.md
+│   ├── design-patterns
+│   │   ├── abstract-base-class-pattern.md
+│   │   ├── factory-pattern.md
+│   │   ├── README.md
+│   │   └── strategy-pattern.md
+│   ├── dev_notes
+│   │   ├── analyze-threats
+│   │   ├── detect
+│   │   └── scan
+│   ├── development
+│   ├── integration
+│   ├── performance
+│   ├── security
+│   ├── workflows
 │   ├── deafult_prompt.md
 │   ├── Design-inspect-mcp.md
+│   ├── Design-Threat-Analysis-Report.md
 │   ├── Design-Threat-Analysis.md
 │   ├── Design.md
+│   ├── filesystem-mcp-access-guide.md
 │   ├── installation.md
 │   ├── module-functions.txt
 │   ├── notes.md
 │   ├── security_guidelines.md
+│   ├── server-inventory.md
+│   ├── task-list-threat-analysis-report.md
 │   ├── task-list-threat-analysis.md
 │   ├── task_list-inspect-mcp.md
 │   ├── task_list.md
+│   ├── tasklist-dev-notes.md
 │   ├── tree-structure.txt
 │   ├── uml.txt
 │   ├── user_manual.md
 │   └── workflow_guide.md
+├── examples
+│   ├── README.md
+│   ├── result.html
+│   └── results.json
 ├── reports
 ├── src
 │   └── hawkeye
@@ -69,13 +93,27 @@ mcp-hunt
 │       │   │   ├── __init__.py
 │       │   │   ├── ai_providers.py
 │       │   │   ├── attack_chain_analyzer.py
+│       │   │   ├── attack_vector_generator.py
 │       │   │   ├── capability_analyzer.py
+│       │   │   ├── code_snippet_generator.py
+│       │   │   ├── compliance_mapper.py
+│       │   │   ├── diagram_generator.py
+│       │   │   ├── example_generator.py
+│       │   │   ├── impact_calculator.py
+│       │   │   ├── likelihood_assessor.py
+│       │   │   ├── mitigation_generator.py
 │       │   │   ├── models.py
+│       │   │   ├── narrative_builder.py
+│       │   │   ├── priority_ranker.py
 │       │   │   ├── prompts.py
 │       │   │   ├── provider_selection.py
+│       │   │   ├── risk_prioritizer.py
+│       │   │   ├── scenario_builder.py
 │       │   │   ├── threat_analysis_optimizer.py
 │       │   │   ├── threat_analyzer.py
-│       │   │   └── threat_intelligence_db.py
+│       │   │   ├── threat_intelligence_db.py
+│       │   │   ├── threat_modeler.py
+│       │   │   └── vulnerability_mapper.py
 │       │   ├── mcp_introspection
 │       │   │   ├── discovery
 │       │   │   │   ├── __init__.py
@@ -113,6 +151,7 @@ mcp-hunt
 │       │   │   ├── compat.py
 │       │   │   ├── fallback.py
 │       │   │   ├── introspection.py
+│       │   │   ├── mcp_client.py
 │       │   │   ├── metrics.py
 │       │   │   ├── migration.py
 │       │   │   ├── models.py
@@ -128,6 +167,8 @@ mcp-hunt
 │       │   ├── process_enum.py
 │       │   ├── protocol_verify.py
 │       │   └── transport_detect.py
+│       ├── docs
+│       │   └── uml.txt
 │       ├── models
 │       │   └── __init__.py
 │       ├── reporting
@@ -230,11 +271,15 @@ mcp-hunt
 │   │   │   ├── test_transport_base.py
 │   │   │   └── test_transport_factory.py
 │   │   ├── __init__.py
+│   │   ├── test_ai_threat_analysis.py
+│   │   ├── test_ai_threat_phase5.py
+│   │   ├── test_ai_threat_phase5_working.py
 │   │   ├── test_config_discovery.py
 │   │   ├── test_docker_inspect.py
 │   │   ├── test_env_analysis.py
 │   │   ├── test_mcp_introspection_old.py
 │   │   ├── test_npx_detect.py
+│   │   ├── test_phase5_validation.py
 │   │   ├── test_pipeline_integration.py
 │   │   ├── test_process_enum.py
 │   │   ├── test_protocol_verify.py
@@ -256,35 +301,33 @@ mcp-hunt
 │   │   ├── __init__.py
 │   │   └── test_logging.py
 │   └── __init__.py
+├── .coverage.eva.27281.XvuNjpcx.c
 ├── .env
 ├── .env-example
 ├── AI_THREAT_ANALYSIS_README.md
 ├── application.py
 ├── CHANGELOG.md
 ├── coverage.xml
+├── debug_introspection.py
+├── debug_server_config.py
 ├── demo_ai_threat_analysis.py
 ├── docker-compose.yml
 ├── Dockerfile
-├── enhanced_environment_detection_test_20250727_153131.json
-├── enhanced_environment_detection_test_20250727_153507.json
 ├── env.example
 ├── example_workflow.sh
 ├── pyproject.toml
 ├── README.md
 ├── requirements.txt
-├── sample_detection.json
 ├── setup.py
-├── test-01.html
-├── test-01.json
-├── test.html
-├── test.json
+├── test_discovery.json
+├── test_discovery_async_fixed.json
+├── test_discovery_fixed.json
 ├── test_enhanced_environment_detection.py
+├── test_fixed_tools.json
 ├── test_introspection.py
-├── test_sync_introspection.py
-├── test_threats.json
-└── threat_analysis.json
+└── test_sync_introspection.py
 
 Statistics:
-- Files: 243
-- Directories: 41
-- Total items: 284
+- Files: 273
+- Directories: 54
+- Total items: 327

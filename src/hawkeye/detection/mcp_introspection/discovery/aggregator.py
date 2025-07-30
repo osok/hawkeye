@@ -18,7 +18,8 @@ from ..models import (
     MCPCapability,
     SecurityRisk,
     RiskLevel,
-    DiscoveryResult
+    DiscoveryResult,
+    MCPServerConfig
 )
 from ..utils import ErrorHandler
 from .tools import ToolDiscovery, ToolDiscoveryConfig
@@ -76,21 +77,27 @@ class ServerInfoAggregator:
         
     def aggregate_server_info(
         self,
-        server_command: List[str],
-        server_id: str,
+        server_config: MCPServerConfig,
+        server_id: Optional[str] = None,
         server_url: Optional[str] = None
     ) -> MCPServerInfo:
         """
         Aggregate comprehensive server information.
         
         Args:
-            server_command: Command to start the MCP server
-            server_id: Unique identifier for the server
+            server_config: Server configuration for connection
+            server_id: Optional server identifier (uses config.server_id if not provided)
             server_url: Optional server URL for metadata
             
         Returns:
             MCPServerInfo with aggregated discovery results
         """
+        if server_id is None:
+            server_id = server_config.server_id
+            
+        if server_url is None and hasattr(server_config, 'url'):
+            server_url = server_config.url
+            
         start_time = datetime.now()
         
         try:
@@ -105,7 +112,7 @@ class ServerInfoAggregator:
             
             # Perform discovery with timeout
             discovery_start = time.time()
-            discovery_results = self._sequential_discovery(server_command, server_id)
+            discovery_results = self._sequential_discovery(server_config, server_id)
             
             # Check overall timeout
             if time.time() - discovery_start > self.config.timeout:
@@ -144,14 +151,14 @@ class ServerInfoAggregator:
     
     def _sequential_discovery(
         self,
-        server_command: List[str],
+        server_config: MCPServerConfig,
         server_id: str
     ) -> Dict[str, DiscoveryResult]:
         """
         Perform sequential discovery of tools, resources, and capabilities.
         
         Args:
-            server_command: Command to start the MCP server
+            server_config: Server configuration for connection
             server_id: Server identifier
             
         Returns:
@@ -163,21 +170,21 @@ class ServerInfoAggregator:
         
         # Tool discovery
         try:
-            results['tools'] = self.tool_discovery.discover_tools(server_command, server_id)
+            results['tools'] = self.tool_discovery.discover_tools(server_config, server_id)
         except Exception as e:
             logger.warning(f"Tool discovery failed for {server_id}: {e}")
             results['tools'] = self._create_error_discovery_result(server_id, 'tools', str(e))
         
         # Resource discovery
         try:
-            results['resources'] = self.resource_discovery.discover_resources(server_command, server_id)
+            results['resources'] = self.resource_discovery.discover_resources(server_config, server_id)
         except Exception as e:
             logger.warning(f"Resource discovery failed for {server_id}: {e}")
             results['resources'] = self._create_error_discovery_result(server_id, 'resources', str(e))
         
         # Capability assessment
         try:
-            results['capabilities'] = self.capability_assessment.assess_capabilities(server_command, server_id)
+            results['capabilities'] = self.capability_assessment.assess_capabilities(server_config, server_id)
         except Exception as e:
             logger.warning(f"Capability assessment failed for {server_id}: {e}")
             results['capabilities'] = self._create_error_discovery_result(server_id, 'capabilities', str(e))
@@ -237,8 +244,50 @@ class ServerInfoAggregator:
         # Calculate overall risk level
         overall_risk = self._calculate_overall_risk(all_security_risks)
         
+        # Extract server name and version from capabilities if available
+        server_name = None
+        server_version = None
+        for capability in all_capabilities:
+            if hasattr(capability, 'metadata') and capability.metadata:
+                if 'server_name' in capability.metadata:
+                    server_name = capability.metadata['server_name']
+                if 'server_version' in capability.metadata:
+                    server_version = capability.metadata['server_version']
+                    break  # Found server info, stop searching
+        
         # Create server info
         aggregation_time = datetime.now() - start_time
+        
+        # Build metadata with server information
+        metadata = {
+            "aggregation_duration": aggregation_time.total_seconds(),
+            "discovery_results": {
+                "tools_success": discovery_results.get('tools', DiscoveryResult(
+                    server_id="", discovery_type="", timestamp=datetime.now(),
+                    duration=timedelta(0), success=False, tools=[], resources=[],
+                    capabilities=[], security_risks=[], metadata={}
+                )).success,
+                "resources_success": discovery_results.get('resources', DiscoveryResult(
+                    server_id="", discovery_type="", timestamp=datetime.now(),
+                    duration=timedelta(0), success=False, tools=[], resources=[],
+                    capabilities=[], security_risks=[], metadata={}
+                )).success,
+                "capabilities_success": discovery_results.get('capabilities', DiscoveryResult(
+                    server_id="", discovery_type="", timestamp=datetime.now(),
+                    duration=timedelta(0), success=False, tools=[], resources=[],
+                    capabilities=[], security_risks=[], metadata={}
+                )).success
+            },
+            "parallel_discovery": False,  # Always false for synchronous implementation
+            "risk_aggregation": self.config.enable_risk_aggregation
+        }
+        
+        # Add server name and version to metadata if discovered
+        if server_name:
+            metadata["server_name"] = server_name
+        if server_version:
+            metadata["server_version"] = server_version
+        
         server_info = MCPServerInfo(
             server_id=server_id,
             server_url=server_url,
@@ -248,28 +297,7 @@ class ServerInfoAggregator:
             capabilities=all_capabilities,
             security_risks=all_security_risks,
             overall_risk_level=overall_risk,
-            metadata={
-                "aggregation_duration": aggregation_time.total_seconds(),
-                "discovery_results": {
-                    "tools_success": discovery_results.get('tools', DiscoveryResult(
-                        server_id="", discovery_type="", timestamp=datetime.now(),
-                        duration=timedelta(0), success=False, tools=[], resources=[],
-                        capabilities=[], security_risks=[], metadata={}
-                    )).success,
-                    "resources_success": discovery_results.get('resources', DiscoveryResult(
-                        server_id="", discovery_type="", timestamp=datetime.now(),
-                        duration=timedelta(0), success=False, tools=[], resources=[],
-                        capabilities=[], security_risks=[], metadata={}
-                    )).success,
-                    "capabilities_success": discovery_results.get('capabilities', DiscoveryResult(
-                        server_id="", discovery_type="", timestamp=datetime.now(),
-                        duration=timedelta(0), success=False, tools=[], resources=[],
-                        capabilities=[], security_risks=[], metadata={}
-                    )).success
-                },
-                "parallel_discovery": False,  # Always false for synchronous implementation
-                "risk_aggregation": self.config.enable_risk_aggregation
-            }
+            metadata=metadata
         )
         
         return server_info

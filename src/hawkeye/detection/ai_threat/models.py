@@ -38,6 +38,16 @@ class SeverityLevel(Enum):
     MEDIUM = "medium"
     HIGH = "high"
     CRITICAL = "critical"
+    
+    @classmethod
+    def from_string(cls, value: str) -> 'SeverityLevel':
+        """Create SeverityLevel from string value."""
+        value = value.lower().strip()
+        for level in cls:
+            if level.value == value:
+                return level
+        # Default to MEDIUM for unknown values
+        return cls.MEDIUM
 
 
 class DifficultyLevel(Enum):
@@ -238,7 +248,7 @@ class AttackVector:
     attack_steps: List[str]
     prerequisites: List[str]
     impact: str
-    likelihood: float
+    likelihood: Optional[float] = None
     example_code: Optional[str] = None
     mitigations: List[str] = None
     
@@ -308,8 +318,8 @@ class AbuseScenario:
     motivation: str
     attack_flow: List[AttackStep]
     required_access: AccessLevel
-    detection_difficulty: DifficultyLevel
-    business_impact: BusinessImpact
+    detection_difficulty: Optional[DifficultyLevel] = None
+    business_impact: BusinessImpact = None
 
 
 @dataclass

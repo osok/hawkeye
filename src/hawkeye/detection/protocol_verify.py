@@ -16,6 +16,12 @@ from urllib.parse import urlparse
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+import urllib3
+import logging
+
+# Suppress urllib3 warnings to provide cleaner output
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+logging.getLogger("urllib3.connectionpool").setLevel(logging.ERROR)
 
 from .base import (
     MCPDetector,
@@ -37,20 +43,46 @@ class ProtocolVerifier(MCPDetector):
         self.handshake_timeout = getattr(settings.detection, 'handshake_timeout', 10) if settings else 10
         self.mcp_version = "2024-11-05"
         
-        # Setup HTTP session with retries
+        # Setup HTTP session with retries (suppress retry warnings)
         self.session = requests.Session()
         retry_strategy = Retry(
             total=2,
             backoff_factor=0.5,
             status_forcelist=[429, 500, 502, 503, 504],
+            raise_on_status=False,  # Don't raise exceptions on status codes
         )
         adapter = HTTPAdapter(max_retries=retry_strategy)
         self.session.mount("http://", adapter)
         self.session.mount("https://", adapter)
+        
+        # Further suppress requests/urllib3 logging for cleaner output
+        logging.getLogger("requests.packages.urllib3.connectionpool").setLevel(logging.ERROR)
+        logging.getLogger("urllib3.util.retry").setLevel(logging.ERROR)
     
     def get_detection_method(self) -> DetectionMethod:
         """Get the detection method."""
         return DetectionMethod.PROTOCOL_HANDSHAKE
+    
+    def _is_port_open(self, host: str, port: int, timeout: float = 2.0) -> bool:
+        """
+        Check if a port is open before attempting HTTP requests.
+        
+        Args:
+            host: Target host
+            port: Port to check
+            timeout: Connection timeout in seconds
+            
+        Returns:
+            bool: True if port is open, False otherwise
+        """
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(timeout)
+            result = sock.connect_ex((host, port))
+            sock.close()
+            return result == 0
+        except Exception:
+            return False
     
     def detect(self, target_host: str, port: Optional[int] = None, 
                transport_type: Optional[TransportType] = None, **kwargs) -> DetectionResult:
@@ -115,9 +147,12 @@ class ProtocolVerifier(MCPDetector):
         if kwargs.get('process_info'):
             transport_attempts.append((TransportType.STDIO, None))
         
-        # If no port specified but we have process info, try common MCP ports
+        # If no port specified but we have process info, try common MCP ports from settings
         if not port and not kwargs.get('process_info'):
-            common_ports = [3000, 8000, 8080, 9000]
+            # Get ports from settings configuration
+            from ..config.settings import get_settings
+            settings = get_settings()
+            common_ports = settings.scan.default_ports
             for common_port in common_ports:
                 transport_attempts.extend([
                     (TransportType.HTTP, common_port),
@@ -203,6 +238,20 @@ class ProtocolVerifier(MCPDetector):
                 error="Port required for HTTP transport verification"
             )
         
+        # First check if port is open - skip endpoint testing if port is closed
+        self.logger.info(f"  Scanning {target_host}:{port} : checking port connectivity...")
+        
+        if not self._is_port_open(target_host, port, timeout=2.0):
+            self.logger.info(f"  Scanning {target_host}:{port} : port closed, skipping")
+            return DetectionResult(
+                target_host=target_host,
+                detection_method=self.get_detection_method(),
+                success=False,
+                error=f"Port {port} is not open"
+            )
+        
+        self.logger.info(f"  Scanning {target_host}:{port} : port open, testing endpoints...")
+        
         # Try both HTTP and HTTPS
         protocols = ['http', 'https'] if port in [443, 8443] else ['http']
         
@@ -221,8 +270,17 @@ class ProtocolVerifier(MCPDetector):
                 for endpoint in endpoints:
                     url = f"{base_url}{endpoint}"
                     
+                    # Log scanning attempt in clean format
+                    self.logger.info(f"  Scanning {target_host}:{port} : {endpoint} : checking...")
+                    
                     # Attempt MCP handshake
                     handshake_result = self._attempt_http_handshake(url)
+                    
+                    # Log result in clean format
+                    if handshake_result['success']:
+                        self.logger.info(f"  Scanning {target_host}:{port} : {endpoint} : found MCP server")
+                    else:
+                        self.logger.info(f"  Scanning {target_host}:{port} : {endpoint} : none found")
                     
                     if handshake_result['success']:
                         # Create MCP server info
@@ -424,6 +482,13 @@ class ProtocolVerifier(MCPDetector):
             Dict: Handshake result with success status and response data
         """
         try:
+            # Temporarily suppress all requests logging for this operation
+            requests_logger = logging.getLogger("requests")
+            urllib3_logger = logging.getLogger("urllib3")
+            original_requests_level = requests_logger.level
+            original_urllib3_level = urllib3_logger.level
+            requests_logger.setLevel(logging.ERROR)
+            urllib3_logger.setLevel(logging.ERROR)
             # Create MCP initialize request
             initialize_request = {
                 "jsonrpc": "2.0",
@@ -485,7 +550,17 @@ class ProtocolVerifier(MCPDetector):
                 }
             
         except requests.exceptions.RequestException as e:
+            # Silently handle connection errors - they're expected during scanning
+            pass
+        except Exception as e:
             self.logger.debug(f"HTTP request failed: {e}")
+        finally:
+            # Restore original logging levels
+            try:
+                requests_logger.setLevel(original_requests_level)
+                urllib3_logger.setLevel(original_urllib3_level)
+            except:
+                pass
         
         return {'success': False, 'confidence': 0.0}
     

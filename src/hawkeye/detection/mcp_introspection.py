@@ -16,6 +16,7 @@ from datetime import datetime
 from .base import MCPServerInfo, ProcessInfo
 from ..utils.logging import get_logger
 from .mcp_introspection.introspection import MCPIntrospection, IntrospectionConfig
+from .mcp_introspection.mcp_client import SyncMCPClient, MCPClientConfig
 from .mcp_introspection.models import (
     MCPServerConfig, 
     MCPServerInfo as NewMCPServerInfo,
@@ -270,7 +271,11 @@ class MCPIntrospector:
         Returns:
             MCPCapabilities if successful, None if failed
         """
-        server_id = f"server_{process_info.pid}_{server_info.name}"
+        # Generate server_id from available information
+        if server_info.port:
+            server_id = f"server_{process_info.pid}_{server_info.host}_{server_info.port}"
+        else:
+            server_id = f"server_{process_info.pid}_{server_info.host}"
         
         # Update statistics
         self.transport_stats["total_introspections"] += 1
@@ -278,7 +283,7 @@ class MCPIntrospector:
         try:
             self.logger.info(
                 f"Starting introspection of server {server_id} "
-                f"(PID: {process_info.pid}, Name: {server_info.name})"
+                f"(PID: {process_info.pid}, Host: {server_info.host})"
             )
             
             # Validate input parameters
@@ -898,29 +903,69 @@ class MCPIntrospector:
         """
         try:
             # Generate a unique server ID with sanitization
-            safe_name = ''.join(c for c in server_info.name if c.isalnum() or c in '-_')[:50]
-            server_id = f"server_{process_info.pid}_{safe_name}"
+            safe_host = ''.join(c for c in server_info.host if c.isalnum() or c in '-_.') if server_info.host else 'unknown'
+            if server_info.port:
+                safe_name = f"{safe_host}_{server_info.port}"
+            else:
+                safe_name = safe_host
+            server_id = f"server_{process_info.pid}_{safe_name}"[:50]  # Truncate to 50 chars
             
             # Determine transport type with validation
             transport_type = "stdio"  # Default to stdio
+            server_url = None
+            
+            # Check for HTTP transport (detected servers with ports or endpoint URLs)
             if server_info.port is not None:
                 if not isinstance(server_info.port, int) or server_info.port <= 0 or server_info.port > 65535:
                     raise ValueError(f"Invalid port number: {server_info.port}")
                 transport_type = "http"
-            elif server_info.endpoint_url is not None:
-                if not isinstance(server_info.endpoint_url, str) or not server_info.endpoint_url.strip():
-                    raise ValueError(f"Invalid endpoint URL: {server_info.endpoint_url}")
-                transport_type = "sse"
+                # Construct URL from host and port
+                host = getattr(server_info, 'host', 'localhost')
+                protocol = 'https' if getattr(server_info, 'is_secure', False) else 'http'
+                server_url = f"{protocol}://{host}:{server_info.port}"
+                self.logger.debug(f"Constructed server URL from port: {server_url}")
+            elif getattr(server_info, 'endpoint_url', None) is not None:
+                endpoint_url = getattr(server_info, 'endpoint_url')
+                if not isinstance(endpoint_url, str) or not endpoint_url.strip():
+                    raise ValueError(f"Invalid endpoint URL: {endpoint_url}")
+                # Use the endpoint URL directly
+                server_url = endpoint_url
+                self.logger.debug(f"Using endpoint URL directly: {server_url}")
+                # Determine transport type from URL
+                if server_url.startswith(('http://', 'https://')):
+                    transport_type = "http"
+                else:
+                    transport_type = "sse"
+            else:
+                self.logger.debug(f"No port or endpoint_url found, server_url will be None")
+                self.logger.debug(f"server_info.port = {getattr(server_info, 'port', 'MISSING')}")
+                self.logger.debug(f"server_info.endpoint_url = {getattr(server_info, 'endpoint_url', 'MISSING')}")
+                self.logger.debug(f"server_info attributes: {list(server_info.__dict__.keys())}")
             
-            # Validate and prepare command
-            if not process_info.cmdline or len(process_info.cmdline) == 0:
-                raise ValueError("Process command line is empty")
+            # Handle command configuration based on transport type
+            command = None
+            args = []
             
-            command = process_info.cmdline[0]
-            if not command or not isinstance(command, str):
-                raise ValueError(f"Invalid command: {command}")
-            
-            args = process_info.cmdline[1:] if len(process_info.cmdline) > 1 else []
+            if transport_type == "stdio":
+                # For stdio transport, we need a valid command
+                if not process_info.cmdline or len(process_info.cmdline) == 0:
+                    raise ValueError("Process command line is empty for stdio transport")
+                
+                command = process_info.cmdline[0]
+                if not command or not isinstance(command, str):
+                    raise ValueError(f"Invalid command: {command}")
+                
+                args = process_info.cmdline[1:] if len(process_info.cmdline) > 1 else []
+            else:
+                # For HTTP/SSE transport, command is optional
+                # Use synthetic values if no real process exists
+                if process_info.cmdline and len(process_info.cmdline) > 0:
+                    command = process_info.cmdline[0]
+                    args = process_info.cmdline[1:] if len(process_info.cmdline) > 1 else []
+                else:
+                    # No command needed for network-based servers
+                    command = "http-server"  # Synthetic command name
+                    args = []
             
             # Validate working directory
             working_directory = process_info.cwd
@@ -936,28 +981,39 @@ class MCPIntrospector:
             
             # Create server configuration with error handling
             try:
-                server_config = MCPServerConfig(
-                    server_id=server_id,
-                    name=server_info.name,
-                    command=command,
-                    args=args,
-                    transport_type=transport_type,
-                    working_directory=working_directory,
-                    environment_variables={},
-                    timeout=timeout,
-                    metadata={
-                        "pid": process_info.pid,
-                        "port": server_info.port,
-                        "endpoint_url": server_info.endpoint_url,
-                        "config_file": getattr(server_info, 'config_file', None),
-                        "legacy_conversion": True,
-                        "conversion_timestamp": datetime.now().isoformat()
+                config_data = {
+                    "server_id": server_id,
+                    "name": safe_name,  # Use the generated safe name
+                    "transport_type": transport_type,
+                    "timeout": timeout,
+                    "env": process_info.env_vars or {},
+                }
+                
+                # Add command-based fields if available
+                if command:
+                    config_data["command"] = [command] + args
+                
+                # Add URL for network-based transports
+                if server_url:
+                    config_data["url"] = server_url
+                
+                # Add transport-specific configuration
+                if transport_type == "http":
+                    config_data["transport_config"] = {
+                        "headers": {
+                            "Content-Type": "application/json",
+                            "Accept": "application/json"
+                        }
                     }
-                )
+                
+                # Debug logging
+                self.logger.debug(f"Final config_data for {server_id}: {config_data}")
+                
+                server_config = MCPServerConfig(**config_data)
                 
                 self.logger.debug(
                     f"Successfully converted server config: {server_id}, "
-                    f"transport={transport_type}, command={command}"
+                    f"transport={transport_type}, url={server_url}, command={command}"
                 )
                 
                 return server_config
@@ -986,8 +1042,9 @@ class MCPIntrospector:
                 self.logger.error("Server info is None")
                 return False
             
-            if not server_info.name or not isinstance(server_info.name, str):
-                self.logger.error("Server name is missing or invalid")
+            # Check for host (which is required)
+            if not server_info.host or not isinstance(server_info.host, str):
+                self.logger.error("Server host is missing or invalid")
                 return False
             
             # Validate process_info
@@ -995,28 +1052,37 @@ class MCPIntrospector:
                 self.logger.error("Process info is None")
                 return False
             
-            if not process_info.pid or not isinstance(process_info.pid, int) or process_info.pid <= 0:
-                self.logger.error(f"Invalid process PID: {process_info.pid}")
-                return False
+            # For network-detected servers (HTTP/SSE), allow synthetic process info with PID=0
+            is_network_server = (
+                server_info.port is not None or 
+                getattr(server_info, 'endpoint_url', None) is not None
+            )
             
-            if not process_info.cmdline or not isinstance(process_info.cmdline, list):
-                self.logger.error("Process command line is missing or invalid")
-                return False
-            
-            # Validate command line has at least one element
-            if len(process_info.cmdline) == 0:
-                self.logger.error("Process command line is empty")
-                return False
-            
-            # Validate working directory if provided
-            if process_info.cwd and not isinstance(process_info.cwd, str):
-                self.logger.error("Process working directory is invalid")
-                return False
+            if is_network_server:
+                # Network servers can have synthetic process info
+                if not isinstance(process_info.pid, int) or process_info.pid < 0:
+                    self.logger.error(f"Invalid process PID for network server: {process_info.pid}")
+                    return False
+                    
+                # For network servers, empty command line is acceptable
+                self.logger.debug(
+                    f"Network server validation: "
+                    f"port={server_info.port}, endpoint={getattr(server_info, 'endpoint_url', 'MISSING')}"
+                )
+            else:
+                # For stdio servers, require real process info
+                if not process_info.pid or not isinstance(process_info.pid, int) or process_info.pid <= 0:
+                    self.logger.error(f"Invalid process PID for stdio server: {process_info.pid}")
+                    return False
+                
+                if not process_info.cmdline or len(process_info.cmdline) == 0:
+                    self.logger.error("Command line is required for stdio servers")
+                    return False
             
             return True
             
         except Exception as e:
-            self.logger.error(f"Error validating introspection inputs: {e}")
+            self.logger.error(f"Validation error: {e}")
             return False
     
     def _validate_server_info(self, server_info: 'NewMCPServerInfo') -> bool:
@@ -1088,7 +1154,7 @@ class MCPIntrospector:
     
     def _is_http_server(self, server_info: MCPServerInfo) -> bool:
         """Check if server uses HTTP transport (legacy method)."""
-        return server_info.port is not None or server_info.endpoint_url is not None
+        return server_info.port is not None or getattr(server_info, 'endpoint_url', None) is not None
     
     def generate_server_summary(self, capabilities: MCPCapabilities) -> Dict[str, Any]:
         """
@@ -1205,12 +1271,12 @@ def enhance_mcp_server_info(server_info: MCPServerInfo, process_info: ProcessInf
     try:
         # Create enhanced copy
         enhanced_info = MCPServerInfo(
-            name=server_info.name,
+            name=getattr(server_info, 'name', server_info.host),
             port=server_info.port,
-            endpoint_url=server_info.endpoint_url,
-            config_file=server_info.config_file,
+            endpoint_url=getattr(server_info, 'endpoint_url', None),
+            config_file=getattr(server_info, 'config_file', None),
             process_id=process_info.pid,
-            command_line=' '.join(process_info.cmdline),
+            command_line=' '.join(process_info.cmdline) if process_info.cmdline else '',
             working_directory=process_info.cwd,
             environment_variables={},  # Could be enhanced with actual env vars
             capabilities=[],  # Will be populated by introspection

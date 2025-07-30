@@ -89,8 +89,8 @@ def parse_ports(ports_str: str) -> List[int]:
 )
 @click.option(
     "--ports", "-p",
-    default="3000,8000,8080,9000",
-    help="Port range (e.g., 1-1000) or comma-separated ports (default: common MCP ports)"
+    default="auto",
+    help="Port range (e.g., 1-1000) or comma-separated ports (default: auto = expanded MCP port list)"
 )
 @click.option(
     "--tcp/--no-tcp",
@@ -147,9 +147,12 @@ def scan(ctx, target: str, ports: str, tcp: bool, udp: bool, threads: int,
     
     try:
         # Parse ports
-        port_list = parse_ports(ports)
-        if not port_list:
-            port_list = [3000, 8000, 8080, 9000]  # Default MCP ports
+        if ports == "auto":
+            port_list = ctx.obj.settings.scan.default_ports
+        else:
+            port_list = parse_ports(ports)
+            if not port_list:
+                port_list = ctx.obj.settings.scan.default_ports
         
         console.print(f"[bold blue]🦅 HawkEye Network Scan[/bold blue]")
         console.print(f"Target: {target}")

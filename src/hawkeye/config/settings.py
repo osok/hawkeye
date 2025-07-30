@@ -23,8 +23,18 @@ class ScanSettings(BaseSettings):
     retry_attempts: int = Field(default=3, ge=0, le=10, description="Number of retry attempts for failed connections")
     rate_limit_requests: int = Field(default=100, ge=1, le=10000, description="Rate limit for requests per second")
     
-    # Port scanning configuration
-    default_ports: List[int] = Field(default=[3000, 8000, 8080, 9000], description="Default MCP ports to scan")
+    # Port scanning configuration  
+    default_ports: List[int] = Field(
+        default=[
+            # Node.js/React development range
+            3000, 3001, 3002, 3003, 3004, 3005, 3006, 3007, 3008, 3009, 3010,
+            # Common HTTP server ports
+            8000, 8080, 9000,
+            # Additional common MCP ports
+            4000, 5000, 8001, 8888, 9001, 9002
+        ], 
+        description="Default MCP ports to scan including Node.js dev range and common server ports"
+    )
     port_range_start: int = Field(default=1, ge=1, le=65535, description="Start of port range")
     port_range_end: int = Field(default=65535, ge=1, le=65535, description="End of port range")
     
@@ -154,14 +164,14 @@ class AISettings(BaseSettings):
     # OpenAI configuration
     openai_api_key: Optional[str] = Field(default=None, description="OpenAI API key")
     openai_model: str = Field(default="gpt-4", description="OpenAI model to use")
-    openai_max_tokens: int = Field(default=4000, ge=100, le=8000, description="OpenAI max tokens per request")
+    openai_max_tokens: int = Field(default=10000, ge=100, le=12000, description="OpenAI max tokens per request")
     openai_temperature: float = Field(default=0.1, ge=0.0, le=2.0, description="OpenAI temperature setting")
     openai_timeout: int = Field(default=30, ge=5, le=300, description="OpenAI request timeout in seconds")
     
     # Anthropic configuration
     anthropic_api_key: Optional[str] = Field(default=None, description="Anthropic API key")
     anthropic_model: str = Field(default="claude-3-sonnet-20240229", description="Anthropic model to use")
-    anthropic_max_tokens: int = Field(default=4000, ge=100, le=8000, description="Anthropic max tokens per request")
+    anthropic_max_tokens: int = Field(default=8000, ge=100, le=12000, description="Anthropic max tokens per request")
     anthropic_temperature: float = Field(default=0.1, ge=0.0, le=2.0, description="Anthropic temperature setting")
     anthropic_timeout: int = Field(default=30, ge=5, le=300, description="Anthropic request timeout in seconds")
     

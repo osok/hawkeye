@@ -1,0 +1,2428 @@
+# Module Functions Documentation
+
+## Module: assessment.auth_analysis
+**File:** `assessment/auth_analysis.py`
+
+**Imports:**
+- base.AssessmentResult
+- base.ComplianceFramework
+- base.ConfigurationError
+- base.RiskAssessor
+- base.RiskLevel
+- base.SecurityFinding
+- base.VulnerabilityCategory
+- base.VulnerabilityInfo
+- base64
+- dataclasses.dataclass
+- dataclasses.field
+- datetime.datetime
+- datetime.timedelta
+- detection.base.DetectionResult
+- detection.base.MCPServerInfo
+- detection.base.TransportType
+- hashlib
+- json
+- pathlib.Path
+- re
+- typing.Any
+- typing.Dict
+- typing.List
+- typing.Optional
+- typing.Set
+- typing.Tuple
+- typing.Union
+- urllib.parse.urlparse
+- utils.logging.get_logger
+
+**Functions:**
+
+### `def analyze_authentication(detection_result: DetectionResult, settings = None) -> AuthenticationConfiguration`
+
+**Description:**
+Analyze authentication configuration in a detected MCP server.
+
+Args:
+detection_result: Detection result to analyze
+settings: Optional settings
+
+Returns:
+AuthenticationConfiguration: Analysis results
+
+**Line:** 960
+
+---
+
+### `def check_password_strength(password: str) -> Tuple[(bool, List[str])]`
+
+**Description:**
+Check password strength and return issues.
+
+Args:
+password: Password to check
+
+Returns:
+Tuple of (is_strong, list_of_issues)
+
+**Line:** 1005
+
+---
+
+### `def validate_jwt_token(token: str) -> Tuple[(bool, Dict[str, Any])]`
+
+**Description:**
+Validate JWT token structure and extract claims.
+
+Args:
+token: JWT token to validate
+
+Returns:
+Tuple of (is_valid, claims_dict)
+
+**Line:** 1045
+
+---
+
+
+## Module: assessment.config_analysis
+**File:** `assessment/config_analysis.py`
+
+**Imports:**
+- base.AssessmentResult
+- base.ComplianceFramework
+- base.ConfigurationError
+- base.RiskAssessor
+- base.RiskLevel
+- base.SecurityFinding
+- base.VulnerabilityCategory
+- base.VulnerabilityInfo
+- dataclasses.dataclass
+- dataclasses.field
+- detection.base.DetectionResult
+- detection.base.MCPServerInfo
+- detection.base.TransportType
+- json
+- pathlib.Path
+- re
+- typing.Any
+- typing.Dict
+- typing.List
+- typing.Optional
+- typing.Set
+- typing.Tuple
+- urllib.parse.urlparse
+- utils.logging.get_logger
+- yaml
+
+**Functions:**
+
+### `def analyze_configuration(detection_result: DetectionResult, settings = None) -> SecurityConfiguration`
+
+**Description:**
+Analyze security configuration of a detected MCP server.
+
+Args:
+detection_result: Detection result to analyze
+settings: Optional settings
+
+Returns:
+SecurityConfiguration: Analysis results
+
+**Line:** 819
+
+---
+
+
+## Module: assessment.cvss_scoring
+**File:** `assessment/cvss_scoring.py`
+
+**Imports:**
+- base.CVSSError
+- base.CVSSVector
+- base.RiskLevel
+- base.VulnerabilityCategory
+- base.VulnerabilityInfo
+- dataclasses.dataclass
+- math
+- re
+- typing.Any
+- typing.Dict
+- typing.Optional
+- typing.Tuple
+- utils.logging.get_logger
+
+**Functions:**
+
+### `def calculate_cvss_score(vector_string: str) -> float`
+
+**Description:**
+Calculate CVSS score from vector string.
+
+Args:
+vector_string: CVSS vector string
+
+Returns:
+float: CVSS score
+
+**Line:** 659
+
+---
+
+### `def get_risk_level_from_score(score: float) -> RiskLevel`
+
+**Description:**
+Get risk level from CVSS score.
+
+Args:
+score: CVSS score (0.0-10.0)
+
+Returns:
+RiskLevel: Corresponding risk level
+
+**Line:** 674
+
+---
+
+
+## Module: assessment.default_detect
+**File:** `assessment/default_detect.py`
+
+**Imports:**
+- base.AssessmentResult
+- base.ComplianceFramework
+- base.ConfigurationError
+- base.RiskAssessor
+- base.RiskLevel
+- base.SecurityFinding
+- base.VulnerabilityCategory
+- base.VulnerabilityInfo
+- config_analysis.ConfigurationIssue
+- config_analysis.SecurityConfiguration
+- dataclasses.dataclass
+- dataclasses.field
+- detection.base.DetectionResult
+- detection.base.MCPServerInfo
+- detection.base.TransportType
+- json
+- pathlib.Path
+- re
+- typing.Any
+- typing.Dict
+- typing.List
+- typing.Optional
+- typing.Set
+- typing.Tuple
+- urllib.parse.urlparse
+- utils.logging.get_logger
+
+**Functions:**
+
+### `def detect_default_configurations(detection_result: DetectionResult, settings = None) -> DefaultDetectionResult`
+
+**Description:**
+Detect default configurations in a detected MCP server.
+
+Args:
+detection_result: Detection result to analyze
+settings: Optional settings
+
+Returns:
+DefaultDetectionResult: Detection results
+
+**Line:** 661
+
+---
+
+### `def get_default_patterns() -> List[DefaultPattern]`
+
+**Description:**
+Get the list of all default configuration patterns.
+
+Returns:
+List[DefaultPattern]: List of default patterns
+
+**Line:** 706
+
+---
+
+### `def check_for_pattern(content: str, pattern_id: str) -> bool`
+
+**Description:**
+Check if content matches a specific default pattern.
+
+Args:
+content: Content to check
+pattern_id: ID of the pattern to check
+
+Returns:
+bool: True if pattern matches
+
+**Line:** 717
+
+---
+
+
+## Module: assessment.remediation
+**File:** `assessment/remediation.py`
+
+**Imports:**
+- base.AssessmentResult
+- base.ComplianceFramework
+- base.RiskAssessor
+- base.RiskLevel
+- base.SecurityFinding
+- base.VulnerabilityCategory
+- base.VulnerabilityInfo
+- detection.base.DetectionResult
+- enum.Enum
+- exceptions.InvalidFindingError
+- exceptions.PrioritizationError
+- exceptions.RemediationError
+- pathlib.Path
+- pydantic.BaseModel
+- pydantic.Field
+- pydantic.field_validator
+- time
+- typing.Any
+- typing.Dict
+- typing.List
+- typing.Set
+- typing.Tuple
+- utils.logging.get_logger
+
+**Functions:**
+
+### `def generate_remediation_plan(assessment_results: List[AssessmentResult], settings = None) -> RemediationPlan`
+
+**Description:**
+Generate remediation plan from assessment results.
+
+Args:
+assessment_results: List of assessment results
+settings: Optional settings
+
+Returns:
+RemediationPlan: Generated remediation plan
+
+**Line:** 903
+
+---
+
+### `def get_quick_wins(remediation_plan: RemediationPlan) -> List[RemediationAction]`
+
+**Description:**
+Get quick win actions from remediation plan.
+
+Args:
+remediation_plan: Remediation plan to analyze
+
+Returns:
+List[RemediationAction]: Quick win actions
+
+**Line:** 918
+
+---
+
+### `def estimate_implementation_time(remediation_plan: RemediationPlan) -> Dict[(str, Any)]`
+
+**Description:**
+Estimate implementation time for remediation plan.
+
+Args:
+remediation_plan: Remediation plan to analyze
+
+Returns:
+Dict[str, Any]: Time estimates by priority and phase
+
+**Line:** 931
+
+---
+
+
+## Module: cli.config_file
+**File:** `cli/config_file.py`
+
+**Imports:**
+- click
+- config.HawkEyeSettings
+- config.get_settings
+- configparser
+- dataclasses.asdict
+- exceptions.ConfigurationError
+- json
+- os
+- pathlib.Path
+- pydantic.ValidationError
+- sys
+- toml
+- typing.Any
+- typing.Dict
+- typing.List
+- typing.Optional
+- typing.Union
+- utils.get_logger
+- yaml
+
+**Functions:**
+
+### `def load_config_from_file(config_path: Optional[str] = None) -> HawkEyeSettings`
+
+**Description:**
+Load and validate configuration from file.
+
+Args:
+config_path: Path to configuration file (auto-discovered if None)
+
+Returns:
+Validated HawkEyeSettings instance
+
+Raises:
+ConfigurationError: If configuration cannot be loaded or is invalid
+
+**Line:** 332
+
+---
+
+### `def save_current_config(config_path: str, format: Optional[str] = None) -> None`
+
+**Description:**
+Save current configuration to file.
+
+Args:
+config_path: Path where to save configuration
+format: File format (auto-detected if None)
+
+**Line:** 368
+
+---
+
+### `def config()`
+
+**Decorators:**
+- `@click.group(...)`
+
+**Description:**
+Configuration file management commands.
+
+**Line:** 409
+
+---
+
+### `def init(output: str, format: str, overwrite: bool)`
+
+**Decorators:**
+- `@config.command(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+
+**Description:**
+Initialize a new configuration file with default values.
+
+**Line:** 432
+
+---
+
+### `def validate(config_file: Optional[str])`
+
+**Decorators:**
+- `@config.command(...)`
+- `@click.option(...)`
+
+**Description:**
+Validate configuration file.
+
+**Line:** 461
+
+---
+
+### `def show(config_file: Optional[str], format: str)`
+
+**Decorators:**
+- `@config.command(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+
+**Description:**
+Show current configuration.
+
+**Line:** 497
+
+---
+
+### `def _print_config_table(config_data: Dict[(str, Any)], prefix: str = '')`
+
+**Description:**
+Print configuration as a formatted table.
+
+**Line:** 529
+
+---
+
+
+## Module: cli.detect_commands
+**File:** `cli/detect_commands.py`
+
+**Imports:**
+- click
+- csv
+- datetime.datetime
+- detection.ai_threat.AIThreatAnalyzer
+- detection.ai_threat.models.ComplianceFramework
+- detection.ai_threat.models.DataSensitivity
+- detection.ai_threat.models.DeploymentType
+- detection.ai_threat.models.EnvironmentContext
+- detection.ai_threat.models.NetworkExposure
+- detection.ai_threat.models.SecurityPosture
+- detection.ai_threat.models.UserPrivileges
+- detection.base.DetectionMethod
+- detection.base.DetectionResult
+- detection.base.MCPDetector
+- detection.base.MCPServerType
+- detection.base.TransportType
+- detection.config_discovery.ConfigFileDiscovery
+- detection.docker_inspect.DockerInspector
+- detection.env_analysis.EnvironmentAnalyzer
+- detection.mcp_introspection.models.MCPServerInfo
+- detection.mcp_introspection.models.MCPTool
+- detection.npx_detect.NPXDetector
+- detection.pipeline.DetectionPipeline
+- detection.pipeline.PipelineConfig
+- detection.pipeline.PipelineResult
+- detection.pipeline.create_detection_pipeline
+- detection.process_enum.ProcessEnumerator
+- detection.protocol_verify.ProtocolVerifier
+- detection.transport_detect.TransportDetector
+- exceptions.DetectionError
+- exceptions.HawkEyeError
+- ipaddress
+- json
+- pathlib.Path
+- reporting.CSVReporter
+- reporting.HTMLReporter
+- reporting.IntrospectionReporter
+- reporting.JSONReporter
+- reporting.XMLReporter
+- reporting.base.ReportData
+- reporting.base.ReportFormat
+- reporting.base.ReportMetadata
+- reporting.base.ReportType
+- reporting.csv_reporter.CSVReporter
+- reporting.html_reporter.HTMLReporter
+- reporting.json_reporter.JSONReporter
+- reporting.pipeline_converter.convert_pipeline_results_to_report
+- reporting.xml_reporter.XMLReporter
+- rich.console.Console
+- rich.progress.BarColumn
+- rich.progress.Progress
+- rich.progress.SpinnerColumn
+- rich.progress.TaskProgressColumn
+- rich.progress.TextColumn
+- rich.table.Table
+- rich.tree.Tree
+- scan_commands.parse_ports
+- scanner.target_enum.TargetEnumerator
+- sys
+- time
+- typing.List
+- typing.Optional
+- utils.get_logger
+- xml.etree.ElementTree
+
+**Functions:**
+
+### `def detect()`
+
+**Decorators:**
+- `@click.group(...)`
+
+**Description:**
+MCP-specific detection and analysis operations.
+
+**Line:** 42
+
+---
+
+### `def comprehensive(ctx, target: str, enable_introspection: bool, introspection_timeout: int, enable_risk_assessment: bool, confidence_threshold: float, output: Optional[str], format: str, generate_introspection_report: bool, introspection_report_path: Optional[str])`
+
+**Decorators:**
+- `@detect.command(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.pass_context`
+
+**Description:**
+Comprehensive MCP detection using integrated pipeline.
+
+Performs complete MCP detection including traditional methods and
+enhanced introspection with risk assessment. Supports CIDR notation.
+
+Examples:
+
+hawkeye detect comprehensive -t 192.168.1.100
+hawkeye detect comprehensive -t 192.168.1.0/24
+hawkeye detect comprehensive -t localhost --disable-introspection
+hawkeye detect comprehensive -t example.com --confidence-threshold 0.5
+
+**Line:** 97
+
+---
+
+### `def target(ctx, target: str, ports: str, timeout: int, verify_protocol: bool, detect_transport: bool, output: Optional[str], format: str)`
+
+**Decorators:**
+- `@detect.command(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.pass_context`
+
+**Description:**
+Detect MCP servers on specified target.
+
+Performs comprehensive MCP detection including protocol verification
+and transport layer identification.
+
+Examples:
+
+hawkeye detect target -t 192.168.1.100
+hawkeye detect target -t example.com -p 3000-3010
+hawkeye detect target -t 10.0.0.1 --verify-protocol --detect-transport
+
+**Line:** 302
+
+---
+
+### `def local(ctx, interface: Optional[str], include_processes: bool, include_configs: bool, include_docker: bool, include_env: bool, output: Optional[str], format: str)`
+
+**Decorators:**
+- `@detect.command(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.pass_context`
+
+**Description:**
+Detect MCP servers on local system.
+
+Performs comprehensive local MCP detection including process enumeration,
+configuration discovery, Docker inspection, and environment analysis.
+
+Examples:
+
+hawkeye detect local
+hawkeye detect local --include-processes --include-docker
+hawkeye detect local --no-include-env
+
+**Line:** 439
+
+---
+
+### `def process(ctx, pid: int, deep_analysis: bool, check_children: bool, analyze_env: bool, output: Optional[str], format: str)`
+
+**Decorators:**
+- `@detect.command(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.pass_context`
+
+**Description:**
+Analyze specific process for MCP indicators.
+
+Performs detailed analysis of a specific process including command line
+arguments, environment variables, open files, and network connections.
+
+Examples:
+
+hawkeye detect process --pid 1234
+hawkeye detect process --pid 5678 --deep-analysis --check-children
+hawkeye detect process --pid 9012 --no-analyze-env
+
+**Line:** 557
+
+---
+
+### `def config(ctx, path: str, recursive: bool, include_hidden: bool, max_depth: int, output: Optional[str], format: str)`
+
+**Decorators:**
+- `@detect.command(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.pass_context`
+
+**Description:**
+Discover MCP configuration files.
+
+Searches for MCP-related configuration files including package.json,
+MCP server configs, environment files, and Docker configurations.
+
+Examples:
+
+hawkeye detect config
+hawkeye detect config --path /opt/mcp --recursive
+hawkeye detect config --path . --include-hidden --max-depth 3
+
+**Line:** 672
+
+---
+
+### `def analyze_threats(ctx, input: str, output: Optional[str], format: str, analysis_type: str, confidence_threshold: float, enable_ai: bool, parallel_processing: bool, max_workers: int, cost_limit: Optional[float])`
+
+**Decorators:**
+- `@click.command(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.pass_context`
+
+**Description:**
+Analyze threats from JSON detection results using AI-powered analysis.
+
+This command processes JSON files generated by detect commands and performs
+comprehensive threat analysis using the AI-powered threat analysis system.
+
+Examples:
+hawkeye detect comprehensive -t 192.168.1.100 -o results.json
+hawkeye analyze-threats -i results.json -o threats.json
+
+hawkeye detect local -o local_results.json
+hawkeye analyze-threats -i local_results.json -f html -o threat_report.html
+
+**Line:** 785
+
+---
+
+### `def display_detection_results(results)`
+
+**Description:**
+Display detection results in a formatted table.
+
+**Line:** 1728
+
+---
+
+### `def display_process_analysis(results, pid: int)`
+
+**Description:**
+Display process analysis results.
+
+**Line:** 1762
+
+---
+
+### `def display_config_discovery(results, search_path: str)`
+
+**Description:**
+Display configuration discovery results.
+
+**Line:** 1818
+
+---
+
+### `def save_detection_results(results, output_path: str, format: str)`
+
+**Description:**
+Save detection results to file in specified format.
+
+**Line:** 1852
+
+---
+
+### `def display_comprehensive_results(result)`
+
+**Description:**
+Display comprehensive detection pipeline results.
+
+**Line:** 1894
+
+---
+
+### `def display_pipeline_statistics(stats)`
+
+**Description:**
+Display pipeline execution statistics.
+
+**Line:** 2035
+
+---
+
+
+## Module: cli.main
+**File:** `cli/main.py`
+
+**Imports:**
+- cli.scan_commands.parse_ports
+- click
+- config.get_settings
+- config_file.config
+- config_file.load_config_from_file
+- detect_commands.analyze_threats
+- detect_commands.detect
+- detection.protocol_verify.ProtocolVerifier
+- detection.transport_detect.TransportDetector
+- exceptions.HawkEyeError
+- json
+- output_control.VerbosityLevel
+- output_control.configure_output
+- pathlib.Path
+- report_commands.report
+- rich.console.Console
+- rich.progress.BarColumn
+- rich.progress.Progress
+- rich.progress.SpinnerColumn
+- rich.progress.TaskProgressColumn
+- rich.progress.TextColumn
+- rich.table.Table
+- scan_commands.scan
+- scanner.base.ScanTarget
+- scanner.target_enum.TargetEnumerator
+- scanner.tcp_scanner.TCPScanner
+- sys
+- typing.Optional
+- utils.configure_logging
+- utils.get_logger
+
+**Functions:**
+
+### `def cli(ctx, verbose: bool, quiet: bool, log_file: Optional[str], config_file: Optional[str])`
+
+**Decorators:**
+- `@click.group(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.version_option(...)`
+- `@click.pass_context`
+
+**Description:**
+🦅 HawkEye - MCP Security Reconnaissance Tool
+
+Identify and assess Model Context Protocol (MCP) server deployments
+within network infrastructure for security vulnerabilities.
+
+Use 'hawkeye COMMAND --help' for command-specific help.
+
+**Line:** 113
+
+---
+
+### `def show_banner()`
+
+**Description:**
+Display HawkEye banner.
+
+**Line:** 150
+
+---
+
+### `def assess(ctx)`
+
+**Decorators:**
+- `@cli.group(...)`
+- `@click.pass_context`
+
+**Description:**
+Security assessment and risk analysis operations.
+
+**Line:** 172
+
+---
+
+### `def info(ctx)`
+
+**Decorators:**
+- `@cli.command(...)`
+- `@click.pass_context`
+
+**Description:**
+Display system information and configuration.
+
+**Line:** 179
+
+---
+
+### `def quick_scan(ctx, target: str, ports: Optional[str], threads: Optional[int], timeout: Optional[int], output: Optional[str], format: str)`
+
+**Decorators:**
+- `@cli.command(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.pass_context`
+
+**Description:**
+Perform a quick scan of the target for MCP services.
+
+This command combines network scanning, MCP detection, and basic
+risk assessment in a single operation.
+
+**Line:** 243
+
+---
+
+### `def main()`
+
+**Description:**
+Main entry point for the HawkEye CLI application.
+
+**Line:** 435
+
+---
+
+
+## Module: cli.output_control
+**File:** `cli/output_control.py`
+
+**Imports:**
+- contextlib.contextmanager
+- enum.Enum
+- logging
+- rich.console.Console
+- rich.logging.RichHandler
+- rich.panel.Panel
+- rich.text.Text
+- sys
+- typing.Any
+- typing.Dict
+- typing.Optional
+- utils.get_logger
+
+**Functions:**
+
+### `def configure_output(verbosity: VerbosityLevel, quiet: bool = False, debug: bool = False, log_file: Optional[str] = None)`
+
+**Description:**
+Configure global output settings.
+
+**Line:** 334
+
+---
+
+### `def get_output_controller() -> OutputController`
+
+**Description:**
+Get the global output controller instance.
+
+**Line:** 350
+
+---
+
+### `def print_banner(title: str, subtitle: Optional[str] = None)`
+
+**Description:**
+Print application banner.
+
+**Line:** 356
+
+---
+
+### `def print_section_header(title: str)`
+
+**Description:**
+Print section header.
+
+**Line:** 361
+
+---
+
+### `def print_operation_start(operation: str, details: Optional[str] = None)`
+
+**Description:**
+Print operation start message.
+
+**Line:** 366
+
+---
+
+### `def print_operation_complete(operation: str, duration: Optional[float] = None)`
+
+**Description:**
+Print operation completion message.
+
+**Line:** 371
+
+---
+
+### `def print_operation_failed(operation: str, error: str)`
+
+**Description:**
+Print operation failure message.
+
+**Line:** 376
+
+---
+
+### `def print_statistics(title: str, stats: Dict[(str, Any)])`
+
+**Description:**
+Print statistics summary.
+
+**Line:** 381
+
+---
+
+### `def print_debug_info(category: str, data: Dict[(str, Any)])`
+
+**Description:**
+Print debug information.
+
+**Line:** 386
+
+---
+
+
+## Module: cli.progress
+**File:** `cli/progress.py`
+
+**Imports:**
+- contextlib.contextmanager
+- rich.align.Align
+- rich.console.Console
+- rich.layout.Layout
+- rich.live.Live
+- rich.panel.Panel
+- rich.progress.BarColumn
+- rich.progress.MofNCompleteColumn
+- rich.progress.Progress
+- rich.progress.SpinnerColumn
+- rich.progress.TaskProgressColumn
+- rich.progress.TextColumn
+- rich.progress.TimeElapsedColumn
+- rich.progress.TimeRemainingColumn
+- rich.table.Table
+- rich.text.Text
+- threading.Lock
+- time
+- typing.Any
+- typing.Dict
+- typing.List
+- typing.Optional
+- utils.get_logger
+
+**Functions:**
+
+### `def create_status_table(stats: Dict[(str, Any)], operation_type: str) -> Table`
+
+**Description:**
+Create a status table for live display.
+
+**Line:** 414
+
+---
+
+
+## Module: cli.report_commands
+**File:** `cli/report_commands.py`
+
+**Imports:**
+- assessment.base.AssessmentResult
+- assessment.base.RiskLevel
+- assessment.base.VulnerabilityCategory
+- click
+- detection.base.DetectionMethod
+- detection.base.DetectionResult
+- exceptions.HawkEyeError
+- exceptions.ReportingError
+- json
+- pandas
+- pathlib.Path
+- reporting.aggregation.DataAggregator
+- reporting.base.ReportData
+- reporting.base.ReportFormat
+- reporting.base.ReportMetadata
+- reporting.base.ReportType
+- reporting.csv_reporter.CSVReporter
+- reporting.executive_summary.ExecutiveSummaryGenerator
+- reporting.html_reporter.HTMLReporter
+- reporting.json_reporter.JSONReporter
+- reporting.xml_reporter.XMLReporter
+- rich.console.Console
+- rich.panel.Panel
+- rich.progress.BarColumn
+- rich.progress.Progress
+- rich.progress.SpinnerColumn
+- rich.progress.TaskProgressColumn
+- rich.progress.TextColumn
+- rich.table.Table
+- scanner.base.PortState
+- scanner.base.ScanResult
+- scanner.base.ScanTarget
+- scanner.base.ScanType
+- sys
+- typing.List
+- typing.Optional
+- utils.get_logger
+- xml.etree.ElementTree
+
+**Functions:**
+
+### `def report()`
+
+**Decorators:**
+- `@click.group(...)`
+
+**Description:**
+Report generation and output formatting operations.
+
+**Line:** 34
+
+---
+
+### `def generate(ctx, input: str, output: str, format: str, title: str, author: str, organization: str, classification: str, template: Optional[str])`
+
+**Decorators:**
+- `@report.command(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.pass_context`
+
+**Description:**
+Generate report from scan/detection results.
+
+Converts raw scan and detection data into formatted reports with
+comprehensive analysis and recommendations.
+
+Examples:
+
+hawkeye report generate -i results.json -o report.html -f html
+hawkeye report generate -i scan_data.json -o summary.csv -f csv
+hawkeye report generate -i detection.json -o report.xml -f xml --title "Security Assessment"
+
+**Line:** 85
+
+---
+
+### `def threat_analysis(ctx, input: str, output: str, title: str, author: str, organization: str, classification: str)`
+
+**Decorators:**
+- `@report.command(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.pass_context`
+
+**Description:**
+Generate threat analysis report showing attack scenarios and abuse cases.
+
+Analyzes detected MCP tools and generates detailed threat analysis including
+attack vectors, abuse scenarios, mitigation strategies, and compliance impact.
+
+Examples:
+
+hawkeye report threat-analysis -i mcp_results.json -o threat_report.html
+hawkeye report threat-analysis -i detection.json -o threats.html --classification Restricted
+
+**Line:** 235
+
+---
+
+### `def summary(ctx, input: str, output: str, format: str, include_charts: bool, include_recommendations: bool, risk_threshold: str)`
+
+**Decorators:**
+- `@report.command(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.pass_context`
+
+**Description:**
+Generate executive summary from assessment results.
+
+Creates a high-level executive summary with key findings,
+risk metrics, and strategic recommendations.
+
+Examples:
+
+hawkeye report summary -i assessment.json -o summary.html
+hawkeye report summary -i results.json -o executive.pdf -f pdf
+hawkeye report summary -i data.json -o brief.html --risk-threshold high
+
+**Line:** 358
+
+---
+
+### `def aggregate(ctx, input: str, output: Optional[str], group_by: str, include_statistics: bool, include_trends: bool)`
+
+**Decorators:**
+- `@report.command(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.pass_context`
+
+**Description:**
+Aggregate and analyze scan/detection data.
+
+Performs data aggregation, statistical analysis, and trend identification
+to provide insights into the security assessment results.
+
+Examples:
+
+hawkeye report aggregate -i results.json --group-by host
+hawkeye report aggregate -i data.json -o aggregated.json --group-by risk_level
+hawkeye report aggregate -i scan.json --group-by service --include-trends
+
+**Line:** 455
+
+---
+
+### `def combine(ctx, input_dir: str, output: str, format: str, merge_strategy: str)`
+
+**Decorators:**
+- `@report.command(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.pass_context`
+
+**Description:**
+Combine multiple result files into a single report.
+
+Merges multiple scan and detection result files from different
+assessments into a comprehensive combined report.
+
+Examples:
+
+hawkeye report combine --input-dir ./results -o combined.html
+hawkeye report combine --input-dir /data/scans -o merged.json -f json
+hawkeye report combine --input-dir ./assessments -o report.xml --merge-strategy append
+
+**Line:** 570
+
+---
+
+### `def load_input_data(file_path: str) -> dict`
+
+**Description:**
+Load and parse input data file.
+
+**Line:** 689
+
+---
+
+### `def convert_dict_data_to_objects(input_data: dict) -> dict`
+
+**Description:**
+Convert dictionary data back to proper objects for reporting.
+
+**Line:** 712
+
+---
+
+### `def display_generation_summary(report_data: ReportData, output_path: str, format: str)`
+
+**Description:**
+Display report generation summary.
+
+**Line:** 804
+
+---
+
+### `def display_summary_statistics(analysis_results: dict)`
+
+**Description:**
+Display executive summary statistics.
+
+**Line:** 820
+
+---
+
+### `def display_aggregation_results(output_data: dict, group_by: str)`
+
+**Description:**
+Display data aggregation results.
+
+**Line:** 839
+
+---
+
+### `def display_combination_summary(combined_data: dict, file_count: int)`
+
+**Description:**
+Display report combination summary.
+
+**Line:** 860
+
+---
+
+### `def merge_data_with_resolution(data1: dict, data2: dict) -> dict`
+
+**Description:**
+Merge two data dictionaries with conflict resolution.
+
+**Line:** 875
+
+---
+
+### `def deduplicate_data(data1: dict, data2: dict) -> dict`
+
+**Description:**
+Deduplicate data when combining.
+
+**Line:** 887
+
+---
+
+
+## Module: cli.scan_commands
+**File:** `cli/scan_commands.py`
+
+**Imports:**
+- click
+- exceptions.HawkEyeError
+- exceptions.ScanError
+- ipaddress
+- pathlib.Path
+- reporting.base.ReportData
+- reporting.base.ReportFormat
+- reporting.base.ReportMetadata
+- reporting.base.ReportType
+- reporting.csv_reporter.CSVReporter
+- reporting.json_reporter.JSONReporter
+- reporting.xml_reporter.XMLReporter
+- rich.console.Console
+- rich.progress.BarColumn
+- rich.progress.Progress
+- rich.progress.SpinnerColumn
+- rich.progress.TaskProgressColumn
+- rich.progress.TextColumn
+- rich.table.Table
+- scanner.base.ScanTarget
+- scanner.target_enum.TargetEnumerator
+- scanner.tcp_scanner.TCPScanner
+- scanner.udp_scanner.UDPScanner
+- sys
+- typing.List
+- typing.Optional
+- utils.get_logger
+
+**Functions:**
+
+### `def validate_target(target: str) -> None`
+
+**Description:**
+Validate target specification.
+
+**Line:** 28
+
+---
+
+### `def parse_ports(ports_str: str) -> List[int]`
+
+**Description:**
+Parse port specification string into list of ports.
+
+**Line:** 51
+
+---
+
+### `def scan(ctx, target: str, ports: str, tcp: bool, udp: bool, threads: int, timeout: int, output: Optional[str], format: str)`
+
+**Decorators:**
+- `@click.command(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.option(...)`
+- `@click.pass_context`
+
+**Description:**
+Network scanning operations for MCP server discovery.
+
+Scan specified target for MCP servers. TARGET can be:
+- Single IP address (e.g., 192.168.1.100)
+- CIDR network (e.g., 192.168.1.0/24)
+- Hostname (e.g., example.com)
+
+Examples:
+
+hawkeye scan -t 192.168.1.100
+hawkeye scan -t 192.168.1.0/24 -p 3000-3010
+hawkeye scan -t example.com --tcp --udp
+
+**Line:** 129
+
+---
+
+### `def display_scan_results(results)`
+
+**Description:**
+Display scan results in a formatted table.
+
+**Line:** 221
+
+---
+
+### `def save_scan_results(results, output_path: str, format: str)`
+
+**Description:**
+Save scan results to file in specified format.
+
+**Line:** 261
+
+---
+
+
+## Module: cli.validation
+**File:** `cli/validation.py`
+
+**Imports:**
+- click
+- exceptions.HawkEyeError
+- exceptions.ValidationError
+- ipaddress
+- pathlib.Path
+- re
+- rich.console.Console
+- rich.panel.Panel
+- rich.text.Text
+- typing.Any
+- typing.List
+- typing.Optional
+- typing.Tuple
+- typing.Union
+- urllib.parse.urlparse
+- utils.get_logger
+
+**Functions:**
+
+### `def validate_cli_input(func)`
+
+**Description:**
+Decorator for CLI input validation.
+
+**Line:** 585
+
+---
+
+
+## Module: config.settings
+**File:** `config/settings.py`
+
+**Imports:**
+- functools.lru_cache
+- logging
+- pathlib.Path
+- pydantic.Field
+- pydantic.field_validator
+- pydantic_settings.BaseSettings
+- typing.List
+- typing.Optional
+
+**Functions:**
+
+### `def get_settings() -> HawkEyeSettings`
+
+**Decorators:**
+- `@lru_cache(...)`
+
+**Description:**
+Get application settings with caching.
+
+Returns:
+HawkEyeSettings: Cached application settings instance
+
+**Line:** 245
+
+---
+
+
+## Module: detection.ai_threat.ai_providers
+**File:** `detection/ai_threat/ai_providers.py`
+
+**Imports:**
+- abc.ABC
+- abc.abstractmethod
+- anthropic
+- dataclasses.dataclass
+- datetime.datetime
+- datetime.timedelta
+- enum.Enum
+- json
+- logging
+- models.AbuseScenario
+- models.AccessLevel
+- models.AnalysisMetadata
+- models.AttackStep
+- models.AttackVector
+- models.BusinessImpact
+- models.ComplianceFramework
+- models.ComplianceImpact
+- models.DetectionIndicator
+- models.EnvironmentContext
+- models.MitigationStrategy
+- models.SeverityLevel
+- models.ThreatActorType
+- models.ThreatAnalysis
+- models.ThreatLevel
+- models.ToolCapabilities
+- openai
+- os
+- prompts.ThreatAnalysisPrompts
+- random
+- re
+- requests
+- time
+- traceback
+- typing.Any
+- typing.Callable
+- typing.Dict
+- typing.List
+- typing.Optional
+- typing.Tuple
+
+**Functions:**
+
+### `def retry_with_backoff(operation: Callable, retry_handler: AdvancedRetryHandler, provider_name: str, max_attempts: int = 3, operation_name: str = 'operation') -> Any`
+
+**Description:**
+Execute operation with advanced retry logic.
+
+Args:
+operation: Async operation to execute
+retry_handler: Advanced retry handler
+provider_name: Name of the provider
+max_attempts: Maximum retry attempts
+operation_name: Name of operation for logging
+
+Returns:
+Operation result
+
+Raises:
+Exception: If all retry attempts fail
+
+**Line:** 368
+
+---
+
+
+## Module: detection.ai_threat.threat_analyzer
+**File:** `detection/ai_threat/threat_analyzer.py`
+
+**Imports:**
+- ai_providers.AIProvider
+- ai_providers.AnalysisRequest
+- ai_providers.AnalysisResponse
+- ai_providers.AnthropicProvider
+- ai_providers.LocalLLMProvider
+- ai_providers.OpenAIProvider
+- capability_analyzer.MCPCapabilityAnalyzer
+- config.get_settings
+- datetime.datetime
+- hashlib
+- logging
+- mcp_introspection.models.MCPServerInfo
+- mcp_introspection.optimization.memory.MemoryConfig
+- mcp_introspection.optimization.memory.MemoryOptimizationLevel
+- mcp_introspection.optimization.memory.MemoryOptimizer
+- mcp_introspection.optimization.memory.create_memory_optimizer
+- models.AbuseScenario
+- models.AccessLevel
+- models.AnalysisMetadata
+- models.AttackStep
+- models.AttackVector
+- models.BusinessImpact
+- models.ComplianceFramework
+- models.ComplianceImpact
+- models.DetectionIndicator
+- models.DifficultyLevel
+- models.EnvironmentContext
+- models.MitigationStrategy
+- models.SeverityLevel
+- models.ThreatActorType
+- models.ThreatAnalysis
+- models.ThreatLevel
+- models.ToolCapabilities
+- os
+- prompts.ThreatAnalysisPrompts
+- psutil
+- statistics
+- threading
+- time
+- typing.Any
+- typing.Callable
+- typing.Dict
+- typing.List
+- typing.Optional
+- typing.Tuple
+
+**Functions:**
+
+### `def create_advanced_pipeline(threat_analyzer: AIThreatAnalyzer, config: Optional[Dict[(str, Any)]] = None) -> AdvancedThreatAnalysisPipeline`
+
+**Description:**
+Factory function to create advanced threat analysis pipeline.
+
+Args:
+threat_analyzer: AI threat analyzer instance
+config: Optional pipeline configuration
+
+Returns:
+AdvancedThreatAnalysisPipeline instance
+
+**Line:** 2738
+
+---
+
+
+## Module: detection.docker_inspect
+**File:** `detection/docker_inspect.py`
+
+**Imports:**
+- base.ConfigFileInfo
+- base.DetectionMethod
+- base.DetectionResult
+- base.MCPDetectionError
+- base.MCPDetector
+- base.MCPServerInfo
+- base.MCPServerType
+- base.ProcessInfo
+- base.TransportType
+- json
+- os
+- re
+- subprocess
+- time
+- typing.Any
+- typing.Dict
+- typing.List
+- typing.Optional
+- utils.logging.get_logger
+- yaml
+
+**Functions:**
+
+### `def create_docker_inspector(settings = None) -> DockerInspector`
+
+**Description:**
+Factory function to create a Docker inspector instance.
+
+**Line:** 813
+
+---
+
+
+## Module: detection.env_analysis
+**File:** `detection/env_analysis.py`
+
+**Imports:**
+- base.ConfigFileInfo
+- base.DetectionMethod
+- base.DetectionResult
+- base.MCPDetectionError
+- base.MCPDetector
+- base.MCPServerInfo
+- base.MCPServerType
+- base.ProcessInfo
+- base.TransportType
+- os
+- psutil
+- re
+- time
+- typing.Any
+- typing.Dict
+- typing.List
+- typing.Optional
+- typing.Set
+- typing.Tuple
+- utils.logging.get_logger
+
+**Functions:**
+
+### `def create_environment_analyzer(settings = None) -> EnvironmentAnalyzer`
+
+**Description:**
+Factory function to create an environment analyzer instance.
+
+**Line:** 682
+
+---
+
+
+## Module: detection.mcp_introspection
+**File:** `detection/mcp_introspection.py`
+
+**Imports:**
+- base.MCPServerInfo
+- base.ProcessInfo
+- dataclasses.dataclass
+- datetime.datetime
+- json
+- logging
+- mcp_introspection.discovery.aggregator.ServerInfoAggregator
+- mcp_introspection.discovery.capabilities.CapabilityDiscovery
+- mcp_introspection.discovery.resources.ResourceDiscovery
+- mcp_introspection.discovery.tools.ToolDiscovery
+- mcp_introspection.introspection.IntrospectionConfig
+- mcp_introspection.introspection.MCPIntrospection
+- mcp_introspection.mcp_client.MCPClientConfig
+- mcp_introspection.mcp_client.SyncMCPClient
+- mcp_introspection.models.MCPCapabilities
+- mcp_introspection.models.MCPResource
+- mcp_introspection.models.MCPServerConfig
+- mcp_introspection.models.MCPServerInfo
+- mcp_introspection.models.MCPTool
+- mcp_introspection.models.RiskLevel
+- mcp_introspection.risk.categorizer.RiskCategorizer
+- mcp_introspection.risk.reporter.RiskReporter
+- mcp_introspection.risk.scoring.RiskScorer
+- mcp_introspection.risk.threat_model.ThreatModelAnalyzer
+- mcp_introspection.risk.tool_analyzer.ToolRiskAnalyzer
+- mcp_introspection.transport.base.TransportType
+- mcp_introspection.transport.factory.TransportFactory
+- pathlib.Path
+- typing.Any
+- typing.Dict
+- typing.List
+- typing.Optional
+- typing.Tuple
+- utils.logging.get_logger
+
+**Functions:**
+
+### `def enhance_mcp_server_info(server_info: MCPServerInfo, process_info: ProcessInfo) -> MCPServerInfo`
+
+**Description:**
+Enhance server information with additional metadata (legacy compatibility).
+
+Args:
+server_info: Basic server information
+process_info: Process information
+
+Returns:
+Enhanced server information
+
+**Line:** 1258
+
+---
+
+### `def get_dynamic_server_catalog() -> Dict[(str, Dict[str, Any])]`
+
+**Description:**
+Get a dynamic catalog of discovered MCP servers (legacy compatibility).
+
+Returns:
+Dictionary mapping server names to their metadata
+
+**Line:** 1300
+
+---
+
+
+## Module: detection.mcp_introspection.compat
+**File:** `detection/mcp_introspection/compat.py`
+
+**Imports:**
+- base.MCPServerInfo
+- base.ProcessInfo
+- dataclasses.dataclass
+- introspection.IntrospectionConfig
+- introspection.MCPIntrospection
+- json
+- logging
+- models.MCPServerConfig
+- models.MCPServerInfo
+- time
+- typing.Any
+- typing.Dict
+- typing.List
+- typing.Optional
+- utils.logging.get_logger
+
+**Functions:**
+
+### `def create_legacy_introspector(config: Optional[IntrospectionConfig] = None) -> LegacyMCPIntrospector`
+
+**Description:**
+Create a legacy introspector instance.
+
+**Line:** 305
+
+---
+
+### `def introspect_server_legacy(server_info: MCPServerInfo, process_info: ProcessInfo, config: Optional[IntrospectionConfig] = None) -> Optional[Dict[(str, Any)]]`
+
+**Description:**
+Perform legacy server introspection.
+
+**Line:** 310
+
+---
+
+
+## Module: detection.mcp_introspection.metrics
+**File:** `detection/mcp_introspection/metrics.py`
+
+**Imports:**
+- collections.defaultdict
+- collections.deque
+- dataclasses.dataclass
+- dataclasses.field
+- datetime.datetime
+- datetime.timedelta
+- logging
+- threading
+- time
+- typing.Any
+- typing.Callable
+- typing.Dict
+- typing.List
+- typing.Optional
+
+**Functions:**
+
+### `def get_global_monitor() -> PerformanceMonitor`
+
+**Description:**
+Get the global performance monitor instance.
+
+**Line:** 444
+
+---
+
+### `def time_operation(operation_name: str, tags: Optional[Dict[(str, str)]] = None)`
+
+**Description:**
+Convenience function for timing operations using global monitor.
+
+**Line:** 449
+
+---
+
+### `def monitor_function(operation_name: Optional[str] = None, tags: Optional[Dict[(str, str)]] = None)`
+
+**Description:**
+Convenience decorator for monitoring functions using global monitor.
+
+**Line:** 454
+
+---
+
+
+## Module: detection.mcp_introspection.migration
+**File:** `detection/mcp_introspection/migration.py`
+
+**Imports:**
+- config.settings.HawkEyeSettings
+- datetime.datetime
+- json
+- logging
+- models.MCPCapabilities
+- models.MCPResource
+- models.MCPServerInfo
+- models.MCPTool
+- os
+- pathlib.Path
+- pydantic.BaseModel
+- pydantic.Field
+- shutil
+- tempfile
+- typing.Any
+- typing.Dict
+- typing.List
+- typing.Optional
+- typing.Tuple
+- yaml
+
+**Functions:**
+
+### `def migrate_legacy_configuration(legacy_config_path: str, output_config_path: Optional[str] = None, migration_config: Optional[MigrationConfig] = None) -> MigrationResult`
+
+**Description:**
+Convenience function to migrate legacy configuration
+
+Args:
+legacy_config_path: Path to legacy configuration file
+output_config_path: Path for new configuration (optional)
+migration_config: Migration configuration options
+
+Returns:
+Migration result with status and details
+
+**Line:** 561
+
+---
+
+### `def validate_configuration(config_path: str) -> Tuple[(bool, List[str])]`
+
+**Description:**
+Convenience function to validate configuration
+
+Args:
+config_path: Path to configuration file
+
+Returns:
+Tuple of (is_valid, error_messages)
+
+**Line:** 580
+
+---
+
+
+## Module: detection.mcp_introspection.optimization.memory
+**File:** `detection/mcp_introspection/optimization/memory.py`
+
+**Imports:**
+- collections.defaultdict
+- collections.deque
+- contextlib.contextmanager
+- dataclasses.dataclass
+- dataclasses.field
+- enum.Enum
+- gc
+- linecache
+- logging
+- models.IntrospectionResult
+- models.MCPServerConfig
+- models.MCPServerInfo
+- os
+- psutil
+- sys
+- threading
+- time
+- tracemalloc
+- typing.Any
+- typing.Callable
+- typing.Dict
+- typing.Generator
+- typing.List
+- typing.Optional
+- typing.Set
+- typing.Tuple
+- typing.Union
+- weakref
+
+**Functions:**
+
+### `def create_memory_optimizer(optimization_level: str = 'standard') -> MemoryOptimizer`
+
+**Description:**
+Create a memory optimizer with the specified optimization level.
+
+**Line:** 736
+
+---
+
+
+## Module: detection.mcp_introspection.risk.policies
+**File:** `detection/mcp_introspection/risk/policies.py`
+
+**Imports:**
+- dataclasses.dataclass
+- dataclasses.field
+- datetime.datetime
+- datetime.timedelta
+- enum.Enum
+- json
+- logging
+- models.RiskCategory
+- models.RiskLevel
+- models.SecurityRisk
+- pathlib.Path
+- re
+- typing.Any
+- typing.Dict
+- typing.List
+- typing.Optional
+- typing.Set
+- typing.Union
+
+**Functions:**
+
+### `def create_default_policy_engine() -> RiskPolicyEngine`
+
+**Description:**
+Create a policy engine with default policies.
+
+**Line:** 606
+
+---
+
+### `def evaluate_risk_with_default_policies(risk: SecurityRisk, context: Dict[(str, Any)] = None) -> List[PolicyViolation]`
+
+**Description:**
+Evaluate a risk using default policies.
+
+**Line:** 611
+
+---
+
+### `def is_risk_allowed(risk: SecurityRisk, context: Dict[(str, Any)] = None) -> bool`
+
+**Description:**
+Check if a risk is allowed by default policies.
+
+**Line:** 618
+
+---
+
+
+## Module: detection.mcp_introspection.transport.factory
+**File:** `detection/mcp_introspection/transport/factory.py`
+
+**Imports:**
+- base.BaseTransportHandler
+- base.TransportError
+- http.StreamableHTTPTransportHandler
+- logging
+- models.TransportType
+- sse.SSETransportHandler
+- stdio.StdioTransportHandler
+- typing.Any
+- typing.Dict
+- typing.Optional
+- typing.Type
+- typing.Union
+- urllib.parse.urlparse
+
+**Functions:**
+
+### `def create_transport_handler(transport_type: Union[(str, TransportType)], **kwargs) -> BaseTransportHandler`
+
+**Description:**
+Convenience function to create a transport handler.
+
+Args:
+transport_type: Type of transport handler to create
+**kwargs: Additional arguments for handler initialization
+
+Returns:
+BaseTransportHandler: Configured transport handler
+
+**Line:** 294
+
+---
+
+### `def create_from_config(config: Dict[(str, Any)]) -> BaseTransportHandler`
+
+**Description:**
+Convenience function to create a transport handler from configuration.
+
+Args:
+config: Server configuration dictionary
+
+Returns:
+BaseTransportHandler: Configured transport handler
+
+**Line:** 311
+
+---
+
+
+## Module: detection.mcp_introspection.utils
+**File:** `detection/mcp_introspection/utils.py`
+
+**Imports:**
+- async_timeout
+- asyncio
+- contextlib.asynccontextmanager
+- dataclasses.dataclass
+- enum.Enum
+- functools
+- logging
+- pydantic.BaseModel
+- time
+- typing.Any
+- typing.Awaitable
+- typing.Callable
+- typing.Dict
+- typing.List
+- typing.Optional
+- typing.TypeVar
+- typing.Union
+
+**Functions:**
+
+### `def with_timeout(timeout_seconds: float)`
+
+**Description:**
+Decorator to add timeout to async functions.
+
+Args:
+timeout_seconds: Timeout in seconds
+
+Returns:
+Decorated function with timeout
+
+**Line:** 172
+
+---
+
+### `def with_retry(max_attempts: int = 3, delay: float = 1.0, backoff_factor: float = 2.0, exceptions: tuple = ())`
+
+**Description:**
+Decorator to add retry logic to async functions.
+
+Args:
+max_attempts: Maximum number of attempts
+delay: Initial delay between attempts
+backoff_factor: Exponential backoff factor
+exceptions: Tuple of exceptions to retry on
+
+Returns:
+Decorated function with retry logic
+
+**Line:** 199
+
+---
+
+### `def with_error_handling(operation_name: str, server_name: Optional[str] = None, transport_type: Optional[str] = None)`
+
+**Description:**
+Decorator to add comprehensive error handling to async functions.
+
+Args:
+operation_name: Name of the operation for context
+server_name: Name of the server being operated on
+transport_type: Type of transport being used
+
+Returns:
+Decorated function with error handling
+
+**Line:** 250
+
+---
+
+### `async def gather_with_concurrency(tasks: List[Awaitable[T]], max_concurrency: int = 10, return_exceptions: bool = True) -> List[Union[(T, Exception)]]`
+
+**Description:**
+Execute multiple async tasks with limited concurrency.
+
+Args:
+tasks: List of awaitable tasks
+max_concurrency: Maximum number of concurrent tasks
+return_exceptions: Whether to return exceptions instead of raising
+
+Returns:
+List of results or exceptions
+
+**Line:** 302
+
+---
+
+### `async def timeout_context(timeout_seconds: float, operation_name: str = 'operation')`
+
+**Decorators:**
+- `@asynccontextmanager`
+
+**Description:**
+Async context manager for timeout handling.
+
+Args:
+timeout_seconds: Timeout in seconds
+operation_name: Name of operation for error messages
+
+Yields:
+None
+
+Raises:
+TimeoutError: If operation times out
+
+**Line:** 334
+
+---
+
+### `def safe_json_serialize(obj: Any) -> Any`
+
+**Description:**
+Safely serialize objects to JSON-compatible format.
+
+Args:
+obj: Object to serialize
+
+Returns:
+JSON-serializable representation
+
+**Line:** 494
+
+---
+
+### `async def run_with_fallback(primary_func: Callable[(..., Awaitable[T])], fallback_func: Callable[(..., Awaitable[T])], *args, **kwargs) -> T`
+
+**Description:**
+Run a primary function with fallback on failure.
+
+Args:
+primary_func: Primary function to try
+fallback_func: Fallback function if primary fails
+*args: Arguments to pass to functions
+**kwargs: Keyword arguments to pass to functions
+
+Returns:
+Result from primary or fallback function
+
+**Line:** 518
+
+---
+
+
+## Module: detection.npx_detect
+**File:** `detection/npx_detect.py`
+
+**Imports:**
+- base.ConfigFileInfo
+- base.DetectionMethod
+- base.DetectionResult
+- base.MCPDetectionError
+- base.MCPDetector
+- base.MCPServerInfo
+- base.MCPServerType
+- base.ProcessInfo
+- base.TransportType
+- json
+- pathlib.Path
+- psutil
+- re
+- subprocess
+- time
+- typing.Any
+- typing.Dict
+- typing.List
+- typing.Optional
+- typing.Set
+- utils.logging.get_logger
+
+**Functions:**
+
+### `def create_npx_detector(settings = None) -> NPXDetector`
+
+**Description:**
+Factory function to create an NPX detector instance.
+
+**Line:** 501
+
+---
+
+
+## Module: detection.pipeline
+**File:** `detection/pipeline.py`
+
+**Imports:**
+- base.DetectionMethod
+- base.DetectionResult
+- base.MCPDetector
+- base.MCPServerInfo
+- base.ProcessInfo
+- config.settings.get_settings
+- config_discovery.ConfigFileDiscovery
+- dataclasses.dataclass
+- datetime.datetime
+- docker_inspect.DockerInspector
+- env_analysis.EnvironmentAnalyzer
+- logging
+- mcp_introspection.IntrospectionConfig
+- mcp_introspection.MCPIntrospector
+- mcp_introspection.models.MCPCapabilities
+- npx_detect.NPXDetector
+- pathlib.Path
+- process_enum.ProcessEnumerator
+- protocol_verify.ProtocolVerifier
+- time
+- transport_detect.TransportDetector
+- typing.Any
+- typing.Dict
+- typing.List
+- typing.Optional
+- typing.Tuple
+- typing.Union
+- utils.logging.get_logger
+
+**Functions:**
+
+### `def create_detection_pipeline(config: Optional[PipelineConfig] = None, settings = None) -> DetectionPipeline`
+
+**Description:**
+Factory function to create a detection pipeline instance.
+
+Args:
+config: Pipeline configuration
+settings: Application settings
+
+Returns:
+DetectionPipeline instance
+
+**Line:** 608
+
+---
+
+
+## Module: reporting.pipeline_converter
+**File:** `reporting/pipeline_converter.py`
+
+**Imports:**
+- base.IntrospectionSummary
+- base.ReportData
+- base.ReportFormat
+- base.ReportMetadata
+- base.ReportType
+- datetime.datetime
+- detection.mcp_introspection.models.MCPCapabilities
+- detection.mcp_introspection.models.MCPServerInfo
+- detection.mcp_introspection.models.RiskLevel
+- detection.pipeline.PipelineResult
+- enum.Enum
+- typing.Any
+- typing.Dict
+- typing.List
+- typing.Optional
+- utils.logging.get_logger
+
+**Functions:**
+
+### `def convert_pipeline_results_to_report(pipeline_results: List[PipelineResult], report_title: str = 'MCP Detection and Introspection Report', report_type: ReportType = ReportType.COMBINED_REPORT, report_format: ReportFormat = ReportFormat.JSON) -> ReportData`
+
+**Description:**
+Convenience function to convert pipeline results to report data.
+
+Args:
+pipeline_results: List of pipeline execution results
+report_title: Title for the report
+report_type: Type of report to generate
+report_format: Format of the report
+
+Returns:
+ReportData: Converted report data
+
+**Line:** 270
+
+---
+
+
+## Module: reporting.templates.base
+**File:** `reporting/templates/base.py`
+
+**Imports:**
+- abc.ABC
+- abc.abstractmethod
+- base.ReportData
+- base.ReportingError
+- logging
+- re
+- string.Template
+- time
+- typing.Any
+- typing.Callable
+- typing.Dict
+- typing.List
+- typing.Optional
+- typing.Union
+- utils.logging.get_logger
+
+**Functions:**
+
+### `def initialize_default_severity_formatters(engine: AdaptiveTemplateEngine) -> None`
+
+**Description:**
+Initialize default severity-based formatters.
+
+**Line:** 785
+
+---
+
+
+## Module: utils.logging
+**File:** `utils/logging.py`
+
+**Imports:**
+- colorlog
+- config.get_settings
+- exceptions.ConfigurationError
+- logging
+- logging.handlers
+- pathlib.Path
+- structlog
+- sys
+- typing.Optional
+
+**Functions:**
+
+### `def get_logger(name: Optional[str] = None) -> logging.Logger`
+
+**Description:**
+Get a configured logger instance.
+
+Args:
+name: Logger name (defaults to calling module)
+
+Returns:
+logging.Logger: Configured logger instance
+
+**Line:** 258
+
+---
+
+### `def get_audit_logger() -> AuditLogger`
+
+**Description:**
+Get the audit logger instance.
+
+Returns:
+AuditLogger: Audit logger instance
+
+**Line:** 271
+
+---
+
+### `def configure_logging() -> logging.Logger`
+
+**Description:**
+Configure the main application logging.
+
+Returns:
+logging.Logger: Main application logger
+
+**Line:** 281
+
+---
+

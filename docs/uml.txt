@@ -1132,6 +1132,73 @@ package "tests.test_detection" {
     +test_analyze_transport_security_websocket_secure()
   }
 
+  class TestPhase5ComponentValidation {
+    +capability_analyzer
+    +attack_generator
+    +scenario_builder
+    +risk_prioritizer
+    +compliance_mapper
+    +mitigation_generator
+    +example_generator
+    --
+    +test_all_phase5_components_instantiate()
+  }
+
+  class TestMCPCapabilityAnalyzerEnhancement {
+    +result
+    +test_cases
+    +correct_categorizations: int
+    +total_tests
+    +categories
+    +accuracy
+    +servers
+    +context
+    +test_servers
+    +server
+    +successful_analyses: int
+    +result
+    +coverage
+    --
+    +setup_method()
+    +test_capability_analysis_functionality()
+    +test_capability_categorization_accuracy()
+    +test_environment_context_building()
+    +test_coverage_requirement()
+  }
+
+  class TestAlgorithmAccuracyValidation {
+    +test_capabilities
+    +categories
+    +expected_categories
+    +found_expected
+    +accuracy
+    +threats
+    +capabilities
+    +context
+    +prioritized
+    --
+    +setup_method()
+    +test_capability_to_threat_mapping_accuracy()
+    +test_risk_prioritization_interface()
+  }
+
+  class TestPhase5PerformanceValidation {
+    +test_servers
+    +server
+    +start_time
+    +results
+    +result
+    +end_time
+    +processing_time
+    +time_per_tool
+    +estimated_time_for_10
+    +successful_results
+    +success_rate
+    --
+    +setup_method()
+    +test_performance_requirement()
+  }
+
   class TestProtocolVerifier {
     +method
     +expected_result
@@ -1474,6 +1541,96 @@ package "tests.test_detection" {
     +test_create_docker_inspector()
   }
 
+  class TestMCPCapabilityAnalyzer {
+    +result
+    +test_functions
+    +categories
+    +file_functions
+    +file_categories
+    +exec_functions
+    +exec_categories
+    +tool_functions
+    +security_functions
+    +function_names
+    +mcp_servers
+    +context
+    +servers
+    +server
+    +results
+    +result
+    +successful_analyses
+    +coverage_ratio
+    --
+    +setup_method()
+    +test_analyze_tool_basic()
+    +test_categorize_capabilities()
+    +test_identify_security_relevant_functions()
+    +test_build_environment_context()
+    +test_capability_coverage_95_percent()
+  }
+
+  class TestAttackVectorGenerator {
+    +mock_response: str
+    +capabilities
+    +context
+    +vectors
+    +vector
+    +mock_response: str
+    +db_capabilities
+    +context
+    +vectors
+    +vector
+    +vector_text
+    +db_terms
+    --
+    +setup_method()
+  }
+
+  class TestScenarioBuilder {
+    +mock_response
+    +scenarios
+    +scenario
+    +scenario_text
+    +business_terms
+    +contexts
+    +mock_responses
+    +results
+    +scenarios
+    +dev_scenario
+    +prod_scenario
+    --
+    +setup_method()
+  }
+
+  class TestAlgorithmAccuracy {
+    +test_cases
+    +mock_response
+    +result
+    +identified_threats
+    +expected_threats
+    +overlap
+    +accuracy
+    +test_attack_vectors
+    +mock_response
+    +chains
+    +chain
+    +techniques
+    +expected_techniques
+    +overlap
+    +test_threats
+    +priority
+    +expected
+    +test_tools
+    +start_time
+    +cap_result
+    +attack_vectors
+    +scenarios
+    +end_time
+    +processing_time
+    --
+    +setup_method()
+  }
+
   class TestEnvironmentAnalyzer {
     +settings
     +analyzer
@@ -1576,6 +1733,42 @@ package "tests.test_detection" {
     +test_detect_no_servers(mock_process_env, mock_system_env, analyzer)
     +test_detect_exception(mock_system_env, analyzer)
     +test_create_environment_analyzer()
+  }
+
+  class TestRiskPrioritizationAlgorithm {
+    +priority
+    +priority
+    +priority
+    +test_cases
+    +priority
+    --
+    +setup_method()
+    +test_calculate_priority_high_risk()
+    +test_calculate_priority_low_risk()
+    +test_calculate_priority_medium_risk()
+    +test_prioritization_algorithm_accuracy()
+  }
+
+  class TestOverallPhase5Integration {
+    +test_servers
+    +server
+    +start_time
+    +results
+    +result
+    +priority
+    +end_time
+    +processing_time
+    +successful_results
+    +success_rate
+    +known_patterns
+    +correct_categorizations: int
+    +total_tests
+    +categories
+    +accuracy
+    --
+    +setup_method()
+    +test_phase5_performance_benchmark()
+    +test_phase5_accuracy_validation()
   }
 
   class TestNPXDetector {
@@ -1774,6 +1967,81 @@ package "tests.test_detection" {
     +test_create_mcp_server_info()
     +test_detect_with_exception(mock_process_iter)
     +test_process_to_dict()
+  }
+
+  class TestPhase5MCPCapabilityAnalyzer {
+    +result
+    +test_cases
+    +correct_categorizations: int
+    +total_tests
+    +categories
+    +accuracy
+    +servers
+    +context
+    +servers
+    +server
+    +successful_analyses: int
+    +result
+    +coverage
+    --
+    +setup_method()
+    +test_analyzer_initialization()
+    +test_analyze_tool_basic_functionality()
+    +test_categorize_capabilities_accuracy()
+    +test_build_environment_context()
+    +test_capability_analysis_coverage()
+  }
+
+  class TestPhase5AttackVectorGenerator {
+    +mock_response: str
+    +capabilities
+    +context
+    +vectors
+    +responses
+    +file_cap
+    +db_cap
+    +context
+    +file_vectors
+    +db_vectors
+    --
+    +setup_method()
+  }
+
+  class TestPhase5RiskPrioritization {
+    +test_cases
+    +correct_prioritizations: int
+    +priority
+    +accuracy
+    +high_priority
+    +low_priority
+    +priority1
+    +priority2
+    --
+    +setup_method()
+    +test_risk_prioritization_accuracy()
+    +test_prioritization_edge_cases()
+  }
+
+  class TestPhase5PerformanceBenchmarks {
+    +test_servers
+    +server
+    +start_time
+    +results
+    +result
+    +priority
+    +end_time
+    +processing_time
+    +successful_results
+    +success_rate
+    +server
+    +capabilities
+    +functions
+    +categories
+    +priority
+    --
+    +setup_method()
+    +test_phase5_performance_requirements()
+    +test_algorithm_integration()
   }
 
   class TestConfigFileDiscovery {
@@ -8092,6 +8360,7 @@ package "src.hawkeye.detection" {
 
   class MCPIntrospector {
     +server_id
+    +server_id
     +server_config
     +transport_type
     +introspection_result
@@ -8355,10 +8624,13 @@ package "src.hawkeye.detection" {
   class ProtocolVerifier {
     +retry_strategy
     +adapter
+    +sock
+    +result
     +start_time
     +result
     +result
     +transport_attempts
+    +settings
     +common_ports
     +best_result: NoneType
     +highest_confidence: float
@@ -8379,6 +8651,10 @@ package "src.hawkeye.detection" {
     +process_info
     +handshake_result
     +mcp_server
+    +requests_logger
+    +urllib3_logger
+    +original_requests_level
+    +original_urllib3_level
     +initialize_request
     +response
     +response_data
@@ -8412,6 +8688,7 @@ package "src.hawkeye.detection" {
     --
     -__init__(settings)
     +get_detection_method(): DetectionMethod
+    -_is_port_open(host, port, timeout): bool
     +detect(target_host, port, transport_type): DetectionResult
     -_auto_detect_and_verify(target_host, port): DetectionResult
     -_verify_transport(target_host, port, transport_type): DetectionResult
@@ -8785,6 +9062,392 @@ package "src.hawkeye.detection" {
 }
 
 package "src.hawkeye.detection.ai_threat" {
+  class ComplianceStatus {
+    +COMPLIANT: str
+    +PARTIALLY_COMPLIANT: str
+    +NON_COMPLIANT: str
+    +NOT_APPLICABLE: str
+    +UNKNOWN: str
+  }
+
+  class ControlCategory {
+    +ACCESS_CONTROL: str
+    +AUTHENTICATION: str
+    +ENCRYPTION: str
+    +MONITORING: str
+    +INCIDENT_RESPONSE: str
+    +RISK_MANAGEMENT: str
+    +DATA_PROTECTION: str
+    +NETWORK_SECURITY: str
+    +SYSTEM_SECURITY: str
+    +BUSINESS_CONTINUITY: str
+  }
+
+  class ComplianceControl {
+    +id: str
+    +framework: str
+    +category: ControlCategory
+    +title: str
+    +description: str
+    +requirements
+    +evidence_requirements
+    +testing_procedures
+    +severity: str
+    +applies_to_environment: bool
+  }
+
+  class ComplianceGap {
+    +control_id: str
+    +framework: str
+    +gap_description: str
+    +current_status: ComplianceStatus
+    +required_status: ComplianceStatus
+    +risk_level: str
+    +remediation_recommendations
+    +estimated_effort: str
+    +business_impact: str
+  }
+
+  class ComplianceAssessment {
+    +assessment_id: str
+    +framework: str
+    +assessment_date: datetime
+    +overall_status: ComplianceStatus
+    +compliance_percentage: float
+    +total_controls: int
+    +compliant_controls: int
+    +non_compliant_controls: int
+    +gaps
+    +recommendations
+    +executive_summary: str
+  }
+
+  class ComplianceMapper {
+    +frameworks
+    +mappings
+    +mappings
+    +assessments
+    +assessment
+    +framework_def
+    +controls
+    +applicable_controls
+    +gaps
+    +compliant_count: int
+    +compliance_status
+    +gap
+    +total_controls
+    +compliance_percentage
+    +overall_status
+    +overall_status
+    +overall_status
+    +recommendations
+    +executive_summary
+    +assessment
+    +applicable_controls
+    +addresses_identified_threats
+    +threat_categories
+    +category
+    +category
+    +control_category
+    +category_mappings
+    +mapped_categories
+    +threat_name
+    +threat_desc
+    +indicator_lower
+    +control_status
+    +implementation_status
+    +control_category
+    +relevant_threats
+    +relevant_threats
+    +control_category
+    +threat_category
+    +relevant_threats
+    +gap_description
+    +risk_level: str
+    +risk_level: str
+    +risk_level: str
+    +remediation_recommendations
+    +gap
+    +effort_map
+    +recommendations
+    +high_risk_gaps
+    +framework_name
+    +summary
+    +mappings
+    +framework_mappings
+    +threat_categories
+    +categories
+    +category
+    +category
+    +roadmap
+    +all_gaps
+    +high_priority_gaps
+    +medium_priority_gaps
+    +low_priority_gaps
+    +total_gaps
+    --
+    -__init__()
+    -_initialize_compliance_frameworks()
+    -_initialize_threat_mappings()
+    -_initialize_environment_mappings()
+    +generate_compliance_assessment(threat_analysis, environment_context, target_frameworks, current_controls)
+    -_assess_framework_compliance(framework, threat_analysis, environment_context, current_controls)
+    -_identify_applicable_controls(controls, environment_context, threat_analysis)
+    -_control_addresses_threats(control, threat_analysis): bool
+    -_categorize_threat_for_compliance(threat): str
+    -_categorize_risk_indicator_for_compliance(indicator): str
+    -_assess_control_compliance(control, threat_analysis, current_controls): ComplianceStatus
+    -_find_relevant_threats(control, threat_analysis)
+    -_create_compliance_gap(control, compliance_status, threat_analysis): ComplianceGap
+    -_estimate_remediation_effort(control): str
+    -_assess_business_impact(control, relevant_threats): str
+    -_generate_compliance_recommendations(gaps, framework, environment_context)
+    -_create_compliance_executive_summary(framework, overall_status, compliance_percentage, gap_count): str
+    +map_threats_to_controls(threat_analysis, frameworks)
+    -_extract_threat_categories(threat_analysis)
+    +generate_compliance_roadmap(assessments, environment_context)
+  }
+
+  class VulnerabilityType {
+    +CVE_KNOWN: str
+    +CONFIGURATION_WEAKNESS: str
+    +DESIGN_FLAW: str
+    +IMPLEMENTATION_BUG: str
+    +ZERO_DAY_POTENTIAL: str
+    +MISCONFIGURATION: str
+    +PRIVILEGE_ESCALATION: str
+    +INJECTION: str
+    +AUTHENTICATION_BYPASS: str
+    +ACCESS_CONTROL: str
+  }
+
+  class CVESeverity {
+    +NONE: str
+    +LOW: str
+    +MEDIUM: str
+    +HIGH: str
+    +CRITICAL: str
+  }
+
+  class ExploitabilityLevel {
+    +THEORETICAL: str
+    +PROOF_OF_CONCEPT: str
+    +FUNCTIONAL: str
+    +WEAPONIZED: str
+    +WIDESPREAD: str
+  }
+
+  class ConfigurationRisk {
+    +SAFE: str
+    +WEAK: str
+    +DANGEROUS: str
+    +CRITICAL: str
+  }
+
+  class CVERecord {
+    +cve_id: str
+    +description: str
+    +severity: CVESeverity
+    +cvss_score: float
+    +published_date: datetime
+    +affected_products
+    +attack_vector: str
+    +attack_complexity: str
+    +authentication_required: bool
+    +exploit_available: bool
+    +exploitability_level: ExploitabilityLevel
+    +references
+    +cwe_ids
+  }
+
+  class ConfigurationWeakness {
+    +weakness_id: str
+    +name: str
+    +description: str
+    +risk_level: ConfigurationRisk
+    +affected_components
+    +exploitation_methods
+    +remediation_steps
+    +detection_signatures
+    +business_impact: str
+    +likelihood: float
+  }
+
+  class ZeroDayPotential {
+    +potential_id: str
+    +attack_surface: str
+    +vulnerability_class: str
+    +complexity_score: float
+    +discoverability_score: float
+    +impact_score: float
+    +overall_risk: float
+    +exploitation_prerequisites
+    +potential_attack_vectors
+    +indicators_of_exploitation
+    +mitigation_strategies
+  }
+
+  class VulnerabilityAssessment {
+    +tool_name: str
+    +assessment_id: str
+    +cve_matches
+    +configuration_weaknesses
+    +zero_day_potentials
+    +overall_vulnerability_score: float
+    +highest_severity: CVESeverity
+    +exploitable_vulnerabilities: int
+    +critical_issues
+    +recommended_actions
+    +assessment_timestamp: datetime
+    +confidence_score: float
+  }
+
+  class VulnerabilityMapper {
+    +assessment_id
+    +cve_matches
+    +config_weaknesses
+    +zero_day_potentials
+    +vulnerability_score
+    +highest_severity
+    +exploitable_count
+    +critical_issues
+    +recommendations
+    +confidence
+    +assessment
+    +cve_matches
+    +tool_signatures
+    +matches
+    +capability_cves
+    +unique_cves
+    +weaknesses
+    +category_weaknesses
+    +env_weaknesses
+    +access_weaknesses
+    +potentials
+    +attack_surfaces
+    +potential
+    +input_potentials
+    +memory_potentials
+    +logic_potentials
+    +timestamp
+    +tool_hash
+    +signatures
+    +matches
+    +cve_record
+    +capability_cve_mapping
+    +matches
+    +category
+    +category_matches
+    +cves
+    +cve_record
+    +seen_cves
+    +unique_cves
+    +weaknesses
+    +capability_weakness_mapping
+    +weakness
+    +weaknesses
+    +weakness
+    +weakness
+    +weaknesses
+    +weakness
+    +weaknesses
+    +weakness
+    +weaknesses
+    +weakness
+    +weaknesses
+    +weakness
+    +weaknesses
+    +weakness
+    +weaknesses
+    +weakness
+    +surfaces
+    +capability_surface_mapping
+    +analyzer
+    +potential_id
+    +complexity
+    +discoverability
+    +impact
+    +overall_risk
+    +attack_vectors
+    +mitigations
+    +potentials
+    +has_input_processing
+    +potential
+    +potentials
+    +has_memory_operations
+    +potential
+    +potentials
+    +has_complex_logic
+    +potential
+    +score: float
+    +avg_cvss
+    +risk_scores
+    +avg_config_score
+    +avg_zd_score
+    +highest
+    +highest
+    +config_severity_mapping
+    +mapped_severity
+    +highest: mapped_severity
+    +critical_issues
+    +critical_cves
+    +critical_configs
+    +high_risk_zd
+    +recommendations
+    +general_recs
+    +unique_recommendations
+    +base_confidence: float
+    +base_complexity: float
+    +surface_complexity
+    +base_complexity
+    +base_discoverability: float
+    +base_discoverability: float
+    +base_discoverability: float
+    +base_impact: float
+    +sensitivity_impact
+    +base_impact
+    +mitigation_mapping
+    --
+    -__init__()
+    +map_vulnerabilities(tool_capabilities, environment_context): VulnerabilityAssessment
+    -_match_cves(tool_capabilities)
+    -_detect_configuration_weaknesses(tool_capabilities, environment_context)
+    -_assess_zero_day_potential(tool_capabilities, environment_context)
+    -_initialize_cve_database()
+    -_initialize_weakness_patterns()
+    -_initialize_zero_day_indicators()
+    -_initialize_attack_surface_analyzers()
+    -_generate_assessment_id(tool_name): str
+    -_extract_tool_signatures(tool_capabilities)
+    -_search_cve_database(signature)
+    -_match_cves_by_capability(tool_capabilities)
+    -_get_cves_for_category(category)
+    -_deduplicate_cves(cve_list)
+    -_analyze_capability_weaknesses(capability, tool_capabilities, environment_context)
+    -_create_file_system_weaknesses(tool_capabilities, environment_context)
+    -_create_network_weaknesses(tool_capabilities, environment_context)
+    -_create_execution_weaknesses(tool_capabilities, environment_context)
+    -_create_auth_weaknesses(tool_capabilities, environment_context)
+    -_create_database_weaknesses(tool_capabilities, environment_context)
+    -_detect_environment_weaknesses(tool_capabilities, environment_context)
+    -_detect_access_control_weaknesses(tool_capabilities, environment_context)
+    -_identify_attack_surfaces(tool_capabilities)
+    -_analyze_attack_surface_for_zero_days(surface, tool_capabilities, environment_context)
+    -_assess_input_validation_weaknesses(tool_capabilities)
+    -_assess_memory_safety_issues(tool_capabilities)
+    -_assess_logic_flaws(tool_capabilities)
+    -_calculate_vulnerability_score(cve_matches, config_weaknesses, zero_day_potentials): float
+    -_determine_highest_severity(cve_matches, config_weaknesses): CVESeverity
+    -_count_exploitable_vulnerabilities(cve_matches): int
+    -_identify_critical_issues(cve_matches, config_weaknesses, zero_day_potentials)
+    -_generate_recommendations(cve_matches, config_weaknesses, zero_day_potentials)
+    -_calculate_confidence_score(tool_capabilities, cve_matches, config_weaknesses): float
+    -_calculate_zero_day_complexity(surface, tool_capabilities): float
+    -_calculate_zero_day_discoverability(surface, tool_capabilities): float
+    -_calculate_zero_day_impact(surface, environment_context): float
+    -_generate_zero_day_mitigations(surface)
+  }
+
   class ThreatPattern {
     +pattern_id: str
     +pattern_name: str
@@ -8930,11 +9593,313 @@ package "src.hawkeye.detection.ai_threat" {
     -_cleanup_memory_caches(cutoff_date)
   }
 
+  class ImpactCategory {
+    +FINANCIAL: str
+    +OPERATIONAL: str
+    +REPUTATIONAL: str
+    +COMPLIANCE: str
+    +STRATEGIC: str
+  }
+
+  class ImpactSeverity {
+    +NEGLIGIBLE: str
+    +MINOR: str
+    +MODERATE: str
+    +MAJOR: str
+    +CATASTROPHIC: str
+  }
+
+  class RecoveryPhase {
+    +DETECTION: str
+    +CONTAINMENT: str
+    +ERADICATION: str
+    +RECOVERY: str
+    +LESSONS_LEARNED: str
+  }
+
+  class CostCategory {
+    +IMMEDIATE_RESPONSE: str
+    +INVESTIGATION: str
+    +REMEDIATION: str
+    +BUSINESS_DISRUPTION: str
+    +LEGAL_REGULATORY: str
+    +REPUTATION_RECOVERY: str
+    +PREVENTIVE_MEASURES: str
+    +INSURANCE_DEDUCTIBLE: str
+  }
+
+  class OrganizationSize {
+    +STARTUP: str
+    +SMALL_BUSINESS: str
+    +MEDIUM_ENTERPRISE: str
+    +LARGE_ENTERPRISE: str
+    +FORTUNE_500: str
+  }
+
+  class IndustryVertical {
+    +FINANCIAL_SERVICES: str
+    +HEALTHCARE: str
+    +GOVERNMENT: str
+    +TECHNOLOGY: str
+    +MANUFACTURING: str
+    +RETAIL: str
+    +EDUCATION: str
+    +ENERGY: str
+    +TELECOMMUNICATIONS: str
+    +OTHER: str
+  }
+
+  class FinancialImpact {
+    +direct_costs: float
+    +indirect_costs: float
+    +revenue_loss: float
+    +regulatory_fines: float
+    +legal_costs: float
+    +insurance_costs: float
+    +recovery_costs: float
+    +total_estimated_cost: float
+    +cost_confidence: float
+    +currency: str
+    +cost_breakdown
+  }
+
+  class OperationalImpact {
+    +service_downtime_hours: float
+    +affected_systems
+    +affected_processes
+    +productivity_loss_percentage: float
+    +customer_impact_level: ImpactSeverity
+    +recovery_time_estimate: float
+    +business_continuity_risk: ImpactSeverity
+    +operational_disruption_score: float
+  }
+
+  class ReputationImpact {
+    +public_disclosure_likelihood: float
+    +media_attention_level: ImpactSeverity
+    +customer_trust_impact: ImpactSeverity
+    +partner_confidence_impact: ImpactSeverity
+    +brand_damage_duration: str
+    +social_media_sentiment_impact: float
+    +market_perception_change: float
+    +reputation_recovery_months: int
+  }
+
+  class ComplianceImpact {
+    +affected_frameworks
+    +violation_risk: ThreatLevel
+    +required_controls
+  }
+
+  class CascadingEffect {
+    +effect_id: str
+    +source_system: str
+    +target_system: str
+    +effect_type: str
+    +propagation_delay: float
+    +impact_magnitude: float
+    +probability: float
+    +mitigation_difficulty: DifficultyLevel
+    +description: str
+    +prerequisites
+    +indicators
+  }
+
+  class RecoveryCost {
+    +phase: RecoveryPhase
+    +estimated_hours: float
+    +personnel_costs: float
+    +technology_costs: float
+    +external_service_costs: float
+    +opportunity_costs: float
+    +total_phase_cost: float
+    +confidence_level: float
+    +cost_drivers
+  }
+
+  class BusinessImpactAssessment {
+    +tool_name: str
+    +assessment_id: str
+    +organization_context
+    +financial_impact: FinancialImpact
+    +operational_impact: OperationalImpact
+    +reputation_impact: ReputationImpact
+    +compliance_impact: ComplianceImpact
+    +cascading_effects
+    +recovery_costs
+    +overall_impact_score: float
+    +impact_timeframe: str
+    +business_criticality: ImpactSeverity
+    +recommended_insurance_coverage: float
+    +assessment_timestamp: datetime
+    +confidence_score: float
+  }
+
+  class ImpactCalculator {
+    +assessment_id
+    +financial_impact
+    +operational_impact
+    +reputation_impact
+    +compliance_impact
+    +cascading_effects
+    +recovery_costs
+    +overall_score
+    +criticality
+    +insurance_coverage
+    +confidence
+    +assessment
+    +size_multipliers
+    +base_multiplier
+    +industry_multiplier
+    +direct_costs
+    +indirect_costs
+    +revenue_loss
+    +regulatory_fines
+    +legal_costs
+    +recovery_costs
+    +total_cost
+    +cost_breakdown
+    +base_downtime
+    +exposure_multiplier
+    +service_downtime
+    +affected_systems
+    +affected_processes
+    +productivity_loss
+    +customer_impact
+    +recovery_time
+    +continuity_risk
+    +disruption_score
+    +disclosure_likelihood
+    +media_attention
+    +customer_trust_impact
+    +partner_impact
+    +damage_duration
+    +sentiment_impact
+    +market_perception
+    +recovery_months
+    +affected_regulations
+    +violation_likelihood
+    +potential_fines
+    +audit_requirements
+    +reporting_obligations
+    +certification_risks
+    +remediation_requirements
+    +cascading_effects
+    +effects
+    +env_effects
+    +recovery_costs
+    +size_rates
+    +hourly_rate
+    +phase_cost
+    +timestamp
+    +base_cost
+    +complexity_multiplier
+    +risk_multiplier
+    +base_cost
+    +sensitivity_multiplier
+    +base_downtime
+    +hourly_revenue_loss
+    +fines: float
+    +estimated_revenue
+    +base_legal_cost: int
+    +sensitivity_multiplier
+    +base_hours
+    +complexity_factor
+    +risk_factor
+    +affected_systems
+    +capability_system_mapping
+    +processes
+    +base_rate
+    +size_multipliers
+    +base_recovery
+    +size_multipliers
+    +risk_score: int
+    +high_risk_caps
+    +downtime_score
+    +productivity_score: productivity_loss
+    +systems_score
+    +financial_score
+    +operational_score
+    +reputation_score
+    +compliance_score
+    +base_criticality
+    +base_criticality
+    +base_criticality
+    +base_criticality
+    +base_criticality
+    +high_impact_cascades
+    +criticality_levels
+    +current_index
+    +base_confidence: float
+    +base_confidence
+    +effects
+    +capability_key
+    +effect
+    +effects
+    +effect
+    +phase_key
+    +cost_model
+    +base_hours
+    +personnel_costs
+    +technology_costs
+    +external_costs
+    +opportunity_costs
+    +total_cost
+    +cost_drivers
+    --
+    -__init__()
+    +calculate_business_impact(tool_capabilities, environment_context, organization_size, industry): BusinessImpactAssessment
+    -_calculate_financial_impact(tool_capabilities, environment_context, organization_size, industry): FinancialImpact
+    -_calculate_operational_impact(tool_capabilities, environment_context, organization_size): OperationalImpact
+    -_calculate_reputation_impact(tool_capabilities, environment_context, industry): ReputationImpact
+    -_calculate_compliance_impact(tool_capabilities, environment_context, industry): ComplianceImpact
+    -_analyze_cascading_effects(tool_capabilities, environment_context)
+    -_calculate_recovery_costs(tool_capabilities, financial_impact, operational_impact, organization_size)
+    -_initialize_impact_models()
+    -_initialize_cost_models()
+    -_initialize_cascading_patterns()
+    -_initialize_industry_multipliers()
+    -_generate_assessment_id(tool_name): str
+    -_calculate_direct_costs(tool_capabilities, base_multiplier, industry_multiplier): float
+    -_calculate_indirect_costs(tool_capabilities, environment_context, base_multiplier): float
+    -_calculate_revenue_loss(tool_capabilities, environment_context, base_multiplier, industry_multiplier): float
+    -_calculate_regulatory_fines(environment_context, industry, base_multiplier): float
+    -_calculate_legal_costs(environment_context, base_multiplier, industry_multiplier): float
+    -_estimate_base_downtime(tool_capabilities): float
+    -_identify_affected_systems(tool_capabilities)
+    -_identify_affected_processes(tool_capabilities, environment_context)
+    -_calculate_productivity_loss(tool_capabilities, downtime_hours, organization_size): float
+    -_assess_customer_impact(tool_capabilities, environment_context): ImpactSeverity
+    -_estimate_recovery_time(tool_capabilities, downtime_hours, organization_size): float
+    -_assess_business_continuity_risk(tool_capabilities, environment_context): ImpactSeverity
+    -_calculate_operational_disruption_score(downtime_hours, productivity_loss, affected_systems_count): float
+    -_calculate_overall_impact_score(financial_impact, operational_impact, reputation_impact, compliance_impact): float
+    -_determine_business_criticality(overall_score, cascading_effects): ImpactSeverity
+    -_calculate_insurance_recommendation(financial_impact): float
+    -_calculate_confidence_score(tool_capabilities, financial_impact, operational_impact): float
+    -_get_cascading_effects_for_capability(capability, tool_capabilities, environment_context)
+    -_get_environment_cascading_effects(tool_capabilities, environment_context)
+    -_calculate_phase_recovery_cost(phase, tool_capabilities, financial_impact, operational_impact, hourly_rate): RecoveryCost
+  }
+
   class AttackChainAnalyzer {
     +start_time
     +tool_capabilities
     +capability_graph
     +attack_paths
+    +attack_chains
+    +chain
+    +feasibility
+    +attack_chains
+    +analysis_time
+    +start_time
+    +tool_capabilities
+    +capability_graph
+    +advanced_paths
+    +multi_objective_paths
+    +time_based_paths
+    +conditional_paths
+    +actor_paths
     +attack_chains
     +chain
     +feasibility
@@ -9029,9 +9994,208 @@ package "src.hawkeye.detection.ai_threat" {
     +factors
     +strongest
     +weakest
+    +start_time
+    +dependency_graph
+    +pivot_points
+    +chain_candidates
+    +feasible_chains
+    +feasibility_score
+    +chain_narratives
+    +narrative
+    +overall_risk_assessment
+    +discovery_results
+    +nodes
+    +edges
+    +tool_id
+    +capabilities
+    +node_id
+    +dependency_strength
+    +connected_components
+    +pivot_points
+    +nodes
+    +edges
+    +incoming_edges
+    +outgoing_edges
+    +degree_centrality
+    +betweenness_score
+    +access_score
+    +diversity_score
+    +pivot_value
+    +pivot_point
+    +chain_candidates
+    +nodes
+    +edges
+    +start_node
+    +paths
+    +chain_candidate
+    +unique_candidates
+    +technical_score
+    +technical_score
+    +resource_score
+    +resource_score
+    +environment_score
+    +stealth_score
+    +success_probability
+    +feasibility_score
+    +narrative
+    +step_detail
+    +high_risk_chains
+    +medium_risk_chains
+    +average_feasibility
+    +max_chain_length
+    +unique_tools_involved
+    +risk_level: str
+    +confidence: float
+    +risk_level: str
+    +confidence: float
+    +risk_level: str
+    +confidence: float
+    +risk_level: str
+    +confidence: float
+    +risk_factors
+    +recommendations
+    +capabilities
+    +tool_name
+    +strength: float
+    +source_outputs
+    +target_prerequisites
+    +matches
+    +source_access
+    +target_access
+    +source_type
+    +target_type
+    +source_type
+    +target_type
+    +type_transitions
+    +difficulty: float
+    +source_access
+    +target_access
+    +access_levels
+    +source_level
+    +target_level
+    +source_risk
+    +target_risk
+    +visited
+    +components
+    +component
+    +nodes
+    +edges
+    +betweenness
+    +shortest_paths
+    +max_betweenness
+    +nodes
+    +edges
+    +queue
+    +all_paths
+    +scores
+    +nodes
+    +edges
+    +connected_capabilities
+    +diversity: float
+    +cap_node
+    +max_diversity
+    +strategic_value: float
+    +high_risk_connected: bool
+    +target_node
+    +high_risk_connected: bool
+    +critical_transitions: int
+    +strategic_value: float
+    +access_score
+    +risk_level
+    +difficulty
+    +all_paths
+    +new_paths
+    +new_paths
+    +complexity
+    +unique_capabilities
+    +penalty: float
+    +current_node
+    +next_node
+    +risk_sum: float
+    +node_data
+    +seen_chains
+    +unique_candidates
+    +chain_id
+    +rationale
+    +strategic_value: float
+    +high_risk_connected: bool
+    +target_node
+    +high_risk_connected: bool
+    +critical_transitions: int
+    +strategic_value: float
+    +access_score
+    +risk_level
+    +difficulty
+    +nodes
+    +current_node
+    +next_node
+    +current_cap
+    +next_cap
+    +transition_type: str
+    +transition_type
+    +nodes
+    +node_data
+    +nodes
+    +current_node
+    +current_cap
+    +nodes
+    +tools
+    +nodes
+    +outputs
+    +nodes
+    +detection_risk: float
+    +nodes
+    +mitigations
+    +nodes
+    +iocs
+    +nodes
+    +opportunities
+    +recommendations
+    +access_levels
+    +stealth_score: float
+    +actions
+    +has_file_access
+    +has_network
+    +has_data_processing
+    +difficulties
+    +financial_impact: str
+    +operational_impact: str
+    +reputation_impact: str
+    +financial_impact: str
+    +operational_impact: str
+    +reputation_impact: str
+    +financial_impact: str
+    +operational_impact: str
+    +reputation_impact: str
+    +strategies
+    +has_code_exec
+    +has_file_access
+    +difficulty_score
+    +length_score
+    +feasibility_score
+    +chain_categories
+    +categories
+    +chain_categories
+    +categories
+    +chain_coherence: float
+    +tool_availability: float
+    +complexity_penalty
+    +max_access_required
+    +security_modifier
+    +base_feasibility
+    +length_factor
+    +monitoring_factor
+    +deployment_suitability
+    +complexity_factor
+    +time_factor
+    +scores
+    +factors
+    +strongest
+    +weakest
     --
     -__init__()
     +identify_attack_chains(detected_tools, environment_context, max_chain_length, min_feasibility_score)
+    +identify_advanced_attack_chains(detected_tools, environment_context, threat_actor_types, include_time_based_chains, include_conditional_chains)
     +assess_chain_feasibility(attack_chain, environment): ChainFeasibilityScore
     +find_lateral_movement_chains(detected_tools, environment_context)
     +find_data_exfiltration_chains(detected_tools, environment_context)
@@ -9075,6 +10239,187 @@ package "src.hawkeye.detection.ai_threat" {
     -_generate_feasibility_rationale(technical, access, detection, environmental, resources): str
     -_build_capability_relationships()
     -_load_attack_patterns()
+    +discover_attack_chains(detected_tools, environment_context, max_chain_depth, min_chain_score)
+    -_build_capability_dependency_graph(detected_tools)
+    -_identify_pivot_points(dependency_graph, detected_tools)
+    -_generate_chain_candidates(dependency_graph, pivot_points, max_depth)
+    -_calculate_chain_feasibility_score(chain_candidate, environment_context): float
+    -_generate_attack_progression_narrative(chain, environment_context)
+    -_assess_overall_chain_risk(chain_narratives, environment_context)
+    -_extract_tool_capabilities_for_graph(tool)
+    -_calculate_dependency_strength(source_node, target_node): float
+    -_classify_dependency_type(source_node, target_node): str
+    -_assess_transition_difficulty(source_node, target_node): float
+    -_find_connected_components(nodes, edges)
+    -_dfs_find_connected_components(node_id, nodes, edges, visited, component)
+    -_calculate_betweenness_centrality(node_id, graph): float
+    -_find_all_shortest_paths(start, end, graph)
+    -_score_access_requirements(access_requirements): float
+    -_calculate_capability_diversity_score(node_id, graph): float
+    -_assess_strategic_value(node_data, incoming_edges, outgoing_edges): float
+    -_assess_pivot_exploitation_difficulty(node_data): float
+    -_find_attack_paths_dfs(current_node, graph, max_depth, visited, current_path)
+    -_calculate_chain_complexity(path, graph): float
+    -_calculate_cumulative_risk(path, nodes): float
+    -_deduplicate_chain_candidates(candidates)
+    -_generate_pivot_rationale(node_data, pivot_value): str
+    -_assess_strategic_value(node_data, incoming_edges, outgoing_edges): float
+    -_assess_pivot_exploitation_difficulty(node_data): float
+    -_generate_step_description(step_index, chain, environment_context): str
+    -_describe_capability(node_id): str
+    -_determine_step_access_requirements(step_index, chain)
+    -_identify_step_tools(step_index, chain)
+    -_predict_step_outputs(step_index, chain)
+    -_assess_step_detection_risk(step_index, chain, environment_context): float
+    -_identify_step_mitigations(step_index, chain)
+    -_generate_chain_iocs(chain)
+    -_identify_defensive_opportunities(chain)
+    -_generate_risk_recommendations(chain_narratives, risk_level, environment_context)
+    -_prioritize_defensive_actions(chain_narratives)
+    -_assess_enhanced_chain_feasibility(chain, environment): ChainFeasibilityScore
+    -_optimize_attack_chains(attack_chains, environment)
+    -_outputs_match_prerequisites(output, prerequisite): bool
+    -_access_progression_valid(source_access, target_access): bool
+    -_types_have_synergy(source_type, target_type): bool
+    -_assess_chain_stealth(chain, environment): float
+    -_estimate_chain_success_probability(chain): float
+    -_describe_attack_step(node_data, index): str
+    -_generate_chain_description(chain_links): str
+    -_determine_threat_actor(chain_links, environment): ThreatActorType
+    -_determine_attack_objective(chain_links): str
+    -_assess_overall_difficulty(chain_links): DifficultyLevel
+    -_assess_business_impact(chain_links, environment): BusinessImpact
+    -_assess_detection_difficulty(chain_links): DifficultyLevel
+    -_generate_mitigation_strategies(chain_links)
+    -_generate_chain_prerequisites(chain_links)
+    -_rank_attack_chains(attack_chains, environment)
+    +chain_risk_score()
+    -_is_lateral_movement_chain(chain, lateral_categories): bool
+    -_is_data_exfiltration_chain(chain, exfiltration_categories): bool
+    -_assess_technical_feasibility(attack_chain): float
+    -_assess_access_feasibility(attack_chain, environment): float
+    -_assess_detection_avoidance(attack_chain, environment): float
+    -_assess_environmental_suitability(attack_chain, environment): float
+    -_assess_resource_requirements(attack_chain, environment): float
+    -_access_level_score(access_level): float
+    -_generate_feasibility_rationale(technical, access, detection, environmental, resources): str
+    -_build_capability_relationships()
+    -_load_attack_patterns()
+  }
+
+  class MitigationCategory {
+    +PREVENTIVE: str
+    +DETECTIVE: str
+    +RESPONSIVE: str
+    +RECOVERY: str
+  }
+
+  class ImplementationDifficulty {
+    +LOW: str
+    +MEDIUM: str
+    +HIGH: str
+    +VERY_HIGH: str
+  }
+
+  class MitigationEffectiveness {
+    +LOW: str
+    +MEDIUM: str
+    +HIGH: str
+    +CRITICAL: str
+  }
+
+  class MitigationStrategy {
+    +name: str
+    +description: str
+    +implementation_steps
+    +effectiveness_score: float
+    +complexity: DifficultyLevel
+    +cost_estimate: str
+  }
+
+  class MitigationGenerator {
+    +strategies
+    +identified_threats
+    +category_strategies
+    +strategies
+    +strategies
+    +strategies
+    +threats
+    +category
+    +category
+    +category
+    +threat_name
+    +threat_desc
+    +indicator_lower
+    +vuln_type
+    +vuln_desc
+    +strategies
+    +category_templates
+    +strategy
+    +strategy_id
+    +threats_addressed
+    +cost_estimate
+    +time_estimate
+    +compliance_frameworks
+    +success_metrics
+    +business_justification
+    +dependencies
+    +maintenance_requirements
+    +strategy
+    +base_cost_map
+    +base_cost
+    +cost_adjustments
+    +base_cost
+    +time_map
+    +base_time
+    +time_adjustments
+    +base_time
+    +frameworks
+    +category_mapping
+    +relevant_controls
+    +framework_name
+    +framework_controls
+    +base_metrics
+    +category_metrics
+    +risk_reduction
+    +threat_count
+    +base_justification
+    +effectiveness
+    +dependencies
+    +tech_requirements
+    +difficulty
+    +base_requirements
+    +budget_filters
+    +allowed_difficulties
+    +effectiveness_scores
+    +score
+    +difficulty_adjustments
+    +roadmap
+    +phase_1_strategies
+    +phase_2_strategies
+    +phase_3_strategies
+    +total_risk_reduction
+    --
+    -__init__()
+    +generate_mitigation_strategies(threat_analysis, environment_context, compliance_requirements, budget_constraint)
+    -_extract_threats_from_analysis(threat_analysis)
+    -_categorize_threat(threat): str
+    -_categorize_risk_indicator(indicator): str
+    -_categorize_vulnerability(vulnerability): str
+    -_generate_strategies_for_category(threat_category, threat_details, environment_context, compliance_requirements)
+    -_create_strategy_from_template(template, threat_category, threat_details, mitigation_type, environment_context, compliance_requirements)
+    -_estimate_implementation_cost(template, environment_context): str
+    -_estimate_implementation_time(template, environment_context): str
+    -_map_to_compliance_frameworks(threat_category, compliance_requirements)
+    -_generate_success_metrics(template, threat_category)
+    -_create_business_justification(template, threat_details, environment_context): str
+    -_identify_dependencies(template, environment_context)
+    -_generate_maintenance_requirements(template)
+    -_filter_by_budget(strategies, budget_constraint)
+    -_prioritize_strategies(strategies, environment_context)
+    +priority_score()
+    -_add_implementation_guidance(strategies, environment_context)
+    +generate_implementation_roadmap(strategies, environment_context)
   }
 
   class ThreatIntelligenceCache {
@@ -9194,13 +10539,33 @@ package "src.hawkeye.detection.ai_threat" {
     +prompt_data
     +response
     +response
-    +threat_level
-    +high_risk_categories
-    +risk_score: int
-    +threat_level
+    +tool_name
+    +attack_vectors
+    +abuse_scenarios
+    +mitigation_strategies
+    +detection_indicators
     +threat_level
     +attack_vectors
-    +mitigation_strategies
+    +capability_categories
+    +tools_available
+    +scenarios
+    +capability_categories
+    +tools_available
+    +has_network_access
+    +has_file_access
+    +has_execution_capability
+    +strategies
+    +capability_categories
+    +tools_available
+    +indicators
+    +capability_categories
+    +tools_available
+    +capability_categories
+    +tools_available
+    +threat_score: int
+    +high_risk_capabilities
+    +medium_risk_capabilities
+    +base_risk
     +tool_name
     +tool_capabilities
     +environment_context
@@ -9257,6 +10622,11 @@ package "src.hawkeye.detection.ai_threat" {
     -_build_analysis_prompt(tool_capabilities, environment_context, analysis_type)
     -_execute_ai_analysis_request(request): ThreatAnalysis
     -_create_rule_based_analysis(tool_capabilities, environment_context): ThreatAnalysis
+    -_generate_enhanced_attack_vectors(tool_name, tool_capabilities)
+    -_generate_enhanced_abuse_scenarios(tool_name, tool_capabilities)
+    -_generate_enhanced_mitigations(tool_name, tool_capabilities)
+    -_generate_enhanced_detection_indicators(tool_name, tool_capabilities)
+    -_calculate_enhanced_threat_level(tool_name, tool_capabilities): ThreatLevel
     -_post_process_analysis(analysis, tool_capabilities): ThreatAnalysis
     -_create_fallback_analysis(mcp_server, tool_capabilities, environment_context, analysis_type): ThreatAnalysis
     -_generate_cache_key(tool_capabilities, environment_context, analysis_type): str
@@ -9383,6 +10753,178 @@ package "src.hawkeye.detection.ai_threat" {
     +update_performance_history(optimization_metrics)
   }
 
+  class ExampleType {
+    +CODE_SNIPPET: str
+    +COMMAND_SEQUENCE: str
+    +PAYLOAD: str
+    +CONFIGURATION: str
+    +EXPLOIT_POC: str
+    +DETECTION_RULE: str
+  }
+
+  class ExampleLanguage {
+    +PYTHON: str
+    +JAVASCRIPT: str
+    +BASH: str
+    +POWERSHELL: str
+    +SQL: str
+    +JSON: str
+    +YAML: str
+  }
+
+  class ExampleComplexity {
+    +BASIC: str
+    +INTERMEDIATE: str
+    +ADVANCED: str
+  }
+
+  class GeneratedExample {
+    +example_type: ExampleType
+    +language: ExampleLanguage
+    +title: str
+    +description: str
+    +code: str
+    +complexity: ExampleComplexity
+    +prerequisites
+    +notes
+    +related_tools
+    +risk_level: str
+    +timestamp: datetime
+    +items
+    +items
+    --
+    +to_html(): str
+    -_render_prerequisites(): str
+    -_render_notes(): str
+  }
+
+  class ExampleGenerationContext {
+    +tool_capabilities: ToolCapabilities
+    +environment_context: EnvironmentContext
+    +threat_analysis
+    +server_info
+    +target_audience: str
+    +include_mitigations: bool
+    +sanitize_sensitive: bool
+  }
+
+  class DynamicExampleGenerator {
+    +examples
+    +capability_examples
+    +chain_examples
+    +mitigation_examples
+    +template_key
+    +template
+    +template
+    +code
+    +commands
+    +cmd
+    +command_sequence
+    +payload_generators
+    +generator
+    +examples
+    +code_example
+    +payload_example
+    +config_example
+    +examples
+    +cmd_example
+    +poc_example
+    +examples
+    +config_example
+    +tool_name
+    +code_generators
+    +generator
+    +code
+    +tool_name
+    +tool_name
+    +tool_name
+    +template
+    +priorities
+    +priorities
+    --
+    -__init__()
+    +generate_examples_for_analysis(context)
+    +generate_code_snippet(tool_name, capability, language, complexity): GeneratedExample
+    +generate_command_sequence(attack_vector, context): GeneratedExample
+    +generate_payload_example(capability, context)
+    -_generate_capability_examples(capability, context)
+    -_generate_attack_chain_examples(context)
+    -_generate_mitigation_examples(context)
+    -_generate_capability_code_example(capability, context)
+    -_generate_file_system_code(context): str
+    -_generate_network_code(context): str
+    -_generate_code_execution_code(context): str
+    -_generate_database_code(context): str
+    -_generate_integration_code(context): str
+    -_generate_step_command(step, context, step_num): str
+    -_assess_attack_complexity(attack_vector): ExampleComplexity
+    -_extract_prerequisites(attack_vector)
+    -_generate_file_system_payload(context): GeneratedExample
+    -_generate_network_payload(context): GeneratedExample
+    -_generate_code_execution_payload(context): GeneratedExample
+    -_generate_database_payload(context): GeneratedExample
+    -_generate_capability_config_example(capability, context)
+    -_generate_exploit_poc(attack_vector, context)
+    -_generate_mitigation_config(mitigation, context): str
+    -_initialize_templates()
+    -_initialize_patterns()
+    -_get_generic_template(capability, language): str
+    -_fill_template(template, variables): str
+    -_risk_priority(risk_level): int
+    -_complexity_priority(complexity): int
+  }
+
+  class AttackVectorGenerator {
+    +attack_vectors
+    +risk_indicators
+    +generated_vectors
+    +attack_vectors
+    +indicators
+    +function_lower
+    +risk_patterns
+    +vectors
+    +template
+    +base_vector
+    +vector
+    +base_severity: str
+    +impact_keywords
+    +impact_lower
+    +base_severity: severity
+    +severity_levels
+    +current_index
+    +base_severity
+    +base_likelihood: float
+    +num_prerequisites
+    +num_prerequisites
+    +technique_complexity_keywords
+    +mitigations
+    +technique_lower
+    +factors
+    +severity_weights
+    +severity_score
+    +likelihood_score
+    +exploitability_score
+    +severity_dist
+    +category_dist
+    +total_likelihood: float
+    +severity
+    +category
+    +top_categories
+    --
+    -__init__()
+    +generate_attack_vectors(tool_capabilities, environment_context, max_vectors)
+    -_get_function_risk_indicators(function_name)
+    -_generate_vectors_for_indicator(func, indicator, environment_context)
+    -_calculate_vector_severity(variation, environment_context): str
+    -_calculate_likelihood(variation, environment_context): float
+    -_calculate_exploitability(func, variation): str
+    -_generate_mitigations(variation, func)
+    -_analyze_environment_factors(variation, environment_context)
+    -_prioritize_attack_vectors(vectors, environment_context)
+    +calculate_priority_score()
+    +generate_vector_summary(vectors)
+  }
+
   class PromptTemplate {
     +system_prompt: str
     +user_prompt_template: str
@@ -9432,6 +10974,512 @@ package "src.hawkeye.detection.ai_threat" {
     -_create_attack_chain_template(): PromptTemplate
     -_format_capabilities(capabilities): str
     -_format_context(context): str
+  }
+
+  class STRIDECategory {
+    +SPOOFING: str
+    +TAMPERING: str
+    +REPUDIATION: str
+    +INFORMATION_DISCLOSURE: str
+    +DENIAL_OF_SERVICE: str
+    +ELEVATION_OF_PRIVILEGE: str
+  }
+
+  class AttackTreeNodeType {
+    +GOAL: str
+    +AND_GATE: str
+    +OR_GATE: str
+    +LEAF: str
+  }
+
+  class ThreatActorCapability {
+    +SCRIPT_KIDDIE: str
+    +AMATEUR: str
+    +PROFESSIONAL: str
+    +EXPERT: str
+    +NATION_STATE: str
+  }
+
+  class ThreatActorMotivation {
+    +FINANCIAL_GAIN: str
+    +ESPIONAGE: str
+    +SABOTAGE: str
+    +ACTIVISM: str
+    +CURIOSITY: str
+    +REVENGE: str
+    +CHAOS: str
+  }
+
+  class STRIDEThreat {
+    +category: STRIDECategory
+    +threat_name: str
+    +description: str
+    +affected_assets
+    +attack_vectors
+    +impact: str
+    +likelihood: float
+    +severity: SeverityLevel
+    +mitigations
+  }
+
+  class AttackTreeNode {
+    +node_id: str
+    +node_type: AttackTreeNodeType
+    +description: str
+    +parent_id
+    +children
+    +probability: float
+    +cost: float
+    +difficulty: DifficultyLevel
+    +required_skills
+    +required_resources
+    +detection_likelihood: float
+    +mitigation_options
+  }
+
+  class AttackTree {
+    +tree_id: str
+    +root_goal: str
+    +target_asset: str
+    +threat_actor: ThreatActorType
+    +root_node: AttackTreeNode
+    +all_nodes
+    +critical_paths
+    +overall_probability: float
+    +estimated_cost: float
+    +time_to_compromise: int
+  }
+
+  class ThreatActorProfile {
+    +actor_type: ThreatActorType
+    +sophistication: ThreatActorSophistication
+    +primary_motivations
+    +capabilities
+    +resources
+    +typical_targets
+    +attack_methods
+    +operational_security: float
+    +persistence_level: float
+    +risk_tolerance: float
+    +stealth_preference: float
+    +activity_patterns
+    +geographical_focus
+    +success_rate: float
+    +detection_rate: float
+  }
+
+  class ThreatModelingResult {
+    +tool_name: str
+    +stride_analysis
+    +attack_trees
+    +threat_actor_profiles
+    +high_priority_threats
+    +recommended_countermeasures
+    +overall_risk_rating: ThreatLevel
+    +confidence_score: float
+    +analysis_timestamp: str
+  }
+
+  class ThreatModeler {
+    +stride_threats
+    +threats
+    +target_goals
+    +attack_trees
+    +tree
+    +relevant_actors
+    +profiles
+    +profile
+    +stride_threats
+    +attack_trees
+    +threat_actors
+    +high_priority
+    +countermeasures
+    +overall_risk
+    +confidence
+    +result
+    +threats
+    +pattern
+    +matching_capabilities
+    +threat
+    +pattern
+    +threat_name
+    +description_key: str
+    +description_key: str
+    +description_key: str
+    +description_key: str
+    +description_key: str
+    +description_key: str
+    +description_key: str
+    +description
+    +affected_assets
+    +attack_vectors
+    +impact
+    +likelihood
+    +severity
+    +mitigations
+    +goals
+    +capability_goal_mapping
+    +unique_goals
+    +tree_id
+    +root_node
+    +critical_paths
+    +attack_tree
+    +or_node
+    +file_node
+    +network_node
+    +and_node
+    +access_node
+    +exploit_node
+    +best_child
+    +critical_paths
+    +relevant_actors
+    +template
+    +target_preferences
+    +preferred_methods
+    +profile
+    +countermeasures
+    +general_controls
+    +critical_count
+    +high_count
+    +medium_count
+    +high_prob_trees
+    +base_confidence: float
+    +asset_mapping
+    +vectors
+    +vectors
+    +vectors
+    +vectors
+    +vectors
+    +vectors
+    +vectors
+    +base_impacts
+    +base_impact
+    +base_likelihood: float
+    +category_severity
+    +base_severity
+    +mitigation_mapping
+    +preferences
+    +preferences
+    +preferences
+    +preferences
+    +preferences
+    +preferences
+    +duration_mapping
+    +base_time: int
+    +time: int
+    +time: int
+    +time: int
+    +child_time
+    +child_time
+    --
+    -__init__()
+    +perform_stride_analysis(tool_capabilities, environment_context)
+    +generate_attack_trees(tool_capabilities, environment_context, target_goals)
+    +profile_threat_actors(tool_capabilities, environment_context)
+    +conduct_comprehensive_analysis(tool_capabilities, environment_context): ThreatModelingResult
+    -_initialize_stride_patterns()
+    -_initialize_threat_actor_templates()
+    -_initialize_attack_patterns()
+    -_analyze_stride_category(category, tool_capabilities, environment_context)
+    -_create_stride_threat(stride_category, capability_category, tool_capabilities, environment_context)
+    -_identify_attack_goals(tool_capabilities)
+    -_build_attack_tree(goal, tool_capabilities, environment_context)
+    -_populate_attack_tree_nodes(parent_node, goal, tool_capabilities, environment_context)
+    -_calculate_attack_tree_metrics(node)
+    -_find_critical_paths(root_node)
+    +traverse_path(current_path)
+    -_identify_relevant_threat_actors(tool_capabilities, environment_context)
+    -_create_threat_actor_profile(actor_type, tool_capabilities, environment_context): ThreatActorProfile
+    -_generate_countermeasures(stride_threats, attack_trees)
+    -_calculate_overall_risk(stride_threats, attack_trees): ThreatLevel
+    -_calculate_confidence_score(tool_capabilities, stride_threats): float
+    -_identify_affected_assets(capability_category, environment_context)
+    -_generate_attack_vectors_for_stride(stride_category, capability_category, tool_capabilities)
+    -_calculate_stride_impact(stride_category, environment_context): str
+    -_calculate_stride_likelihood(tool_capabilities, capability_category, environment_context): float
+    -_calculate_stride_severity(stride_category, likelihood, environment_context): SeverityLevel
+    -_generate_stride_mitigations(stride_category, capability_category)
+    -_determine_target_preferences(actor_type, tool_capabilities, environment_context)
+    -_determine_geographical_focus(actor_type)
+    -_determine_active_hours(actor_type): str
+    -_determine_attack_duration(actor_type): str
+    -_estimate_time_to_compromise(root_node): int
+    +calculate_node_time(): int
+    -_collect_all_nodes(node, all_nodes)
+  }
+
+  class PriorityLevel {
+    +CRITICAL: str
+    +HIGH: str
+    +MEDIUM: str
+    +LOW: str
+    +INFORMATIONAL: str
+  }
+
+  class RiskFactor {
+    +SEVERITY: str
+    +LIKELIHOOD: str
+    +BUSINESS_IMPACT: str
+    +EXPLOITABILITY: str
+    +DETECTABILITY: str
+    +REMEDIATION_DIFFICULTY: str
+    +ATTACK_SURFACE: str
+    +REGULATORY_IMPACT: str
+  }
+
+  class TimeHorizon {
+    +IMMEDIATE: str
+    +SHORT_TERM: str
+    +MEDIUM_TERM: str
+    +LONG_TERM: str
+  }
+
+  class RemediationUrgency {
+    +EMERGENCY: str
+    +URGENT: str
+    +HIGH: str
+    +MEDIUM: str
+    +LOW: str
+  }
+
+  class ScoreFactor {
+    +factor_name: str
+    +factor_type: RiskFactor
+    +raw_score: float
+    +weighted_score: float
+    +weight: float
+    +confidence: float
+    +description: str
+    +data_sources
+  }
+
+  class PriorityScore {
+    +overall_score: float
+    +priority_level: PriorityLevel
+    +score_factors
+    +confidence: float
+    +score_rationale: str
+    +key_drivers
+    +calculation_timestamp: datetime
+  }
+
+  class ThreatPriorityItem {
+    +item_id: str
+    +item_name: str
+    +item_type: str
+    +description: str
+    +priority_score: PriorityScore
+    +time_horizon: TimeHorizon
+    +remediation_urgency: RemediationUrgency
+    +affected_assets
+    +potential_impact: str
+    +required_actions
+    +dependencies
+    +estimated_effort: str
+    +success_probability: float
+  }
+
+  class PriorityMatrix {
+    +tool_name: str
+    +assessment_timestamp: datetime
+    +ranked_items
+    +critical_items
+    +immediate_actions
+    +short_term_actions
+    +long_term_actions
+    +resource_allocation_guidance
+    +executive_summary: str
+    +risk_appetite_alignment: str
+  }
+
+  class ScoringWeights {
+    +severity_weight: float
+    +likelihood_weight: float
+    +business_impact_weight: float
+    +exploitability_weight: float
+    +detectability_weight: float
+    +remediation_difficulty_weight: float
+    +attack_surface_weight: float
+    +regulatory_impact_weight: float
+    +total
+    --
+    +normalize()
+  }
+
+  class PriorityRanker {
+    +ranked_items
+    +priority_item
+    +critical_items
+    +immediate_actions
+    +short_term_actions
+    +long_term_actions
+    +resource_guidance
+    +executive_summary
+    +risk_appetite
+    +matrix
+    +score_factors
+    +severity_factor
+    +likelihood_factor
+    +business_impact_factor
+    +exploitability_factor
+    +detectability_factor
+    +remediation_factor
+    +attack_surface_factor
+    +regulatory_factor
+    +overall_score
+    +priority_level
+    +confidence
+    +rationale
+    +key_drivers
+    +adjusted_items
+    +adjusted_item
+    +priority_score
+    +time_horizon
+    +urgency
+    +item_id
+    +item_name
+    +item_type
+    +description
+    +affected_assets
+    +potential_impact
+    +required_actions
+    +dependencies
+    +estimated_effort
+    +success_probability
+    +severity_str
+    +raw_score
+    +weighted_score
+    +likelihood_str
+    +raw_score
+    +weighted_score
+    +base_impact
+    +impact_mapping
+    +base_impact
+    +sensitivity_multiplier
+    +raw_score
+    +weighted_score
+    +complexity
+    +base_score
+    +raw_score
+    +weighted_score
+    +detectability
+    +raw_score
+    +weighted_score
+    +difficulty
+    +difficulty_scores
+    +raw_score
+    +weighted_score
+    +base_surface
+    +surface_contributors: int
+    +raw_score
+    +weighted_score
+    +base_impact: float
+    +compliance_count
+    +base_impact
+    +regulatory_keywords
+    +threat_text
+    +regulatory_mentions
+    +base_impact
+    +raw_score: base_impact
+    +weighted_score
+    +avg_confidence
+    +unique_sources
+    +source_diversity_bonus
+    +top_factors
+    +rationale_parts
+    +contribution_pct
+    +sorted_factors
+    +key_drivers
+    +total_score
+    +driver_desc
+    +horizon_str
+    +severity
+    +likelihood
+    +key
+    +assets
+    +capability_assets
+    +cap_name
+    +severity
+    +threat_type
+    +impact_templates
+    +base_description
+    +actions
+    +threat_type
+    +base_effort
+    +effort_mapping
+    +base_probability: float
+    +difficulty
+    +difficulty_adjustments
+    +immediate_actions
+    +critical_items
+    +actions
+    +short_term_actions
+    +relevant_items
+    +actions
+    +long_term_actions
+    +medium_low_items
+    +critical_count
+    +high_count
+    +total_items
+    +high_priority_items
+    +guidance
+    +recommendations
+    +critical_count
+    +considerations
+    +critical_count
+    +high_count
+    +emergency_items
+    +urgent_items
+    +total_items
+    +critical_count
+    +high_count
+    +summary_parts
+    +critical_count
+    +high_count
+    +total_items
+    +high_risk_percentage
+    +adjustment_factor
+    +adjusted_score
+    +adjusted_priority_level
+    --
+    -__init__(scoring_weights)
+    +rank_threats(threats, tool_capabilities, environment_context): PriorityMatrix
+    +calculate_priority_score(threat_data, tool_capabilities, environment_context): PriorityScore
+    +adjust_priorities_for_context(priority_matrix, business_context): PriorityMatrix
+    -_initialize_priority_thresholds()
+    -_initialize_scoring_models()
+    -_initialize_urgency_matrix()
+    -_initialize_time_horizon_factors()
+    -_score_and_rank_threat(threat, tool_capabilities, environment_context): ThreatPriorityItem
+    -_calculate_severity_factor(threat_data): ScoreFactor
+    -_calculate_likelihood_factor(threat_data): ScoreFactor
+    -_calculate_business_impact_factor(threat_data, environment_context): ScoreFactor
+    -_calculate_exploitability_factor(threat_data, tool_capabilities): ScoreFactor
+    -_calculate_detectability_factor(threat_data): ScoreFactor
+    -_calculate_remediation_difficulty_factor(threat_data): ScoreFactor
+    -_calculate_attack_surface_factor(threat_data, tool_capabilities): ScoreFactor
+    -_calculate_regulatory_impact_factor(threat_data, environment_context): ScoreFactor
+    -_determine_priority_level(overall_score): PriorityLevel
+    -_calculate_score_confidence(score_factors): float
+    -_generate_score_rationale(score_factors, overall_score): str
+    -_identify_key_drivers(score_factors)
+    -_determine_time_horizon(threat_data): TimeHorizon
+    -_determine_remediation_urgency(priority_level, time_horizon): RemediationUrgency
+    -_identify_affected_assets(threat_data, tool_capabilities)
+    -_generate_impact_description(threat_data, priority_score): str
+    -_generate_required_actions(threat_data, priority_score)
+    -_estimate_remediation_effort(threat_data, priority_score): str
+    -_calculate_success_probability(threat_data, tool_capabilities): float
+    -_generate_immediate_actions(ranked_items)
+    -_generate_short_term_actions(ranked_items)
+    -_generate_long_term_actions(ranked_items)
+    -_generate_resource_allocation_guidance(ranked_items)
+    -_generate_staffing_recommendations(ranked_items)
+    -_generate_budget_considerations(ranked_items)
+    -_generate_timeline_recommendations(ranked_items)
+    -_create_executive_summary(ranked_items, critical_items): str
+    -_assess_risk_appetite_alignment(ranked_items): str
+    -_adjust_item_priority(item, business_context): ThreatPriorityItem
   }
 
   class SelectionCriteria {
@@ -9799,17 +11847,23 @@ package "src.hawkeye.detection.ai_threat" {
 
   class ResponseParser {
     +parsed_data
+    +schema_valid: bool
+    +schema_valid
     +threat_analysis
     +structured_data
     +threat_analysis
-    +partial_data
-    +threat_analysis
+    +stripped_content
+    +direct_data
     +json_patterns
+    +stripped_content
+    +direct_data
     +matches
     +json_str
     +json_str
     +data
+    +threat_keys
     +cleaned_content
+    +data
     +json_candidates
     +cleaned
     +data
@@ -9841,11 +11895,40 @@ package "src.hawkeye.detection.ai_threat" {
     +line
     +match
     +item
+    +text
+    +json_patterns
     +partial_data
     +content_lower
     +required_fields
     +properties
     +expected_type
+    +required_fields
+    +optional_fields
+    +attack_vectors
+    +vector_name
+    +vector_description
+    +severity_str
+    +severity
+    +attack_vector
+    +server_info
+    +transport
+    +host
+    +port
+    +description
+    +impact
+    +description: str
+    +impact: str
+    +abuse_scenarios
+    +attack_flow
+    +attack_step
+    +business_impact
+    +scenario
+    +mitigation_strategies
+    +mitigation
+    +threat_level_str
+    +threat_level
+    +analysis_metadata
+    +compliance_impact
     +threat_analysis
     +total
     --
@@ -9855,8 +11938,10 @@ package "src.hawkeye.detection.ai_threat" {
     -_clean_json_string(json_str): str
     -_extract_structured_text(content, analysis_type)
     -_parse_list_items(text)
+    -_is_json_fragment(text): bool
     -_extract_partial_data(content, analysis_type)
     -_validate_response_schema(data, schema): bool
+    -_validate_threat_analysis_structure(data): bool
     -_convert_to_threat_analysis(data, analysis_type, tool_capabilities, environment_context)
     +get_parsing_statistics()
   }
@@ -9942,6 +12027,11 @@ package "src.hawkeye.detection.ai_threat" {
   }
 
   class AnthropicProvider {
+    +model_name
+    +model_name: str
+    +api_key: NoneType
+    +api_key
+    +api_key
     +api_key
     +start_time
     +prompt_data
@@ -10009,6 +12099,334 @@ package "src.hawkeye.detection.ai_threat" {
     +estimate_cost(request): float
   }
 
+  class NarrativeStyle {
+    +EXECUTIVE: str
+    +TECHNICAL: str
+    +SECURITY: str
+    +EDUCATIONAL: str
+    +INVESTIGATIVE: str
+  }
+
+  class NarrativeLength {
+    +BRIEF: str
+    +STANDARD: str
+    +DETAILED: str
+    +COMPREHENSIVE: str
+  }
+
+  class StoryElement {
+    +INITIAL_ACCESS: str
+    +RECONNAISSANCE: str
+    +PRIVILEGE_ESCALATION: str
+    +LATERAL_MOVEMENT: str
+    +DATA_EXFILTRATION: str
+    +PERSISTENCE: str
+    +IMPACT: str
+    +TIMELINE: str
+    +DETECTION_EVASION: str
+    +BUSINESS_IMPACT: str
+  }
+
+  class AttackNarrative {
+    +title: str
+    +style: NarrativeStyle
+    +length: NarrativeLength
+    +summary: str
+    +full_narrative: str
+    +key_points
+    +timeline
+    +characters
+    +impact_assessment: str
+    +mitigation_context: str
+    +technical_details
+    +business_context: str
+    +call_to_action: str
+    +timestamp: datetime
+    +paragraphs
+    +timeline_items
+    +points
+    +details
+    --
+    +to_html(): str
+    -_format_narrative_html(): str
+    -_render_timeline(): str
+    -_render_key_points(): str
+    -_render_impact_assessment(): str
+    -_render_technical_details(): str
+    -_render_call_to_action(): str
+  }
+
+  class NarrativeBuilder {
+    +threat_actor
+    +title
+    +summary
+    +narrative_content
+    +key_points
+    +timeline
+    +impact_assessment
+    +technical_details
+    +call_to_action
+    +title
+    +summary
+    +narrative_content
+    +key_points
+    +title
+    +summary
+    +narrative_content
+    +key_points
+    +impact_assessment
+    +call_to_action
+    +high_complexity_attacks
+    +tool_name
+    +threat_level
+    +actor_context
+    +context
+    +tool_name
+    +threat_level
+    +num_vectors
+    +character
+    +actor_name
+    +actor_motivation
+    +tool_name
+    +opening
+    +attack_sequence
+    +impact_description
+    +detection_evasion
+    +business_context
+    +content
+    +top_vectors
+    +sequence_parts
+    +part
+    +part
+    +part
+    +timeline
+    +time_offset
+    +points
+    +confidence
+    +details
+    +tool_name
+    +tool_name
+    +threat_level
+    +goals
+    +likelihood_map
+    --
+    -__init__()
+    +build_attack_narrative(threat_analysis, style, length): AttackNarrative
+    +build_scenario_narrative(abuse_scenario, context, style): AttackNarrative
+    +create_business_impact_story(threat_analysis, business_context): AttackNarrative
+    -_identify_threat_actor(threat_analysis): ThreatActorType
+    -_generate_narrative_title(threat_analysis, threat_actor): str
+    -_create_executive_summary(threat_analysis, style): str
+    -_build_narrative_content(threat_analysis, threat_actor, style, length): str
+    -_create_opening(tool_name, actor_name, motivation, style): str
+    -_create_attack_sequence(threat_analysis, actor_name, style): str
+    -_create_impact_description(threat_analysis, style): str
+    -_create_detection_evasion_section(threat_analysis, actor_name): str
+    -_create_business_context_section(threat_analysis, style): str
+    -_build_attack_timeline(threat_analysis)
+    -_extract_key_points(threat_analysis, style)
+    -_create_impact_assessment(threat_analysis, style): str
+    -_extract_technical_details(threat_analysis)
+    -_create_call_to_action(threat_analysis, style): str
+    -_build_scenario_content(abuse_scenario, context, style): str
+    -_create_scenario_summary(abuse_scenario, context): str
+    -_generate_business_title(threat_analysis): str
+    -_create_business_summary(threat_analysis, business_context): str
+    -_build_business_narrative(threat_analysis, business_context): str
+    -_create_detailed_business_impact(threat_analysis, business_context): str
+    -_create_executive_call_to_action(threat_analysis): str
+    -_get_attack_goal(vector): str
+    -_assess_likelihood(difficulty): str
+    -_initialize_templates()
+    -_initialize_character_profiles()
+    -_initialize_phrases()
+  }
+
+  class TechnicalImpactScore {
+    +overall_score: float
+    +confidentiality_impact: float
+    +integrity_impact: float
+    +availability_impact: float
+    +scope_impact: float
+    +complexity_factor: float
+    +scoring_rationale: str
+  }
+
+  class BusinessImpactScore {
+    +overall_score: float
+    +financial_impact: float
+    +operational_impact: float
+    +reputational_impact: float
+    +compliance_impact: float
+    +strategic_impact: float
+    +business_context: str
+    +cost_estimate
+  }
+
+  class LikelihoodScore {
+    +overall_score: float
+    +threat_actor_capability: float
+    +attack_complexity: float
+    +attack_surface_accessibility: float
+    +existing_controls_effectiveness: float
+    +historical_frequency: float
+    +likelihood_rationale: str
+  }
+
+  class EnvironmentalModifiers {
+    +deployment_factor: float
+    +security_posture_factor: float
+    +network_exposure_factor: float
+    +data_sensitivity_factor: float
+    +monitoring_capability_factor: float
+    +incident_response_factor: float
+    +overall_modifier: float
+    +modifier_explanation: str
+  }
+
+  class PrioritizedThreat {
+    +threat_id: str
+    +tool_name: str
+    +threat_title: str
+    +threat_description: str
+    +priority_level: PriorityLevel
+    +priority_score: float
+    +technical_impact: TechnicalImpactScore
+    +business_impact: BusinessImpactScore
+    +likelihood: LikelihoodScore
+    +environmental_modifiers: EnvironmentalModifiers
+    +risk_score: float
+    +confidence_level: float
+    +recommended_actions
+    +timeline_recommendation: str
+    +resource_requirements
+    +success_metrics
+    +dependencies
+    +prioritization_timestamp: str
+  }
+
+  class RiskPrioritizationAlgorithm {
+    +start_time
+    +prioritized_threats
+    +tool_caps: NoneType
+    +tool_caps
+    +technical_impact
+    +business_impact
+    +likelihood
+    +environmental_modifiers
+    +priority_assessment
+    +prioritization_time
+    +confidentiality_impact
+    +integrity_impact
+    +availability_impact
+    +scope_impact
+    +complexity_factor
+    +overall_score
+    +scoring_rationale
+    +financial_impact
+    +operational_impact
+    +reputational_impact
+    +compliance_impact
+    +strategic_impact
+    +overall_score
+    +cost_estimate
+    +business_context_desc
+    +threat_actor_capability
+    +attack_complexity
+    +attack_surface_accessibility
+    +existing_controls_effectiveness
+    +historical_frequency
+    +overall_score
+    +likelihood_rationale
+    +deployment_factor
+    +security_posture_factor
+    +network_exposure_factor
+    +data_sensitivity_factor
+    +monitoring_capability_factor
+    +incident_response_factor
+    +overall_modifier
+    +modifier_explanation
+    +risk_score
+    +final_score
+    +final_score
+    +priority_level
+    +confidence_level
+    +recommended_actions
+    +timeline_recommendation
+    +resource_requirements
+    +success_metrics
+    +dependencies
+    +impact: float
+    +impact: float
+    +impact: float
+    +scope: float
+    +complexity: float
+    +complexity: float
+    +complexity: float
+    +complexity: float
+    +complexity: float
+    +impact: float
+    +revenue
+    +impact: float
+    +impact: float
+    +impact: float
+    +industry
+    +impact: float
+    +is_strategic
+    +confidence_factors
+    +actions
+    +stats
+    +accessibility: float
+    +control_effectiveness
+    +factors
+    +factors
+    +factors
+    +dependencies
+    --
+    -__init__()
+    +prioritize_threats(threat_analyses, tool_capabilities, environment_context, business_context)
+    -_calculate_technical_impact_score(threat_analysis, tool_capabilities, environment_context): TechnicalImpactScore
+    -_assess_business_impact(threat_analysis, tool_capabilities, environment_context, business_context): BusinessImpactScore
+    -_evaluate_likelihood(threat_analysis, tool_capabilities, environment_context): LikelihoodScore
+    -_apply_environmental_modifiers(threat_analysis, environment_context): EnvironmentalModifiers
+    -_generate_priority_ranking(threat_analysis, technical_impact, business_impact, likelihood, environmental_modifiers, tool_capabilities): PrioritizedThreat
+    -_assess_confidentiality_impact(threat_analysis, tool_capabilities): float
+    -_assess_integrity_impact(threat_analysis, tool_capabilities): float
+    -_assess_availability_impact(threat_analysis, tool_capabilities): float
+    -_assess_scope_impact(threat_analysis, environment_context): float
+    -_calculate_complexity_factor(threat_analysis): float
+    -_calculate_financial_impact(threat_analysis, tool_capabilities, environment_context, business_context): float
+    -_calculate_operational_impact(threat_analysis, tool_capabilities, environment_context): float
+    -_calculate_reputational_impact(threat_analysis, environment_context, business_context): float
+    -_calculate_compliance_impact(threat_analysis, environment_context, business_context): float
+    -_calculate_strategic_impact(threat_analysis, business_context): float
+    -_determine_priority_level(final_score): PriorityLevel
+    -_calculate_confidence_level(technical_impact, business_impact, likelihood, tool_capabilities): float
+    -_generate_recommended_actions(priority_level, technical_impact, business_impact, threat_analysis)
+    -_generate_timeline_recommendation(priority_level, business_impact): str
+    -_update_prioritization_statistics(prioritized_threats, prioritization_time)
+    +get_prioritization_statistics()
+    -_generate_technical_impact_rationale(conf, integ, avail, scope, complex): str
+    -_estimate_business_cost(financial, operational, compliance, context)
+    -_generate_business_context_description(financial, operational, reputational, compliance, strategic): str
+    -_assess_threat_actor_capability(threat_analysis): float
+    -_assess_attack_complexity(threat_analysis, tool_capabilities): float
+    -_assess_attack_surface_accessibility(tool_capabilities, environment_context): float
+    -_assess_existing_controls(environment_context): float
+    -_assess_historical_frequency(threat_analysis): float
+    -_generate_likelihood_rationale(actor, complexity, access, controls, history): str
+    -_calculate_deployment_factor(deployment_type): float
+    -_calculate_security_posture_factor(security_posture): float
+    -_calculate_network_exposure_factor(environment_context): float
+    -_calculate_data_sensitivity_factor(data_sensitivity): float
+    -_calculate_monitoring_capability_factor(environment_context): float
+    -_calculate_incident_response_factor(environment_context): float
+    -_generate_modifier_explanation(deploy, security, network, data, monitor, incident): str
+    -_determine_resource_requirements(priority_level, technical_impact, business_impact)
+    -_define_success_metrics(priority_level, technical_impact, business_impact)
+    -_identify_dependencies(threat_analysis, priority_level)
+  }
+
   class ThreatLevel {
     +MINIMAL: str
     +LOW: str
@@ -10025,6 +12443,9 @@ package "src.hawkeye.detection.ai_threat" {
     +MEDIUM: str
     +HIGH: str
     +CRITICAL: str
+    +value
+    --
+    +{class} from_string(value)
   }
 
   class DifficultyLevel {
@@ -10036,6 +12457,7 @@ package "src.hawkeye.detection.ai_threat" {
   class ThreatActorType {
     +INSIDER_THREAT: str
     +EXTERNAL_ATTACKER: str
+    +SUPPLY_CHAIN: str
     +NATION_STATE: str
     +CYBERCRIMINAL: str
     +HACKTIVIST: str
@@ -10179,17 +12601,18 @@ package "src.hawkeye.detection.ai_threat" {
   }
 
   class AttackVector {
+    +vector_id: str
     +name: str
-    +severity: SeverityLevel
     +description: str
-    +attack_steps
+    +required_capabilities
+    +complexity: AttackComplexity
+    +required_access: AccessLevel
+    +detection_difficulty: DetectionDifficulty
+    +time_to_execute: float
+    +success_probability: float
+    +stealth_level: float
     +prerequisites
-    +impact: str
-    +likelihood: float
-    +example_code
-    +mitigations
-    --
-    -__post_init__()
+    +indicators
   }
 
   class BusinessImpact {
@@ -10243,17 +12666,8 @@ package "src.hawkeye.detection.ai_threat" {
     +motivation: str
     +attack_flow
     +required_access: AccessLevel
-    +detection_difficulty: DifficultyLevel
+    +detection_difficulty
     +business_impact: BusinessImpact
-  }
-
-  class MitigationStrategy {
-    +name: str
-    +description: str
-    +implementation_steps
-    +effectiveness_score: float
-    +complexity: DifficultyLevel
-    +cost_estimate: str
   }
 
   class DetectionIndicator {
@@ -10262,12 +12676,6 @@ package "src.hawkeye.detection.ai_threat" {
     +pattern: str
     +confidence: float
     +false_positive_rate: float
-  }
-
-  class ComplianceImpact {
-    +affected_frameworks
-    +violation_risk: ThreatLevel
-    +required_controls
   }
 
   class AnalysisMetadata {
@@ -10313,6 +12721,247 @@ package "src.hawkeye.detection.ai_threat" {
     +threat_analysis
     --
     +{class} from_dict(data)
+  }
+
+  class DiagramType {
+    +ATTACK_FLOW: str
+    +NETWORK_TOPOLOGY: str
+    +TIMELINE: str
+    +RISK_HEAT_MAP: str
+    +ATTACK_TREE: str
+    +DATA_FLOW: str
+    +THREAT_LANDSCAPE: str
+    +MITIGATION_MATRIX: str
+  }
+
+  class DiagramFormat {
+    +MERMAID: str
+    +GRAPHVIZ: str
+    +SVG: str
+    +HTML_CSS: str
+    +JSON: str
+    +PLANTUML: str
+  }
+
+  class DiagramStyle {
+    +PROFESSIONAL: str
+    +DARK_THEME: str
+    +COLORFUL: str
+    +MINIMAL: str
+    +SECURITY_FOCUSED: str
+  }
+
+  class VisualDiagram {
+    +title: str
+    +diagram_type: DiagramType
+    +format: DiagramFormat
+    +style: DiagramStyle
+    +content: str
+    +description: str
+    +legend
+    +interactions
+    +metadata
+    +timestamp: datetime
+    +legend_items
+    +interaction_items
+    +theme_mapping
+    --
+    +to_html(): str
+    -_render_mermaid_html(): str
+    -_render_html_css(): str
+    -_render_svg_html(): str
+    -_render_code_block(): str
+    -_render_legend(): str
+    -_render_interactions(): str
+    -_get_mermaid_theme(): str
+  }
+
+  class DiagramGenerator {
+    +content
+    +content
+    +content
+    +content
+    +content
+    +content
+    +content
+    +content
+    +content
+    +content
+    +content
+    +content
+    +content
+    +content
+    +content
+    +tool_name
+    +attack_vectors
+    +mermaid_code
+    +vector_id
+    +severity_class
+    +events
+    +start_time
+    +event_time
+    +final_time
+    +timeline_html: str
+    +severity_class
+    +time_str
+    +risk_matrix
+    +threat_analysis
+    +risk_level
+    +risk_class
+    +risk_level: int
+    +risk_class: str
+    +heat_map_html: str
+    +mermaid_code: str
+    +vector_id
+    +severity_class
+    +mermaid_code: str
+    +server_id
+    +server_name
+    +network: str
+    +network: str
+    +base_score
+    +score
+    +vector_bonus
+    +score
+    --
+    -__init__()
+    +generate_attack_flow_diagram(threat_analysis, format, style): VisualDiagram
+    +generate_timeline_diagram(threat_analysis, time_window, format): VisualDiagram
+    +generate_risk_heat_map(servers, threat_analyses, format): VisualDiagram
+    +generate_attack_tree_diagram(attack_vectors, format): VisualDiagram
+    +generate_network_topology_diagram(environment_context, servers, format): VisualDiagram
+    -_generate_mermaid_attack_flow(threat_analysis): str
+    -_generate_html_timeline(threat_analysis, time_window): str
+    -_generate_html_heat_map(servers, threat_analyses): str
+    -_generate_mermaid_attack_tree(attack_vectors): str
+    -_generate_mermaid_topology(environment_context, servers): str
+    -_get_attack_flow_legend()
+    -_get_attack_tree_legend()
+    -_calculate_risk_score(threat_analysis): int
+    -_get_risk_class(risk_score): str
+    -_initialize_color_schemes()
+    -_initialize_templates()
+    -_generate_graphviz_attack_flow(threat_analysis): str
+    -_generate_json_attack_flow(threat_analysis): str
+    -_generate_mermaid_timeline(threat_analysis, time_window): str
+    -_generate_json_timeline(threat_analysis, time_window): str
+    -_generate_svg_heat_map(servers, threat_analyses): str
+    -_generate_json_heat_map(servers, threat_analyses): str
+    -_generate_graphviz_attack_tree(attack_vectors): str
+    -_generate_json_attack_tree(attack_vectors): str
+    -_generate_graphviz_topology(environment_context, servers): str
+    -_generate_json_topology(environment_context, servers): str
+  }
+
+  class PayloadType {
+    +COMMAND_INJECTION: str
+    +SQL_INJECTION: str
+    +XSS: str
+    +PATH_TRAVERSAL: str
+    +REVERSE_SHELL: str
+    +PRIVILEGE_ESCALATION: str
+    +DATA_EXFILTRATION: str
+    +RECONNAISSANCE: str
+    +PERSISTENCE: str
+    +BUFFER_OVERFLOW: str
+  }
+
+  class PayloadComplexity {
+    +BASIC: str
+    +INTERMEDIATE: str
+    +ADVANCED: str
+    +EXPERT: str
+  }
+
+  class ProgrammingLanguage {
+    +PYTHON: str
+    +JAVASCRIPT: str
+    +BASH: str
+    +POWERSHELL: str
+    +C: str
+    +CPP: str
+    +JAVA: str
+    +PHP: str
+    +RUBY: str
+    +GO: str
+    +SQL: str
+  }
+
+  class CodeSnippet {
+    +title: str
+    +description: str
+    +language: ProgrammingLanguage
+    +payload_type: PayloadType
+    +complexity: PayloadComplexity
+    +code: str
+    +explanation: str
+    +prerequisites
+    +references
+    +risk_level: str
+    +obfuscation_level: str
+    +evasion_techniques
+    +detection_signatures
+    +mitigation_notes
+    +timestamp: datetime
+    +items
+    +items
+    +items
+    --
+    +to_html(): str
+    -_render_prerequisites(): str
+    -_render_evasion_techniques(): str
+    -_render_mitigation_notes(): str
+  }
+
+  class CodeSnippetGenerator {
+    +snippets
+    +payload_mappings
+    +payload_types
+    +snippet
+    +stages
+    +stage_code
+    +combined_payload
+    +obfuscated_code
+    +obfuscated_snippet
+    +evasive_code
+    +evasion_snippet
+    +generators
+    +generator
+    +code: str
+    +code: str
+    +code: str
+    +code: str
+    +code: str
+    +code: str
+    +code: str
+    +code: str
+    +code: str
+    +code: str
+    +obfuscated
+    +obfuscated
+    +encoded
+    +evasion_code: str
+    --
+    -__init__()
+    +generate_payload_for_capability(capability, tool_capabilities, complexity)
+    +generate_attack_chain_payload(attack_vectors, tool_name): CodeSnippet
+    +generate_obfuscated_payload(base_payload, obfuscation_level): CodeSnippet
+    +generate_evasion_variant(base_payload, evasion_technique): CodeSnippet
+    -_generate_payload_snippet(payload_type, tool_name, complexity)
+    -_generate_command_injection(tool_name, complexity): CodeSnippet
+    -_generate_sql_injection(tool_name, complexity): CodeSnippet
+    -_generate_path_traversal(tool_name, complexity): CodeSnippet
+    -_generate_reverse_shell(tool_name, complexity): CodeSnippet
+    -_generate_data_exfiltration(tool_name, complexity): CodeSnippet
+    -_generate_reconnaissance(tool_name, complexity): CodeSnippet
+    -_generate_privilege_escalation(tool_name, complexity): CodeSnippet
+    -_generate_persistence(tool_name, complexity): CodeSnippet
+    -_generate_xss(tool_name, complexity): CodeSnippet
+    -_generate_attack_stage(vector, stage_num): str
+    -_apply_obfuscation(code, language, level): str
+    -_apply_evasion_technique(code, language, technique): str
+    -_initialize_templates()
+    -_initialize_evasion_patterns()
   }
 
   class SystemInfo {
@@ -10643,12 +13292,97 @@ package "src.hawkeye.detection.ai_threat" {
     +exclude_words
     +indicators
     +function_lower
-    +high_risk_patterns
+    +security_patterns
     +function_lower
     +privilege_patterns
     +function_lower
     +external_patterns
+    +security_relevant
+    +risk_indicators
+    +enhanced_func
+    +high_risk_indicators
+    +medium_risk_indicators
+    +attack_vectors
+    +attack_vector_mapping
+    +scenarios
+    +scenario_templates
+    +controls
+    +control_mapping
+    +attack_surface
+    +risk_indicators
+    +function_vectors
+    +attack_paths
+    +function_names
+    +attack_patterns
+    +gaps
+    +dangerous_functions
+    +priorities
+    +critical_gaps
     +tool_name
+    +function_analysis
+    +impact_categorization
+    +privilege_assessment
+    +attack_technique_mapping
+    +exploitation_difficulty
+    +threat_scenarios
+    +threat_mapping
+    +signatures
+    +signature_analysis
+    +param_analysis
+    +param_str
+    +impact_categories
+    +impact_level: str
+    +impact_level: str
+    +impact_level: str
+    +impact_level: str
+    +impact_level: str
+    +total_functions
+    +impact_distribution
+    +privilege_assessment
+    +access_req
+    +attack_techniques
+    +technique_mappings
+    +technique
+    +category_techniques
+    +unique_techniques
+    +seen_techniques
+    +tech_key
+    +severity_order
+    +difficulty_factors
+    +func_count
+    +overall_difficulty
+    +overall_difficulty
+    +difficulty_level: str
+    +difficulty_level: str
+    +difficulty_level: str
+    +difficulty_level: str
+    +difficulty_level: str
+    +scenarios
+    +scenario
+    +combination_scenario
+    +impact_score
+    +ease_score
+    +diversity_score
+    +overall_score
+    +confidence_factors
+    +analyzed_funcs
+    +total_funcs
+    +metadata_score: float
+    +param_str
+    +high_risk_patterns
+    +medium_risk_patterns
+    +risk_indicators
+    +prerequisites
+    +techniques
+    +category_mappings
+    +technique
+    +explanations
+    +base_explanation
+    +steps
+    +impact
+    +difficulty_score
+    +indicators
+    +mitigations
     --
     -__init__()
     +analyze_tool(mcp_server): ToolCapabilities
@@ -10668,7 +13402,323 @@ package "src.hawkeye.detection.ai_threat" {
     -_get_function_risk_indicators(function_name)
     -_function_requires_privileges(function_name): bool
     -_function_has_external_access(function_name): bool
+    +identify_security_relevant_functions(tool_functions)
+    -_calculate_function_security_risk(func, risk_indicators): str
+    -_identify_function_attack_vectors(func, risk_indicators)
+    -_generate_function_abuse_scenarios(func, risk_indicators)
+    -_recommend_function_security_controls(func, risk_indicators)
+    +analyze_attack_surface(tool_capabilities)
+    -_identify_attack_paths(tool_capabilities)
+    -_identify_security_gaps(tool_capabilities)
+    -_prioritize_mitigations(attack_surface)
     -_create_minimal_capabilities(mcp_server): ToolCapabilities
+    +map_capabilities_to_threats(tool_capabilities, environment_context)
+    -_extract_function_signatures(tool_capabilities)
+    -_categorize_security_impact(tool_capabilities, function_analysis)
+    -_assess_privilege_requirements_detailed(tool_capabilities, environment_context)
+    -_map_to_attack_techniques(tool_capabilities, function_analysis, impact_categorization)
+    -_calculate_exploitation_difficulty(tool_capabilities, privilege_assessment, environment_context)
+    -_generate_threat_scenarios(tool_capabilities, attack_techniques, exploitation_difficulty, environment_context)
+    -_calculate_overall_threat_score(impact_categorization, exploitation_difficulty, technique_count): float
+    -_calculate_mapping_confidence(tool_capabilities, function_analysis, environment_context): float
+    -_assess_parameter_risk(param): str
+    -_get_impact_justification(impact_level, analysis): str
+    -_generate_exploitation_vector(func_name, analysis): str
+    -_identify_prerequisites(analysis)
+    -_assess_detection_difficulty(analysis): str
+    -_get_category_specific_techniques(category, tool_capabilities)
+    -_generate_difficulty_explanation(factors, level): str
+    -_generate_attack_steps(technique, tool_capabilities)
+    -_assess_scenario_impact(technique, tool_capabilities)
+    -_calculate_scenario_likelihood(technique, exploitation_difficulty, environment_context): str
+    -_generate_detection_indicators(technique)
+    -_suggest_mitigations(technique, tool_capabilities)
+    -_generate_combination_scenario(tool_capabilities, exploitation_difficulty, environment_context)
+  }
+
+  class ScenarioBuilder {
+    +scenarios
+    +threat_actors
+    +actor_profile
+    +scenario_template
+    +scenario
+    +scenarios
+    +capability_categories
+    +template_scores
+    +score: int
+    +best_template
+    +scenario
+    +risk_score: int
+    +skill_weights
+    +resource_weights
+    +base_likelihood: float
+    +actor_likelihood_modifiers
+    +time_horizons
+    +time_info
+    +phases
+    +phase_definitions
+    +phase_def
+    +phase
+    +objectives
+    +capability_categories
+    +techniques
+    +matching_functions
+    +technique_lower
+    +func_name_lower
+    +technique_patterns
+    +iocs
+    +func_name
+    +impact
+    +scenario_name
+    +impact_levels
+    +current_level
+    +current_index
+    +opportunities
+    +func_name
+    +mitigations
+    +scenario_name
+    +lessons
+    +scenario_name
+    +tools
+    +phase_tool_mappings
+    +patterns
+    +phase_techniques
+    +base_techniques
+    +advanced_keywords
+    +base_techniques
+    +base_durations
+    +base_duration
+    +duration_map
+    +duration_map
+    +duration_map
+    +indicators
+    +base_risks
+    +base_risk
+    +risk_levels
+    +current_index
+    +base_risk
+    +risk_levels
+    +current_index
+    +base_risk
+    +risk_weights
+    +risk_score
+    +likelihood_score
+    --
+    -__init__()
+    +build_abuse_scenarios(tool_capabilities, environment_context, threat_actors, max_scenarios)
+    -_select_scenario_template(tool_capabilities, actor_profile, environment_context)
+    -_build_detailed_scenario(tool_capabilities, actor_profile, scenario_template, environment_context)
+    -_calculate_scenario_risk(actor_profile, tool_capabilities, environment_context): str
+    -_calculate_scenario_likelihood(actor_profile, environment_context): float
+    -_generate_timeline(scenario_template, actor_profile)
+    -_generate_attack_phases(scenario_template, tool_capabilities, actor_profile, environment_context)
+    -_generate_objectives(actor_profile, tool_capabilities)
+    -_map_techniques_to_capabilities(actor_profile, tool_capabilities)
+    -_technique_matches_function(technique, func): bool
+    -_generate_iocs(scenario_template, tool_capabilities)
+    -_assess_business_impact(scenario_template, environment_context)
+    -_identify_detection_opportunities(scenario_template, tool_capabilities)
+    -_generate_mitigation_strategies(scenario_template, tool_capabilities)
+    -_generate_lessons_learned(scenario_template, actor_profile)
+    -_identify_tools_for_phase(phase_name, tool_capabilities)
+    -_get_techniques_for_phase(phase_name, actor_profile)
+    -_estimate_phase_duration(phase_name, actor_profile): str
+    -_define_success_indicators(phase_name)
+    -_assess_detection_risk(phase_name, actor_profile, environment_context): str
+    -_prioritize_scenarios(scenarios)
+    +calculate_priority_score()
+  }
+
+  class LikelihoodLevel {
+    +VERY_LOW: str
+    +LOW: str
+    +MEDIUM: str
+    +HIGH: str
+    +VERY_HIGH: str
+  }
+
+  class AttackComplexity {
+    +LOW: str
+    +MEDIUM: str
+    +HIGH: str
+  }
+
+  class DetectionDifficulty {
+    +EASY: str
+    +MEDIUM: str
+    +HARD: str
+    +VERY_HARD: str
+  }
+
+  class TargetAttractiveness {
+    +LOW: str
+    +MEDIUM: str
+    +HIGH: str
+    +VERY_HIGH: str
+  }
+
+  class ThreatActorSophistication {
+    +SCRIPT_KIDDIE: str
+    +OPPORTUNISTIC: str
+    +SKILLED: str
+    +EXPERT: str
+    +NATION_STATE: str
+  }
+
+  class AttackWindow {
+    +IMMEDIATE: str
+    +SHORT_TERM: str
+    +MEDIUM_TERM: str
+    +LONG_TERM: str
+  }
+
+  class EnvironmentalFactor {
+    +factor_name: str
+    +factor_type: str
+    +impact_on_likelihood: float
+    +confidence: float
+    +description: str
+    +mitigation_available: bool
+  }
+
+  class LikelihoodAssessment {
+    +threat_id: str
+    +tool_name: str
+    +base_likelihood: float
+    +adjusted_likelihood: float
+    +likelihood_level: LikelihoodLevel
+    +primary_threat_actors
+    +attack_vectors
+    +environmental_factors
+    +target_attractiveness: TargetAttractiveness
+    +attack_window: AttackWindow
+    +confidence_score: float
+    +assessment_rationale: str
+    +key_risk_factors
+    +mitigation_impact: float
+    +assessment_timestamp: datetime
+  }
+
+  class ThreatLikelihoodMatrix {
+    +tool_name: str
+    +assessments
+    +overall_risk_level: ThreatLevel
+    +highest_likelihood_threats
+    +recommended_monitoring
+    +early_warning_indicators
+    +assessment_summary: str
+  }
+
+  class LikelihoodAssessor {
+    +threat_scenarios
+    +assessments
+    +assessment
+    +overall_risk
+    +high_likelihood
+    +monitoring_recs
+    +early_warnings
+    +summary
+    +matrix
+    +relevant_actors
+    +profiles
+    +profile
+    +base_prob
+    +actor_adjustment
+    +env_adjustment
+    +tool_adjustment
+    +adjusted_prob
+    +scenarios
+    +capability_scenarios
+    +unique_scenarios
+    +base_likelihood
+    +threat_actors
+    +attack_vectors
+    +env_factors
+    +env_adjustment
+    +adjusted_likelihood
+    +likelihood_level
+    +attractiveness
+    +attack_window
+    +confidence
+    +rationale
+    +risk_factors
+    +mitigation_impact
+    +scenario_base_likelihood
+    +base
+    +risk_adjustment
+    +scenario_actor_mapping
+    +vectors
+    +scenario_vector_mapping
+    +vector_names
+    +factors
+    +attractiveness_score: int
+    +sensitivity_scores
+    +base_confidence: float
+    +rationale_parts
+    +positive_factors
+    +negative_factors
+    +risk_factors
+    +scenario_risks
+    +mitigation_impact: float
+    +relevant_actors
+    +template
+    +activity_patterns
+    +geo_focus
+    +profile
+    +sophistication_weight
+    +base_score
+    +score
+    +profile
+    +sophistication
+    +base_multiplier
+    +complexity_adjustment
+    +adjustment: float
+    +adjustment: float
+    +very_high_count
+    +high_count
+    +avg_likelihood
+    +high_likelihood
+    +threat_name
+    +recommendations
+    +scenario
+    +indicators
+    +general_indicators
+    +high_likelihood_count
+    +medium_likelihood_count
+    +summary_parts
+    --
+    -__init__()
+    +assess_threat_likelihood(tool_capabilities, environment_context, threat_scenarios): ThreatLikelihoodMatrix
+    +profile_threat_actors(tool_capabilities, environment_context)
+    +calculate_attack_probability(attack_vector, tool_capabilities, environment_context, threat_actor): float
+    -_initialize_threat_actor_profiles()
+    -_initialize_attack_patterns()
+    -_initialize_environmental_factors()
+    -_initialize_complexity_models()
+    -_generate_threat_scenarios(tool_capabilities)
+    -_assess_scenario_likelihood(scenario, tool_capabilities, environment_context): LikelihoodAssessment
+    -_calculate_base_likelihood(scenario, tool_capabilities): float
+    -_identify_scenario_threat_actors(scenario)
+    -_generate_scenario_attack_vectors(scenario, tool_capabilities)
+    -_analyze_environmental_factors(scenario, environment_context)
+    -_determine_likelihood_level(likelihood_score): LikelihoodLevel
+    -_assess_target_attractiveness(scenario, tool_capabilities, environment_context): TargetAttractiveness
+    -_determine_attack_window(scenario, threat_actors): AttackWindow
+    -_calculate_likelihood_confidence(tool_capabilities, env_factors, vector_count): float
+    -_generate_assessment_rationale(scenario, base_likelihood, env_factors, threat_actors): str
+    -_identify_key_risk_factors(scenario, tool_capabilities, environment_context)
+    -_calculate_mitigation_impact(scenario, environment_context): float
+    -_identify_relevant_threat_actors(tool_capabilities, environment_context)
+    -_create_detailed_threat_actor_profile(actor_type, tool_capabilities, environment_context): ThreatActorProfile
+    -_calculate_actor_threat_score(profile): float
+    -_calculate_actor_capability_adjustment(threat_actor, attack_vector): float
+    -_calculate_environmental_adjustment(attack_vector, environment_context): float
+    -_calculate_tool_specific_adjustment(attack_vector, tool_capabilities): float
+    -_calculate_overall_risk_level(assessments): ThreatLevel
+    -_identify_high_likelihood_threats(assessments)
+    -_generate_monitoring_recommendations(assessments)
+    -_generate_early_warning_indicators(assessments)
+    -_create_assessment_summary(assessments, overall_risk): str
   }
 
 }
@@ -10808,12 +13858,14 @@ package "src.hawkeye.detection.mcp_introspection" {
   }
 
   class MCPIntrospection {
+    +mcp_client_config
     +start_time
     +cache_key
     +cached_result
-    +introspection_start
-    +server_info
-    +introspection_time
+    +loop
+    +future
+    +result
+    +result
     +result
     +start_time
     +all_servers
@@ -10824,7 +13876,6 @@ package "src.hawkeye.detection.mcp_introspection" {
     +overall_risk
     +introspection_time
     +result
-    +server_command
     +server_info
     +command
     +risk_counts
@@ -10839,6 +13890,7 @@ package "src.hawkeye.detection.mcp_introspection" {
     -_introspect_single_server(server_config): MCPServerInfo
     -_create_server_command(server_config)
     -_calculate_overall_risk(risk_levels): RiskLevel
+    -_create_error_result_simple(server_id, start_time, error_message): IntrospectionResult
     -_create_error_result(server_config, start_time, error_message): IntrospectionResult
     -_create_error_server_info(server_config, start_time, error_message): MCPServerInfo
     -_is_cache_valid(result): bool
@@ -11082,7 +14134,151 @@ package "src.hawkeye.detection.mcp_introspection" {
 
   class MCPIntrospector {
     -__init__(config)
-    +introspect_server(name, command, args)
+    +introspect_server(server_info, process_info)
+  }
+
+  class MCPClientConfig {
+    +timeout: float
+    +max_retries: int
+    +retry_delay: float
+    +enable_tool_testing: bool
+    +enable_resource_enumeration: bool
+    +enable_capability_detection: bool
+    +client_info
+    +allowed_tools
+    +disallowed_tools
+    +debug: bool
+    --
+    -__post_init__()
+  }
+
+  class MCPServerDefinition {
+    +name: str
+    +transport_type: str
+    +command
+    +args
+    +url
+    +env
+    +headers
+    +working_directory
+  }
+
+  class MCPClient {
+    +server_config
+    +logger
+    +mcp_servers
+    +transport_type
+    +server_def
+    +server_def
+    +tools
+    +server_tools
+    +server_tools
+    +filtered_tools
+    +params
+    +tools
+    +start_time
+    +server_id
+    +temp_server_def
+    +tools_data
+    +tools
+    +security_risks
+    +mcp_tool
+    +tool_risks
+    +server_info
+    +risk_level
+    +duration
+    +result
+    +connection
+    +connection
+    +connection
+    +metadata
+    +transport_type
+    +command
+    +env
+    +cwd
+    +cwd: NoneType
+    +process
+    +stderr_output
+    +headers
+    +connector
+    +session
+    +session_id
+    +init_request
+    +url
+    +url
+    +session_id
+    +session_id
+    +response_data
+    +response_text
+    +connection
+    +metadata
+    +request
+    +request_json
+    +response_line
+    +response
+    +result
+    +tools
+    +request
+    +url
+    +url
+    +headers
+    +session_id
+    +session_info
+    +response_data
+    +result
+    +tools
+    +normalized
+    +normalized_tool
+    +filtered
+    +tool_name
+    +connection
+    +metadata
+    +request
+    +request_json
+    +response_line
+    +response
+    +request
+    +url
+    +url
+    +response_data
+    +properties
+    +risks
+    +risk_indicators
+    +tool_text
+    +risk_level
+    +risks
+    +sensitive_patterns
+    +high_risks
+    +medium_risks
+    --
+    -__init__(config, server_config)
+    +{class} from_config_file(config_path, config)
+    +{class} from_dict(server_config, config)
+    -_parse_server_config(server_config)
+    -__enter__()
+    -__exit__(exc_type, exc_val, exc_tb)
+    -_convert_legacy_config(server_config): MCPServerDefinition
+    -_normalize_tools(tools, server_name)
+    -_filter_tools(tools)
+    -_convert_tool_to_internal(tool_data): MCPTool
+    -_convert_tool_parameters(input_schema)
+    -_extract_required_params(input_schema)
+    -_assess_tool_security_risks(tool)
+    -_assess_resource_security_risks(resource)
+    -_calculate_risk_level(security_risks, tools, resources): RiskLevel
+    -_create_error_result(server_id, start_time, error_message): IntrospectionResult
+  }
+
+  class SyncMCPClient {
+    +async_client
+    +result
+    +logger
+    +start_time
+    +logger
+    --
+    -__init__(config)
+    +introspect_server(server_config): IntrospectionResult
+    +close()
   }
 
   class RiskLevel {
@@ -13084,6 +16280,8 @@ package "src.hawkeye.detection.mcp_introspection.discovery" {
   }
 
   class ServerInfoAggregator {
+    +server_id
+    +server_url
     +start_time
     +cached_info
     +discovery_start
@@ -13101,7 +16299,12 @@ package "src.hawkeye.detection.mcp_introspection.discovery" {
     +aggregated_risks
     +all_security_risks: aggregated_risks
     +overall_risk
+    +server_name: NoneType
+    +server_version: NoneType
+    +server_name
+    +server_version
     +aggregation_time
+    +metadata
     +server_info
     +aggregated_risks
     +file_tools
@@ -13115,8 +16318,8 @@ package "src.hawkeye.detection.mcp_introspection.discovery" {
     +cache_ttl
     --
     -__init__(config)
-    +aggregate_server_info(server_command, server_id, server_url): MCPServerInfo
-    -_sequential_discovery(server_command, server_id)
+    +aggregate_server_info(server_config, server_id, server_url): MCPServerInfo
+    -_sequential_discovery(server_config, server_id)
     -_aggregate_results(server_id, server_url, discovery_results, start_time): MCPServerInfo
     -_aggregate_risks(tools, resources, capabilities, existing_risks)
     -_calculate_overall_risk(security_risks): RiskLevel
@@ -13137,27 +16340,44 @@ package "src.hawkeye.detection.mcp_introspection.discovery" {
   }
 
   class CapabilityAssessment {
+    +server_id
     +start_time
     +cache_key
     +cached_result
     +start_assessment
     +capabilities_data
-    +capabilities
+    +mcp_capabilities
     +security_risks
-    +capability
+    +mcp_capabilities
     +risks
     +assessment_time
     +result
     +last_error: NoneType
     +request
     +result
+    +server_command
+    +result
+    +capabilities
     +last_error: e
+    +url
+    +url
+    +headers
+    +config_headers
+    +response
+    +result
+    +command
     +process
     +request_json
     +response
     +capabilities
+    +server_name: NoneType
+    +server_version: NoneType
+    +server_info
+    +server_name
+    +server_version
     +cap_data
     +capability_indicators
+    +metadata
     +risks
     +cap_lower
     +severity
@@ -13165,11 +16385,13 @@ package "src.hawkeye.detection.mcp_introspection.discovery" {
     +cache_key
     --
     -__init__(config)
-    +assess_capabilities(server_command, server_id): DiscoveryResult
-    -_get_capabilities_with_retry(server_command)
+    +assess_capabilities(server_config, server_id): DiscoveryResult
+    -_get_capabilities_with_retry(server_config)
+    -_communicate_via_http(server_config, request)
+    -_build_server_command(server_config)
     -_communicate_with_server(server_command, request)
     -_convert_capabilities(capabilities_data): MCPCapability
-    -_assess_capability_risks(capability)
+    -_assess_capability_risks(capabilities_data, mcp_capabilities)
     -_is_cache_valid(result): bool
     -_create_error_result(server_id, start_time, error_message): DiscoveryResult
     +clear_cache(server_id)
@@ -13181,12 +16403,13 @@ package "src.hawkeye.detection.mcp_introspection.discovery" {
     +retry_delay: float
     +enable_schema_analysis: bool
     +enable_risk_assessment: bool
-    +sensitive_patterns
+    +dangerous_patterns
     --
     -__post_init__()
   }
 
   class ResourceDiscovery {
+    +server_id
     +start_time
     +cache_key
     +cached_result
@@ -13201,8 +16424,17 @@ package "src.hawkeye.detection.mcp_introspection.discovery" {
     +last_error: NoneType
     +request
     +result
+    +server_command
+    +result
     +resources
     +last_error: e
+    +url
+    +url
+    +headers
+    +config_headers
+    +response
+    +result
+    +command
     +process
     +request_json
     +response
@@ -13216,8 +16448,10 @@ package "src.hawkeye.detection.mcp_introspection.discovery" {
     +cache_key
     --
     -__init__(config)
-    +discover_resources(server_command, server_id): DiscoveryResult
-    -_list_resources_with_retry(server_command)
+    +discover_resources(server_config, server_id): DiscoveryResult
+    -_list_resources_with_retry(server_config)
+    -_communicate_via_http(server_config, request)
+    -_build_server_command(server_config)
     -_communicate_with_server(server_command, request)
     -_convert_resource(resource_data): MCPResource
     -_extract_uri_scheme(uri): str
@@ -13239,6 +16473,7 @@ package "src.hawkeye.detection.mcp_introspection.discovery" {
   }
 
   class ToolDiscovery {
+    +server_id
     +start_time
     +cache_key
     +cached_result
@@ -13253,8 +16488,26 @@ package "src.hawkeye.detection.mcp_introspection.discovery" {
     +last_error: NoneType
     +request
     +result
+    +server_command
+    +result
     +tools
     +last_error: e
+    +url
+    +url
+    +session_id
+    +headers
+    +config_headers
+    +session_info
+    +response
+    +result
+    +init_request
+    +headers
+    +config_headers
+    +response
+    +session_id: NoneType
+    +session_id
+    +response_data
+    +command
     +process
     +request_json
     +response
@@ -13274,8 +16527,11 @@ package "src.hawkeye.detection.mcp_introspection.discovery" {
     +cache_key
     --
     -__init__(config)
-    +discover_tools(server_command, server_id): DiscoveryResult
-    -_list_tools_with_retry(server_command)
+    +discover_tools(server_config, server_id): DiscoveryResult
+    -_list_tools_with_retry(server_config)
+    -_communicate_via_http(server_config, request)
+    -_initialize_mcp_session(url, server_config)
+    -_build_server_command(server_config)
     -_communicate_with_server(server_command, request)
     -_convert_tool(tool_data): MCPTool
     -_extract_parameters(schema)
@@ -13971,12 +17227,16 @@ package "src.hawkeye.reporting" {
     +overall: str
     +overall: str
     +overall: str
+    +target_hosts
+    +sorted_hosts
     +strategies
     +indicators
     +impact
     +scenarios
     +server_info
     +html: str
+    +steps
+    +example_code
     +html: str
     +html: str
     +html: str
@@ -13984,6 +17244,45 @@ package "src.hawkeye.reporting" {
     +recommendations
     +html: str
     +html
+    +servers
+    +server
+    +server_name
+    +server_name
+    +html: str
+    +raw_data
+    +process_data
+    +cmdline
+    +packages
+    +processes
+    +process
+    +docker_info
+    +labels
+    +server_type
+    +descriptions
+    +transport
+    +is_secure
+    +descriptions
+    +server_type
+    +transport
+    +capabilities
+    +tool_count
+    +name
+    +host
+    +port
+    +server_type
+    +transport_type
+    +description
+    +tools
+    +capabilities
+    +endpoint_url
+    +address
+    +address: host
+    +display_address
+    +html
+    +tool_name
+    +tool_desc
+    +cap_name
+    +cap_desc
     --
     +analyze_threats(data)
     -_identify_detected_servers(detection_results)
@@ -13991,6 +17290,7 @@ package "src.hawkeye.reporting" {
     -_generate_abuse_scenarios(detected_servers)
     -_generate_attack_chains(detected_servers)
     -_calculate_threat_levels(detected_servers)
+    -_extract_scan_target(data): str
     -_generate_mitigation_strategies(detected_servers)
     -_generate_detection_indicators(detected_servers)
     -_generate_compliance_impact(detected_servers, threat_levels)
@@ -14002,6 +17302,12 @@ package "src.hawkeye.reporting" {
     -_format_detection_indicators(indicators): str
     -_format_security_recommendations(detected_servers): str
     -_format_compliance_impact(compliance_impact): str
+    -_format_detected_servers(data): str
+    -_extract_server_name(result, server): str
+    -_extract_mcp_server_name(server): str
+    -_generate_server_description(result, server): str
+    -_generate_mcp_server_description(server): str
+    -_format_single_server(server_info): str
   }
 
   class CSVReporter {
@@ -14156,6 +17462,8 @@ package "src.hawkeye.reporting" {
     +organization
     +classification: str
     +retention_period
+    +report_type_val
+    +format_val
     --
     +generated_timestamp(): str
     +to_dict()
@@ -14263,7 +17571,9 @@ package "src.hawkeye.reporting" {
     +targets
     +servers
     +total: int
+    +logger
     +total: int
+    +logger
     +findings
     +tools
     --
@@ -14600,6 +17910,8 @@ package "src.hawkeye.reporting" {
     +name_lower
     +desc_lower
     +dangerous_keywords
+    +target_hosts
+    +sorted_hosts
     --
     +analyze_detection_results(data)
     -_extract_statistics(detection_results)
@@ -14631,6 +17943,7 @@ package "src.hawkeye.reporting" {
     -_get_risk_class(risk_level): str
     -_get_risk_class_from_string(level): str
     -_is_dangerous_tool(tool): bool
+    -_extract_scan_target(data): str
   }
 
   class IntrospectionReporter {
@@ -14856,6 +18169,43 @@ package "src.hawkeye.reporting.templates" {
     +clear_templates()
   }
 
+  class AdaptiveTemplateEngine {
+    +complexity
+    +generator
+    +content: template_content
+    +content
+    +formatter
+    +placeholder
+    +content
+    +selected_template
+    +template
+    +template
+    +dynamic_content
+    +content
+    +context_data
+    +content
+    +content
+    +complexity_score: int
+    +threat_level
+    --
+    -__init__()
+    +register_content_generator(name, generator)
+    +register_context_injector(context_type, injector)
+    +register_severity_formatter(severity, formats)
+    +select_adaptive_template(base_template_name, threat_analysis, server_capabilities): str
+    +generate_dynamic_content(content_type, data, context): str
+    +inject_context(template_content, context_data): str
+    +apply_severity_formatting(content, severity): str
+    +render_adaptive_template(template_name, data, threat_analysis): str
+    -_assess_content_complexity(threat_analysis, server_capabilities): str
+  }
+
+  class TemplateCapabilityMatcher {
+    -__init__()
+    +register_capability_template(capability, template_name, patterns)
+    +match_template_for_capabilities(capabilities)
+  }
+
   class ExecutiveSummaryTemplate {
     -__init__()
     +get_template_content(): str
@@ -14987,6 +18337,32 @@ MCPDetector <|-- ProcessEnumerator
 MCPDetector <|-- TransportDetector
 MCPDetector <|-- EnvironmentAnalyzer
 MCPDetector <|-- DockerInspector
+Enum <|-- ComplianceStatus
+Enum <|-- ControlCategory
+Enum <|-- VulnerabilityType
+Enum <|-- CVESeverity
+Enum <|-- ExploitabilityLevel
+Enum <|-- ConfigurationRisk
+Enum <|-- ImpactCategory
+Enum <|-- ImpactSeverity
+Enum <|-- RecoveryPhase
+Enum <|-- CostCategory
+Enum <|-- OrganizationSize
+Enum <|-- IndustryVertical
+Enum <|-- MitigationCategory
+Enum <|-- ImplementationDifficulty
+Enum <|-- MitigationEffectiveness
+Enum <|-- ExampleType
+Enum <|-- ExampleLanguage
+Enum <|-- ExampleComplexity
+Enum <|-- STRIDECategory
+Enum <|-- AttackTreeNodeType
+Enum <|-- ThreatActorCapability
+Enum <|-- ThreatActorMotivation
+Enum <|-- PriorityLevel
+Enum <|-- RiskFactor
+Enum <|-- TimeHorizon
+Enum <|-- RemediationUrgency
 Enum <|-- SelectionCriteria
 Enum <|-- ProviderCapability
 Enum <|-- OptimizationStrategy
@@ -14997,6 +18373,11 @@ ABC <|-- AIProvider
 AIProvider <|-- OpenAIProvider
 AIProvider <|-- AnthropicProvider
 AIProvider <|-- LocalLLMProvider
+Enum <|-- NarrativeStyle
+Enum <|-- NarrativeLength
+Enum <|-- StoryElement
+Enum <|-- PriorityLevel
+Enum <|-- ImpactCategory
 Enum <|-- ThreatLevel
 Enum <|-- SeverityLevel
 Enum <|-- DifficultyLevel
@@ -15009,6 +18390,19 @@ Enum <|-- DataSensitivity
 Enum <|-- NetworkExposure
 Enum <|-- UserPrivileges
 Enum <|-- ComplianceFramework
+Enum <|-- DiagramType
+Enum <|-- DiagramFormat
+Enum <|-- DiagramStyle
+Enum <|-- PayloadType
+Enum <|-- PayloadComplexity
+Enum <|-- ProgrammingLanguage
+Enum <|-- ThreatActorType
+Enum <|-- LikelihoodLevel
+Enum <|-- AttackComplexity
+Enum <|-- DetectionDifficulty
+Enum <|-- TargetAttractiveness
+Enum <|-- ThreatActorSophistication
+Enum <|-- AttackWindow
 BaseModel <|-- MigrationConfig
 BaseModel <|-- LegacyMCPConfig
 BaseModel <|-- MigrationResult
@@ -15125,6 +18519,7 @@ BaseReporter <|-- IntrospectionReporter
 BaseReporter <|-- JSONReporter
 ReportingError <|-- TemplateError
 ABC <|-- BaseTemplate
+TemplateEngine <|-- AdaptiveTemplateEngine
 BaseTemplate <|-- ExecutiveSummaryTemplate
 BaseTemplate <|-- TechnicalReportTemplate
 BaseTemplate <|-- VulnerabilityReportTemplate

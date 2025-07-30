@@ -21,7 +21,8 @@ from .transport_detect import TransportDetector
 from .npx_detect import NPXDetector
 from .docker_inspect import DockerInspector
 from .env_analysis import EnvironmentAnalyzer
-from .mcp_introspection import MCPIntrospection, MCPCapabilities, IntrospectionConfig
+from .mcp_introspection import MCPIntrospector, IntrospectionConfig
+from .mcp_introspection.models import MCPCapabilities
 from ..utils.logging import get_logger
 from ..config.settings import get_settings
 
@@ -162,7 +163,7 @@ class DetectionPipeline:
                 enable_detailed_analysis=self.config.enable_detailed_analysis,
                 enable_risk_assessment=self.config.enable_risk_assessment
             )
-            self.introspector = MCPIntrospection(introspection_config)
+            self.introspector = MCPIntrospector(introspection_config)
             self.logger.debug("Enhanced MCP introspection system initialized")
         else:
             self.introspector = None

@@ -11,6 +11,7 @@ import logging
 import time
 import re
 import random
+import traceback
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Any, Tuple, Callable
@@ -358,7 +359,7 @@ class AdvancedRetryHandler:
                 "consecutive_failures": health.consecutive_failures,
                 "circuit_breaker_state": health.circuit_breaker_state.value,
                 "total_requests": health.total_requests,
-                "error_breakdown": dict(health.error_rates)
+                "error_breakdown": {error_type.value: count for error_type, count in health.error_rates.items()}
             }
         
         return stats
@@ -502,7 +503,8 @@ class ResponseParser:
                         logger.warning("Response failed strict schema validation, but attempting to use it anyway")
                         self.parsing_stats["validation_errors"] += 1
                 
-                # Convert to ThreatAnalysis - attempt even if schema validation failed
+                            # Convert to ThreatAnalysis - attempt even if schema validation failed
+            try:
                 threat_analysis = self._convert_to_threat_analysis(
                     parsed_data, 
                     analysis_type,
@@ -515,6 +517,9 @@ class ResponseParser:
                     return threat_analysis
                 else:
                     logger.warning("Failed to convert parsed data to ThreatAnalysis")
+            except Exception as e:
+                logger.error(f"Exception during ThreatAnalysis conversion: {e}")
+                logger.error(f"Traceback: {traceback.format_exc()}")
             
             # Strategy 2: Structured text extraction
             logger.debug("JSON extraction failed, attempting structured text parsing")
@@ -545,6 +550,22 @@ class ResponseParser:
         """Extract JSON data from AI response content with improved parsing."""
         if not content or not content.strip():
             return None
+        
+        # FIRST: Try direct parsing - most AI responses are clean JSON
+        try:
+            stripped_content = content.strip()
+            logger.debug(f"Trying direct JSON parse on {len(stripped_content)} chars")
+            direct_data = json.loads(stripped_content)
+            if isinstance(direct_data, dict) and len(direct_data) > 0:
+                logger.info(f"✅ Direct JSON parsing succeeded! Keys: {list(direct_data.keys())}")
+                # Check if it's threat analysis data
+                if any(key in direct_data for key in ['threat_level', 'attack_vectors', 'confidence_score']):
+                    logger.info("✅ Contains threat analysis data - accepting!")
+                    return direct_data
+                else:
+                    logger.debug(f"Direct parsed JSON missing threat keys: {list(direct_data.keys())}")
+        except json.JSONDecodeError as e:
+            logger.debug(f"Direct JSON parse failed: {e}")
             
         try:
             # Strategy 1: Look for complete JSON object with enhanced patterns
@@ -559,8 +580,26 @@ class ResponseParser:
                 r'(?s)(\{.*"threat_level".*\})',  # Contains threat_level anywhere
             ]
             
-            for pattern in json_patterns:
+            logger.debug(f"Trying to extract JSON from content of length {len(content)}")
+            logger.debug(f"Content starts with: {content[:100]}")
+            logger.debug(f"Content ends with: {content[-100:]}")
+            
+            # Quick test: try parsing the content directly after stripping whitespace
+            try:
+                stripped_content = content.strip()
+                if stripped_content.startswith('{') and stripped_content.endswith('}'):
+                    logger.debug("Content looks like pure JSON, trying direct parse")
+                    direct_data = json.loads(stripped_content)
+                    if isinstance(direct_data, dict) and 'threat_level' in direct_data:
+                        logger.info("Direct JSON parsing succeeded!")
+                        return direct_data
+            except json.JSONDecodeError as e:
+                logger.debug(f"Direct JSON parse failed: {e}")
+            
+            for i, pattern in enumerate(json_patterns):
+                logger.debug(f"Trying pattern {i+1}/{len(json_patterns)}: {pattern[:50]}...")
                 matches = re.findall(pattern, content, re.DOTALL)
+                logger.debug(f"Pattern {i+1} found {len(matches)} matches")
                 for match in matches:
                     try:
                         # Clean the JSON string
@@ -576,10 +615,16 @@ class ResponseParser:
                             # Be more permissive - if it has threat analysis keys, accept it
                             threat_keys = ['threat_level', 'attack_vectors', 'confidence_score']
                             if any(key in data for key in threat_keys):
-                                logger.info("JSON contains threat analysis data, accepting")
+                                logger.info(f"JSON contains threat analysis data, accepting. Keys found: {[k for k in threat_keys if k in data]}")
                                 return data
                             else:
-                                logger.debug("JSON missing expected threat analysis keys")
+                                logger.debug(f"JSON missing expected threat analysis keys. Available keys: {list(data.keys())}")
+                                # For debugging - let's also check if the validation would pass
+                                if self._validate_threat_analysis_structure(data):
+                                    logger.info("JSON passed structure validation, accepting anyway")
+                                    return data
+                        else:
+                            logger.debug(f"Parsed data is not a valid dict or is empty: {type(data)}, length: {len(data) if hasattr(data, '__len__') else 'N/A'}")
                     except json.JSONDecodeError as e:
                         logger.debug(f"JSON parsing failed: {e}")
                         continue
@@ -931,7 +976,12 @@ class ResponseParser:
                                   environment_context: EnvironmentContext) -> Optional[ThreatAnalysis]:
         """Convert parsed AI JSON data to ThreatAnalysis object with proper mapping."""
         try:
-            logger.info("Converting AI JSON to ThreatAnalysis object")
+            logger.info(f"Converting AI JSON to ThreatAnalysis object. Data keys: {list(data.keys()) if data else 'None'}")
+            
+            # Check if data is None
+            if data is None:
+                logger.error("Data is None in _convert_to_threat_analysis")
+                return None
             
             # Import required classes
             from .models import (
@@ -959,14 +1009,8 @@ class ResponseParser:
                     continue
                 
                 # Map severity level
-                severity_str = av_data.get("severity", "medium").lower()
-                severity = SeverityLevel.MEDIUM  # Default
-                if severity_str == "critical":
-                    severity = SeverityLevel.CRITICAL
-                elif severity_str == "high":
-                    severity = SeverityLevel.HIGH
-                elif severity_str == "low":
-                    severity = SeverityLevel.LOW
+                severity_str = av_data.get("severity", "medium")
+                severity = SeverityLevel.from_string(severity_str)
                 
                 attack_vector = AttackVector(
                     name=vector_name,
@@ -984,21 +1028,34 @@ class ResponseParser:
             # If all attack vectors were filtered out as JSON fragments, create a fallback
             if not attack_vectors and data.get("attack_vectors"):
                 logger.warning("All attack vectors were filtered as JSON fragments, creating fallback attack vector")
+                
+                # Try to create a more specific description based on server data
+                server_info = data.get("server_info", {})
+                transport = server_info.get("transport_type", "unknown transport")
+                host = server_info.get("host", "unknown host")
+                port = server_info.get("port", "unknown port")
+                
+                if transport != "unknown transport":
+                    description = f"Security analysis of MCP server using {transport} transport on {host}:{port}"
+                    impact = f"Potential unauthorized access via {transport} protocol"
+                else:
+                    description = "Security analysis of detected MCP server with unknown configuration"
+                    impact = "Potential unauthorized access to MCP server functionality"
+                
                 attack_vectors.append(AttackVector(
-                    name="MCP Tool Security Analysis",
+                    name="MCP Server Security Analysis",
                     severity=SeverityLevel.MEDIUM,
-                    description="General security concerns with detected MCP tool",
+                    description=description,
                     attack_steps=[
-                        "Analyze MCP tool interfaces and capabilities",
-                        "Identify potential input validation issues", 
-                        "Test for authorization bypass vulnerabilities",
-                        "Attempt privilege escalation through tool misuse",
-                        "Evaluate data exposure risks"
+                        "Enumerate MCP server endpoints and capabilities",
+                        "Test for authentication bypass vulnerabilities", 
+                        "Analyze transport security configuration",
+                        "Evaluate access control mechanisms",
+                        "Assess potential for privilege escalation"
                     ],
-                    example_code="# Generic MCP tool security testing\n# Note: Approach varies based on specific tool capabilities\ntool_info = await mcp_tool.get_capabilities()\nfor capability in tool_info:\n    # Test each capability for security issues\n    test_result = await security_test(capability)",
-                    prerequisites=["Access to MCP tool interface"],
-                    impact="Varies based on tool capabilities and vulnerabilities",
-                    likelihood=0.5,
+                    example_code=f"# MCP server security assessment\n# Target: {host}:{port} via {transport}\n# Analyze server endpoints and security controls\nimport requests\nresponse = requests.get('http://{host}:{port}/mcp')\n# Analyze response for security indicators",
+                    prerequisites=["Network access to MCP server"],
+                    impact=impact,
                     mitigations=[]
                 ))
             
@@ -1046,17 +1103,9 @@ class ResponseParser:
                 mitigation_strategies.append(mitigation)
             
             # Map threat level
-            threat_level_str = data.get("threat_level", "medium").lower()
-            if threat_level_str == "critical":
-                threat_level = ThreatLevel.CRITICAL
-            elif threat_level_str == "high":
-                threat_level = ThreatLevel.HIGH
-            elif threat_level_str == "low":
-                threat_level = ThreatLevel.LOW
-            elif threat_level_str == "minimal":
-                threat_level = ThreatLevel.MINIMAL
-            else:
-                threat_level = ThreatLevel.MEDIUM
+            threat_level_str = data.get("threat_level", "medium")
+            logger.info(f"Extracted threat level: {threat_level_str}")
+            threat_level = ThreatLevel.from_string(threat_level_str)
             
             # Create analysis metadata
             analysis_metadata = AnalysisMetadata(
@@ -1115,7 +1164,7 @@ class AnalysisRequest:
     tool_capabilities: ToolCapabilities
     environment_context: EnvironmentContext
     analysis_type: str = "comprehensive"
-    max_tokens: int = 4000
+    max_tokens: int = 8000
     temperature: float = 0.1
 
 

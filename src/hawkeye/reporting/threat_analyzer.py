@@ -246,7 +246,7 @@ functions = await create_module_functions("/target/project")
         
         return {
             # Basic metadata
-            "scan_target": "localhost",
+            "scan_target": self._extract_scan_target(data),
             "scan_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC"),
             "overall_threat_level": threat_levels["overall"],
             
@@ -258,6 +258,9 @@ functions = await create_module_functions("/target/project")
             
             # Key findings
             "key_attack_scenarios": self._format_key_scenarios(detected_servers),
+            
+            # Server listings
+            "detected_servers_analysis": self._format_detected_servers(data),
             
             # Detailed analysis
             "attack_vector_analysis": self._format_attack_vectors(attack_vectors),
@@ -347,9 +350,10 @@ functions = await create_module_functions("/target/project")
         return applicable_chains
     
     def _calculate_threat_levels(self, detected_servers: List[str]) -> Dict[str, Any]:
-        """Calculate threat level distribution."""
+        """Calculate threat level distribution based on both known scenarios and security posture."""
         levels = {"critical": 0, "high": 0, "medium": 0, "low": 0}
         
+        # First, check predefined attack scenarios
         for server in detected_servers:
             if server in self.ATTACK_SCENARIOS:
                 threat_level = self.ATTACK_SCENARIOS[server]["threat_level"]
@@ -361,6 +365,9 @@ functions = await create_module_functions("/target/project")
                     levels["medium"] += len(self.ATTACK_SCENARIOS[server]["attack_vectors"])
                 else:
                     levels["low"] += len(self.ATTACK_SCENARIOS[server]["attack_vectors"])
+            else:
+                # Unknown server type - assess based on security posture
+                levels["high"] += 1  # Default to HIGH for unknown unauthenticated/unencrypted servers
         
         # Determine overall threat level
         if levels["critical"] > 0:
@@ -373,6 +380,30 @@ functions = await create_module_functions("/target/project")
             overall = "LOW"
         
         return {**levels, "overall": overall}
+    
+    def _extract_scan_target(self, data: ReportData) -> str:
+        """Extract actual scan target from detection results."""
+        if hasattr(data, 'detection_results') and data.detection_results:
+            # Get unique target hosts from detection results
+            target_hosts = set()
+            for result in data.detection_results:
+                if hasattr(result, 'target_host') and result.target_host:
+                    target_hosts.add(result.target_host)
+                elif hasattr(result, 'mcp_server') and result.mcp_server and hasattr(result.mcp_server, 'host'):
+                    target_hosts.add(result.mcp_server.host)
+            
+            if target_hosts:
+                if len(target_hosts) == 1:
+                    return list(target_hosts)[0]
+                else:
+                    # Multiple targets - create a summary
+                    sorted_hosts = sorted(target_hosts)
+                    if len(sorted_hosts) <= 3:
+                        return ", ".join(sorted_hosts)
+                    else:
+                        return f"{', '.join(sorted_hosts[:2])} and {len(sorted_hosts)-2} others"
+        
+        return "localhost"  # Fallback
     
     def _generate_mitigation_strategies(self, detected_servers: List[str]) -> List[Dict[str, Any]]:
         """Generate mitigation strategies for detected threats."""
@@ -707,5 +738,258 @@ functions = await create_module_functions("/target/project")
             html += f"<li>{rec}</li>"
         
         html += "</ul>"
+        
+        return html
+    
+    def _format_detected_servers(self, data: ReportData) -> str:
+        """Format detected servers and their tools for display."""
+        if not data.detection_results:
+            return "<p>No MCP servers detected during the scan.</p>"
+        
+        # Extract unique servers from detection results and mcp_servers
+        servers = {}
+        
+        # First, collect from detection results
+        for result in data.detection_results:
+            if hasattr(result, 'mcp_server') and result.mcp_server:
+                server = result.mcp_server
+                server_name = self._extract_server_name(result, server)
+                
+                if server_name not in servers:
+                    servers[server_name] = {
+                        'name': server_name,
+                        'host': getattr(server, 'host', 'Unknown'),
+                        'port': getattr(server, 'port', 'N/A'),
+                        'server_type': getattr(server, 'server_type', 'Unknown'),
+                        'transport_type': getattr(server, 'transport_type', 'Unknown'),
+                        'tools': list(getattr(server, 'tools', [])),
+                        'capabilities': list(getattr(server, 'capabilities', [])),
+                        'endpoint_url': getattr(server, 'endpoint_url', None),
+                        'description': self._generate_server_description(result, server)
+                    }
+        
+        # Also collect from mcp_servers if available
+        if hasattr(data, 'mcp_servers') and data.mcp_servers:
+            for server in data.mcp_servers:
+                server_name = self._extract_mcp_server_name(server)
+                
+                if server_name not in servers:
+                    servers[server_name] = {
+                        'name': server_name,
+                        'host': getattr(server, 'host', 'Unknown'),
+                        'port': getattr(server, 'port', 'N/A'),
+                        'server_type': getattr(server, 'server_type', 'Unknown'),
+                        'transport_type': getattr(server, 'transport_type', 'Unknown'),
+                        'tools': list(getattr(server, 'tools', [])),
+                        'capabilities': list(getattr(server, 'capabilities', [])),
+                        'endpoint_url': None,  # Usually not available in mcp_servers
+                        'description': self._generate_mcp_server_description(server)
+                    }
+        
+        if not servers:
+            return "<p>No MCP servers could be parsed from the detection results.</p>"
+        
+        html = ""
+        for server_info in servers.values():
+            html += self._format_single_server(server_info)
+        
+        return html
+    
+    def _extract_server_name(self, result, server) -> str:
+        """Extract server name from detection result."""
+        # Try various sources for server name
+        if hasattr(result, 'raw_data') and result.raw_data:
+            raw_data = result.raw_data
+            
+            # Check for process data
+            if isinstance(raw_data, dict) and 'process_data' in raw_data:
+                process_data = raw_data['process_data']
+                if 'cmdline' in process_data and process_data['cmdline']:
+                    # Extract from command line
+                    cmdline = process_data['cmdline']
+                    if len(cmdline) > 1:
+                        for part in cmdline:
+                            if 'mcp' in part.lower():
+                                return part.split('/')[-1]  # Get just the filename
+            
+            # Check for package names in npx detection
+            if 'local_packages' in raw_data:
+                packages = raw_data['local_packages']
+                if packages and len(packages) > 0:
+                    return packages[0].get('name', 'unknown-mcp-server')
+            
+            # Check for running processes
+            if 'running_processes' in raw_data:
+                processes = raw_data['running_processes']
+                if processes and len(processes) > 0:
+                    process = processes[0]
+                    if 'package_name' in process:
+                        return process['package_name']
+        
+        # Fallback to server attributes
+        if hasattr(server, 'server_type') and server.server_type:
+            return f"{server.server_type}-server"
+        
+        return "unknown-mcp-server"
+    
+    def _extract_mcp_server_name(self, server) -> str:
+        """Extract name from mcp_servers entry."""
+        # Check docker info first
+        if hasattr(server, 'docker_info') and server.docker_info:
+            docker_info = server.docker_info
+            if 'name' in docker_info:
+                return docker_info['name']
+            if 'labels' in docker_info:
+                labels = docker_info['labels']
+                if 'com.docker.compose.service' in labels:
+                    return labels['com.docker.compose.service']
+        
+        # Fallback to server type
+        server_type = getattr(server, 'server_type', 'unknown')
+        return f"{server_type}-server"
+    
+    def _generate_server_description(self, result, server) -> str:
+        """Generate description for a server from detection result."""
+        descriptions = []
+        
+        # Add detection method info
+        if hasattr(result, 'detection_method'):
+            descriptions.append(f"Detected via {result.detection_method}")
+        
+        # Add transport info
+        transport = getattr(server, 'transport_type', None)
+        if transport:
+            descriptions.append(f"Uses {transport} transport")
+        
+        # Add security info
+        is_secure = getattr(server, 'is_secure', False)
+        if is_secure:
+            descriptions.append("Secured connection")
+        else:
+            descriptions.append("Unsecured connection")
+        
+        return " • ".join(descriptions) if descriptions else "MCP server instance"
+    
+    def _generate_mcp_server_description(self, server) -> str:
+        """Generate description for an mcp_servers entry."""
+        descriptions = []
+        
+        # Add server type
+        server_type = getattr(server, 'server_type', None)
+        if server_type:
+            descriptions.append(f"{server_type.replace('_', ' ').title()}")
+        
+        # Add transport info
+        transport = getattr(server, 'transport_type', None)
+        if transport:
+            descriptions.append(f"{transport} transport")
+        
+        # Add capability count
+        capabilities = getattr(server, 'capabilities', [])
+        tool_count = getattr(server, 'tool_count', len(getattr(server, 'tools', [])))
+        
+        if tool_count > 0:
+            descriptions.append(f"{tool_count} tools available")
+        elif capabilities:
+            descriptions.append(f"{len(capabilities)} capabilities")
+        
+        return " • ".join(descriptions) if descriptions else "MCP server instance"
+    
+    def _format_single_server(self, server_info: dict) -> str:
+        """Format a single server's information as HTML."""
+        name = server_info['name']
+        host = server_info['host']
+        port = server_info['port']
+        server_type = server_info['server_type']
+        transport_type = server_info['transport_type']
+        description = server_info['description']
+        tools = server_info['tools']
+        capabilities = server_info['capabilities']
+        endpoint_url = server_info.get('endpoint_url')
+        
+        # Format address
+        if port and port != 'N/A':
+            address = f"{host}:{port}"
+        else:
+            address = host
+        
+        # Format endpoint URL or use address
+        display_address = endpoint_url if endpoint_url else address
+        
+        html = f"""
+            <div class="server-item">
+                <div class="server-header">
+                    <div class="server-name">{name}</div>
+                    <div class="server-type">{server_type}</div>
+                </div>
+                
+                <div class="server-details">
+                    <div class="server-detail">
+                        <strong>Address:</strong> {display_address}
+                    </div>
+                    <div class="server-detail">
+                        <strong>Port:</strong> {port if port != 'N/A' else 'Not specified'}
+                    </div>
+                    <div class="server-detail">
+                        <strong>Transport:</strong> {transport_type}
+                    </div>
+                    <div class="server-detail">
+                        <strong>Description:</strong> {description}
+                    </div>
+                </div>
+                
+                <div class="tools-section">
+                    <div class="tools-header">Tools Found</div>
+        """
+        
+        # Add tools table
+        if tools or capabilities:
+            html += """
+                    <table class="tools-table">
+                        <thead>
+                            <tr>
+                                <th>Tool Name</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            """
+            
+            # Add tools
+            for tool in tools:
+                tool_name = tool.get('name', 'Unknown Tool') if isinstance(tool, dict) else str(tool)
+                tool_desc = tool.get('description', 'No description available') if isinstance(tool, dict) else 'MCP tool'
+                html += f"""
+                            <tr>
+                                <td>{tool_name}</td>
+                                <td>{tool_desc}</td>
+                            </tr>
+                """
+            
+            # Add capabilities as tools if no tools are present
+            if not tools and capabilities:
+                for capability in capabilities:
+                    cap_name = capability.get('name', 'Unknown Capability') if isinstance(capability, dict) else str(capability)
+                    cap_desc = capability.get('description', 'MCP capability') if isinstance(capability, dict) else 'Server capability'
+                    html += f"""
+                            <tr>
+                                <td>{cap_name}</td>
+                                <td>{cap_desc}</td>
+                            </tr>
+                    """
+            
+            html += """
+                        </tbody>
+                    </table>
+            """
+        else:
+            html += """
+                    <div class="no-tools">No tools or capabilities discovered</div>
+            """
+        
+        html += """
+                </div>
+            </div>
+        """
         
         return html

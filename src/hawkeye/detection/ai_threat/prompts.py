@@ -20,7 +20,7 @@ class PromptTemplate:
     user_prompt_template: str
     response_schema: Dict[str, Any]
     temperature: float = 0.1
-    max_tokens: int = 4000
+    max_tokens: int = 8000
 
 
 class ThreatAnalysisPrompts:
@@ -538,7 +538,7 @@ Generate detailed, technical analysis based on the specific MCP tool capabilitie
                 "required": ["threat_level", "confidence_score", "attack_vectors", "mitigation_strategies", "risk_assessment"]
             },
             temperature=0.1,
-            max_tokens=4000
+            max_tokens=8000
         )
     
     def _create_quick_assessment_template(self) -> PromptTemplate:

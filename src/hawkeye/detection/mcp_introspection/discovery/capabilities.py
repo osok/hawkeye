@@ -10,15 +10,18 @@ import json
 import logging
 import subprocess
 import time
+import requests
 from typing import Dict, List, Optional, Any, Set
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from urllib.parse import urljoin
 
 from ..models import (
     MCPCapability,
     RiskLevel,
     SecurityRisk,
-    DiscoveryResult
+    DiscoveryResult,
+    MCPServerConfig
 )
 from ..utils import ErrorHandler
 
@@ -50,6 +53,7 @@ class CapabilityAssessment:
     
     Provides comprehensive capability analysis with risk assessment
     and security evaluation using synchronous methods.
+    Supports both subprocess and HTTP transport communication.
     """
     
     def __init__(self, config: Optional[CapabilityAssessmentConfig] = None):
@@ -65,19 +69,22 @@ class CapabilityAssessment:
         
     def assess_capabilities(
         self,
-        server_command: List[str],
-        server_id: str
+        server_config: MCPServerConfig,
+        server_id: Optional[str] = None
     ) -> DiscoveryResult:
         """
         Assess capabilities from an MCP server.
         
         Args:
-            server_command: Command to start the MCP server
-            server_id: Unique identifier for the server
+            server_config: Server configuration for connection
+            server_id: Optional server identifier (uses config.server_id if not provided)
             
         Returns:
             DiscoveryResult containing capability assessment and metadata
         """
+        if server_id is None:
+            server_id = server_config.server_id
+            
         start_time = datetime.now()
         
         try:
@@ -93,31 +100,30 @@ class CapabilityAssessment:
             
             # Get server capabilities with timeout
             start_assessment = time.time()
-            capabilities_data = self._get_capabilities_with_retry(server_command)
+            capabilities_data = self._get_capabilities_with_retry(server_config)
             
             # Check timeout
             if time.time() - start_assessment > self.config.timeout:
                 raise TimeoutError("Capability assessment timeout")
             
             # Process capabilities
-            capabilities = []
+            mcp_capabilities = []
             security_risks = []
             
-            if capabilities_data:
+            if capabilities_data and isinstance(capabilities_data, dict):
                 try:
                     # Convert to internal model
-                    capability = self._convert_capabilities(capabilities_data)
-                    capabilities.append(capability)
+                    mcp_capabilities = self._convert_capabilities(capabilities_data)
                     
                     # Perform risk assessment if enabled
                     if self.config.enable_risk_assessment:
-                        risks = self._assess_capability_risks(capability)
+                        risks = self._assess_capability_risks(capabilities_data, mcp_capabilities)
                         security_risks.extend(risks)
                         
                 except Exception as e:
                     logger.warning(f"Failed to process capabilities: {e}")
             
-            # Create discovery result
+            # Create assessment result
             assessment_time = datetime.now() - start_time
             result = DiscoveryResult(
                 server_id=server_id,
@@ -125,13 +131,14 @@ class CapabilityAssessment:
                 timestamp=start_time,
                 duration=assessment_time,
                 success=True,
-                capabilities=capabilities,
+                capabilities=mcp_capabilities,
                 security_risks=security_risks,
                 metadata={
-                    "capability_count": len(capabilities),
+                    "capability_count": len(mcp_capabilities),
                     "risk_count": len(security_risks),
-                    "assessment_method": "subprocess_communication",
-                    "risk_assessment": self.config.enable_risk_assessment
+                    "discovery_method": f"{server_config.transport_type}_communication",
+                    "risk_assessment": self.config.enable_risk_assessment,
+                    "capabilities_data": capabilities_data
                 }
             )
             
@@ -140,7 +147,7 @@ class CapabilityAssessment:
             
             logger.info(
                 f"Capability assessment complete for {server_id}: "
-                f"{len(capabilities)} capabilities, {len(security_risks)} risks, "
+                f"{len(mcp_capabilities)} capabilities, {len(security_risks)} risks, "
                 f"{assessment_time.total_seconds():.2f}s"
             )
             
@@ -157,13 +164,13 @@ class CapabilityAssessment:
             return self._create_error_result(
                 server_id, start_time, f"Unexpected error: {str(e)}"
             )
-    
-    def _get_capabilities_with_retry(self, server_command: List[str]) -> Optional[Dict[str, Any]]:
+
+    def _get_capabilities_with_retry(self, server_config: MCPServerConfig) -> Optional[Dict[str, Any]]:
         """
-        Get server capabilities with retry logic using subprocess communication.
+        Get capabilities with retry logic using appropriate communication method.
         
         Args:
-            server_command: Command to start the MCP server
+            server_config: Server configuration for connection
             
         Returns:
             Server capabilities data or None
@@ -172,37 +179,40 @@ class CapabilityAssessment:
         
         for attempt in range(self.config.max_retries):
             try:
-                logger.debug(f"Capability assessment attempt {attempt + 1}")
+                logger.debug(f"Capability assessment attempt {attempt + 1} using {server_config.transport_type} transport")
                 
-                # Create MCP request for initialize
+                # Create MCP initialize request
                 request = {
                     "jsonrpc": "2.0",
                     "id": 1,
                     "method": "initialize",
                     "params": {
                         "protocolVersion": "2024-11-05",
-                        "capabilities": {
-                            "roots": {
-                                "listChanged": True
-                            },
-                            "sampling": {}
-                        },
+                        "capabilities": {},
                         "clientInfo": {
-                            "name": "hawkeye-mcp-introspector",
+                            "name": "hawkeye-security-scanner",
                             "version": "1.0.0"
                         }
                     }
                 }
                 
-                # Communicate with server
-                result = self._communicate_with_server(server_command, request)
+                # Choose communication method based on transport type
+                if server_config.transport_type.value in ["http", "sse"]:
+                    result = self._communicate_via_http(server_config, request)
+                else:
+                    # Default to subprocess communication for stdio
+                    server_command = self._build_server_command(server_config)
+                    result = self._communicate_with_server(server_command, request)
                 
                 if result and "result" in result:
-                    return result["result"]
+                    capabilities = result["result"].get("capabilities", {})
+                    logger.debug(f"Successfully assessed capabilities via {server_config.transport_type}")
+                    return capabilities
                 elif result and "error" in result:
                     raise Exception(f"MCP error: {result['error']}")
                 else:
-                    return None
+                    logger.debug(f"No capabilities returned from server {server_config.server_id}")
+                    return {}
                     
             except Exception as e:
                 last_error = e
@@ -211,9 +221,93 @@ class CapabilityAssessment:
                 if attempt < self.config.max_retries - 1:
                     time.sleep(self.config.retry_delay * (2 ** attempt))
                     
-        # All retries failed - return None instead of raising
-        logger.warning(f"Capability assessment failed after all retries: {last_error}")
+        # All retries failed
+        logger.error(f"Capability assessment failed after all retries: {last_error}")
         return None
+
+    def _communicate_via_http(self, server_config: MCPServerConfig, request: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """
+        Communicate with MCP server via HTTP.
+        
+        Args:
+            server_config: Server configuration with URL and headers
+            request: JSON-RPC request to send
+            
+        Returns:
+            Server response or None
+        """
+        try:
+            url = server_config.url
+            if not url:
+                logger.error("No URL configured for HTTP transport")
+                return None
+            
+            # Ensure URL has /mcp endpoint if it doesn't already
+            if not url.endswith('/mcp') and not url.endswith('/mcp/'):
+                url = urljoin(url.rstrip('/') + '/', 'mcp')
+            
+            # Prepare headers
+            headers = {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+            
+            # Add any additional headers from transport config
+            if hasattr(server_config, 'transport_config') and server_config.transport_config:
+                config_headers = server_config.transport_config.get('headers', {})
+                headers.update(config_headers)
+            
+            logger.debug(f"Sending HTTP request to {url}")
+            
+            # Send HTTP POST request
+            response = requests.post(
+                url,
+                json=request,
+                headers=headers,
+                timeout=self.config.timeout
+            )
+            
+            # Check response status
+            if response.status_code == 200:
+                try:
+                    result = response.json()
+                    logger.debug(f"HTTP response received successfully from {url}")
+                    return result
+                except json.JSONDecodeError as e:
+                    logger.error(f"Failed to parse HTTP response JSON: {e}")
+                    logger.debug(f"Raw response: {response.text}")
+                    return None
+            else:
+                logger.warning(f"HTTP request failed with status {response.status_code}: {response.text}")
+                return None
+                
+        except requests.RequestException as e:
+            logger.error(f"HTTP communication failed: {e}")
+            return None
+        except Exception as e:
+            logger.error(f"Unexpected error in HTTP communication: {e}")
+            return None
+
+    def _build_server_command(self, server_config: MCPServerConfig) -> List[str]:
+        """
+        Build server command from configuration.
+        
+        Args:
+            server_config: Server configuration
+            
+        Returns:
+            Command list to start the server
+        """
+        if server_config.command:
+            return server_config.command
+        elif server_config.executable:
+            command = [server_config.executable]
+            if server_config.args:
+                command.extend(server_config.args)
+            return command
+        else:
+            # Fallback command
+            return ['mcp-server', server_config.server_id]
     
     def _communicate_with_server(self, server_command: List[str], request: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """
@@ -276,6 +370,14 @@ class CapabilityAssessment:
         # Extract capabilities from different possible structures
         capabilities = []
         
+        # Extract server information if available
+        server_name = None
+        server_version = None
+        if 'serverInfo' in capabilities_data:
+            server_info = capabilities_data['serverInfo']
+            server_name = server_info.get('name')
+            server_version = server_info.get('version')
+        
         if isinstance(capabilities_data, dict):
             # Check for common capability fields
             if 'capabilities' in capabilities_data:
@@ -301,23 +403,33 @@ class CapabilityAssessment:
                 if indicator in capabilities_data:
                     capabilities.append(indicator)
         
+        # Build metadata with server information
+        metadata = {
+            "assessment_method": "subprocess_communication",
+            "raw_data": capabilities_data,
+            "capability_count": len(capabilities)
+        }
+        
+        # Add server info to metadata if available
+        if server_name:
+            metadata["server_name"] = server_name
+        if server_version:
+            metadata["server_version"] = server_version
+        
         return MCPCapability(
             name="server_capabilities",
             description="MCP server capabilities",
             capabilities=list(set(capabilities)),  # Remove duplicates
-            metadata={
-                "assessment_method": "subprocess_communication",
-                "raw_data": capabilities_data,
-                "capability_count": len(capabilities)
-            }
+            metadata=metadata
         )
     
-    def _assess_capability_risks(self, capability: MCPCapability) -> List[SecurityRisk]:
+    def _assess_capability_risks(self, capabilities_data: Dict[str, Any], mcp_capabilities: List[MCPCapability]) -> List[SecurityRisk]:
         """
         Assess security risks for capabilities.
         
         Args:
-            capability: MCPCapability to assess
+            capabilities_data: Raw capabilities data
+            mcp_capabilities: List of MCPCapabilities
             
         Returns:
             List of identified security risks
@@ -325,8 +437,8 @@ class CapabilityAssessment:
         risks = []
         
         # Check for high-risk capabilities
-        for cap in capability.capabilities:
-            cap_lower = cap.lower()
+        for cap in mcp_capabilities:
+            cap_lower = cap.name.lower()
             
             # Check against high-risk patterns
             for risk_pattern in self.config.high_risk_capabilities:
@@ -338,58 +450,58 @@ class CapabilityAssessment:
                     risks.append(SecurityRisk(
                         category="high_risk_capability",
                         severity=severity,
-                        description=f"Server has high-risk capability: {cap}",
+                        description=f"Server has high-risk capability: {cap.name}",
                         details={
-                            "capability": cap,
+                            "capability": cap.name,
                             "risk_pattern": risk_pattern
                         },
                         mitigation="Review capability usage and implement appropriate access controls"
                     ))
         
         # Check for tool execution capabilities
-        if any('tool' in cap.lower() for cap in capability.capabilities):
+        if any('tool' in cap.name.lower() for cap in mcp_capabilities):
             risks.append(SecurityRisk(
                 category="tool_execution",
                 severity=RiskLevel.HIGH,
                 description="Server can execute tools",
                 details={
-                    "capabilities": [cap for cap in capability.capabilities if 'tool' in cap.lower()]
+                    "capabilities": [cap.name for cap in mcp_capabilities if 'tool' in cap.name.lower()]
                 },
                 mitigation="Validate all tool executions and implement sandboxing"
             ))
         
         # Check for resource access capabilities
-        if any('resource' in cap.lower() for cap in capability.capabilities):
+        if any('resource' in cap.name.lower() for cap in mcp_capabilities):
             risks.append(SecurityRisk(
                 category="resource_access",
                 severity=RiskLevel.MEDIUM,
                 description="Server can access resources",
                 details={
-                    "capabilities": [cap for cap in capability.capabilities if 'resource' in cap.lower()]
+                    "capabilities": [cap.name for cap in mcp_capabilities if 'resource' in cap.name.lower()]
                 },
                 mitigation="Validate resource access and implement proper authorization"
             ))
         
         # Check for experimental capabilities
-        if any('experimental' in cap.lower() for cap in capability.capabilities):
+        if any('experimental' in cap.name.lower() for cap in mcp_capabilities):
             risks.append(SecurityRisk(
                 category="experimental_features",
                 severity=RiskLevel.MEDIUM,
                 description="Server uses experimental features",
                 details={
-                    "capabilities": [cap for cap in capability.capabilities if 'experimental' in cap.lower()]
+                    "capabilities": [cap.name for cap in mcp_capabilities if 'experimental' in cap.name.lower()]
                 },
                 mitigation="Monitor experimental features for stability and security issues"
             ))
         
         # Check for sampling capabilities (AI model access)
-        if any('sampling' in cap.lower() for cap in capability.capabilities):
+        if any('sampling' in cap.name.lower() for cap in mcp_capabilities):
             risks.append(SecurityRisk(
                 category="ai_model_access",
                 severity=RiskLevel.MEDIUM,
                 description="Server can access AI models for sampling",
                 details={
-                    "capabilities": [cap for cap in capability.capabilities if 'sampling' in cap.lower()]
+                    "capabilities": [cap.name for cap in mcp_capabilities if 'sampling' in cap.name.lower()]
                 },
                 mitigation="Monitor AI model usage and implement rate limiting"
             ))

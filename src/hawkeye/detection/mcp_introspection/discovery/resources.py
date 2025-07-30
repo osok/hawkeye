@@ -10,15 +10,18 @@ import json
 import logging
 import subprocess
 import time
+import requests
 from typing import Dict, List, Optional, Any, Set
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from urllib.parse import urljoin
 
 from ..models import (
-    MCPResource,
+    MCPResource, 
     RiskLevel,
     SecurityRisk,
-    DiscoveryResult
+    DiscoveryResult,
+    MCPServerConfig
 )
 from ..utils import ErrorHandler
 
@@ -34,14 +37,13 @@ class ResourceDiscoveryConfig:
     retry_delay: float = 1.0
     enable_schema_analysis: bool = True
     enable_risk_assessment: bool = True
-    sensitive_patterns: Set[str] = None
+    dangerous_patterns: Set[str] = None
     
     def __post_init__(self):
-        if self.sensitive_patterns is None:
-            self.sensitive_patterns = {
-                'password', 'secret', 'key', 'token', 'credential',
-                'private', 'confidential', 'sensitive', 'admin',
-                'config', 'env', 'database', 'db', 'sql'
+        if self.dangerous_patterns is None:
+            self.dangerous_patterns = {
+                'file', 'path', 'directory', 'system', 'admin',
+                'database', 'sql', 'config', 'secret', 'private'
             }
 
 
@@ -51,6 +53,7 @@ class ResourceDiscovery:
     
     Provides comprehensive resource enumeration with schema analysis,
     risk assessment, and security evaluation using synchronous methods.
+    Supports both subprocess and HTTP transport communication.
     """
     
     def __init__(self, config: Optional[ResourceDiscoveryConfig] = None):
@@ -66,19 +69,22 @@ class ResourceDiscovery:
         
     def discover_resources(
         self,
-        server_command: List[str],
-        server_id: str
+        server_config: MCPServerConfig,
+        server_id: Optional[str] = None
     ) -> DiscoveryResult:
         """
         Discover resources from an MCP server.
         
         Args:
-            server_command: Command to start the MCP server
-            server_id: Unique identifier for the server
+            server_config: Server configuration for connection
+            server_id: Optional server identifier (uses config.server_id if not provided)
             
         Returns:
             DiscoveryResult containing discovered resources and metadata
         """
+        if server_id is None:
+            server_id = server_config.server_id
+            
         start_time = datetime.now()
         
         try:
@@ -94,7 +100,7 @@ class ResourceDiscovery:
             
             # Discover resources with timeout
             start_discovery = time.time()
-            resources_data = self._list_resources_with_retry(server_command)
+            resources_data = self._list_resources_with_retry(server_config)
             
             # Check timeout
             if time.time() - start_discovery > self.config.timeout:
@@ -133,7 +139,7 @@ class ResourceDiscovery:
                 metadata={
                     "resource_count": len(mcp_resources),
                     "risk_count": len(security_risks),
-                    "discovery_method": "subprocess_communication",
+                    "discovery_method": f"{server_config.transport_type}_communication",
                     "schema_analysis": self.config.enable_schema_analysis,
                     "risk_assessment": self.config.enable_risk_assessment
                 }
@@ -161,13 +167,13 @@ class ResourceDiscovery:
             return self._create_error_result(
                 server_id, start_time, f"Unexpected error: {str(e)}"
             )
-    
-    def _list_resources_with_retry(self, server_command: List[str]) -> Optional[List[Dict[str, Any]]]:
+
+    def _list_resources_with_retry(self, server_config: MCPServerConfig) -> Optional[List[Dict[str, Any]]]:
         """
-        List resources with retry logic using subprocess communication.
+        List resources with retry logic using appropriate communication method.
         
         Args:
-            server_command: Command to start the MCP server
+            server_config: Server configuration for connection
             
         Returns:
             List of discovered resources or None
@@ -176,7 +182,7 @@ class ResourceDiscovery:
         
         for attempt in range(self.config.max_retries):
             try:
-                logger.debug(f"Resource discovery attempt {attempt + 1}")
+                logger.debug(f"Resource discovery attempt {attempt + 1} using {server_config.transport_type} transport")
                 
                 # Create MCP request for resources/list
                 request = {
@@ -186,15 +192,22 @@ class ResourceDiscovery:
                     "params": {}
                 }
                 
-                # Communicate with server
-                result = self._communicate_with_server(server_command, request)
+                # Choose communication method based on transport type
+                if server_config.transport_type.value in ["http", "sse"]:
+                    result = self._communicate_via_http(server_config, request)
+                else:
+                    # Default to subprocess communication for stdio
+                    server_command = self._build_server_command(server_config)
+                    result = self._communicate_with_server(server_command, request)
                 
                 if result and "result" in result:
                     resources = result["result"].get("resources", [])
+                    logger.debug(f"Successfully discovered {len(resources)} resources via {server_config.transport_type}")
                     return resources
                 elif result and "error" in result:
                     raise Exception(f"MCP error: {result['error']}")
                 else:
+                    logger.debug(f"No resources returned from server {server_config.server_id}")
                     return []
                     
             except Exception as e:
@@ -207,6 +220,90 @@ class ResourceDiscovery:
         # All retries failed
         logger.error(f"Resource discovery failed after all retries: {last_error}")
         return None
+
+    def _communicate_via_http(self, server_config: MCPServerConfig, request: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """
+        Communicate with MCP server via HTTP.
+        
+        Args:
+            server_config: Server configuration with URL and headers
+            request: JSON-RPC request to send
+            
+        Returns:
+            Server response or None
+        """
+        try:
+            url = server_config.url
+            if not url:
+                logger.error("No URL configured for HTTP transport")
+                return None
+            
+            # Ensure URL has /mcp endpoint if it doesn't already
+            if not url.endswith('/mcp') and not url.endswith('/mcp/'):
+                url = urljoin(url.rstrip('/') + '/', 'mcp')
+            
+            # Prepare headers
+            headers = {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+            
+            # Add any additional headers from transport config
+            if hasattr(server_config, 'transport_config') and server_config.transport_config:
+                config_headers = server_config.transport_config.get('headers', {})
+                headers.update(config_headers)
+            
+            logger.debug(f"Sending HTTP request to {url}")
+            
+            # Send HTTP POST request
+            response = requests.post(
+                url,
+                json=request,
+                headers=headers,
+                timeout=self.config.timeout
+            )
+            
+            # Check response status
+            if response.status_code == 200:
+                try:
+                    result = response.json()
+                    logger.debug(f"HTTP response received successfully from {url}")
+                    return result
+                except json.JSONDecodeError as e:
+                    logger.error(f"Failed to parse HTTP response JSON: {e}")
+                    logger.debug(f"Raw response: {response.text}")
+                    return None
+            else:
+                logger.warning(f"HTTP request failed with status {response.status_code}: {response.text}")
+                return None
+                
+        except requests.RequestException as e:
+            logger.error(f"HTTP communication failed: {e}")
+            return None
+        except Exception as e:
+            logger.error(f"Unexpected error in HTTP communication: {e}")
+            return None
+
+    def _build_server_command(self, server_config: MCPServerConfig) -> List[str]:
+        """
+        Build server command from configuration.
+        
+        Args:
+            server_config: Server configuration
+            
+        Returns:
+            Command list to start the server
+        """
+        if server_config.command:
+            return server_config.command
+        elif server_config.executable:
+            command = [server_config.executable]
+            if server_config.args:
+                command.extend(server_config.args)
+            return command
+        else:
+            # Fallback command
+            return ['mcp-server', server_config.server_id]
     
     def _communicate_with_server(self, server_command: List[str], request: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """
@@ -309,7 +406,7 @@ class ResourceDiscovery:
         
         # Check for sensitive patterns in resource URI
         uri_lower = resource.uri.lower()
-        for pattern in self.config.sensitive_patterns:
+        for pattern in self.config.dangerous_patterns:
             if pattern in uri_lower:
                 risks.append(SecurityRisk(
                     category="sensitive_resource_uri",
@@ -326,7 +423,7 @@ class ResourceDiscovery:
         # Check for sensitive patterns in resource name
         if resource.name:
             name_lower = resource.name.lower()
-            for pattern in self.config.sensitive_patterns:
+            for pattern in self.config.dangerous_patterns:
                 if pattern in name_lower:
                     risks.append(SecurityRisk(
                         category="sensitive_resource_name",

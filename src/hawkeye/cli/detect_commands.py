@@ -23,6 +23,7 @@ from ..detection.process_enum import ProcessEnumerator
 from ..detection.config_discovery import ConfigFileDiscovery
 from ..detection.protocol_verify import ProtocolVerifier
 from ..detection.transport_detect import TransportDetector
+from ..scanner.target_enum import TargetEnumerator
 from ..detection.npx_detect import NPXDetector
 from ..detection.docker_inspect import DockerInspector
 from ..detection.env_analysis import EnvironmentAnalyzer
@@ -267,8 +268,8 @@ def comprehensive(ctx, target: str, enable_introspection: bool, introspection_ti
 )
 @click.option(
     "--ports", "-p",
-    default="3000,8000,8080,9000",
-    help="Port range or comma-separated ports (default: common MCP ports)"
+    default="auto", 
+    help="Port range or comma-separated ports (default: auto = expanded MCP port list)"
 )
 @click.option(
     "--timeout",
@@ -315,9 +316,27 @@ def target(ctx, target: str, ports: str, timeout: int, verify_protocol: bool,
     try:
         # Parse ports
         from .scan_commands import parse_ports
-        port_list = parse_ports(ports)
-        if not port_list:
-            port_list = [3000, 8000, 8080, 9000]  # Default MCP ports
+        if ports == "auto":
+            port_list = ctx.obj.settings.scan.default_ports
+        else:
+            port_list = parse_ports(ports)
+            if not port_list:
+                port_list = ctx.obj.settings.scan.default_ports
+        
+        # Handle CIDR notation - enumerate individual targets
+        enumerator = TargetEnumerator()
+        try:
+            # Check if target is CIDR notation
+            if '/' in target:
+                console.print(f"[yellow]Detected CIDR notation, enumerating targets...[/yellow]")
+                targets = enumerator.enumerate_targets(target)
+                console.print(f"[green]Enumerated {len(targets)} targets from CIDR {target}[/green]")
+            else:
+                # Single target
+                targets = [target]
+        except Exception as e:
+            console.print(f"[red]Error parsing target '{target}': {e}[/red]")
+            raise click.ClickException(f"Invalid target specification: {target}")
         
         console.print(f"[bold blue]🦅 HawkEye MCP Detection[/bold blue]")
         console.print(f"Target: {target}")
@@ -340,6 +359,9 @@ def target(ctx, target: str, ports: str, timeout: int, verify_protocol: bool,
         
         results = []
         
+        # Calculate total operations for progress bar
+        total_operations = len(targets) * len(port_list)
+        
         with Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
@@ -348,20 +370,21 @@ def target(ctx, target: str, ports: str, timeout: int, verify_protocol: bool,
             console=console
         ) as progress:
             
-            task = progress.add_task("Detecting MCP services...", total=len(port_list))
+            task = progress.add_task("Detecting MCP services...", total=total_operations)
             
-            for port in port_list:
-                try:
-                    # Run detection on each port
-                    for detector in detectors:
-                        detection_result = detector.detect(target, port=port)
-                        if detection_result.success:
-                            results.append(detection_result)
+            for individual_target in targets:
+                for port in port_list:
+                    try:
+                        # Run detection on each target/port combination
+                        for detector in detectors:
+                            detection_result = detector.detect(individual_target, port=port)
+                            if detection_result.success:
+                                results.append(detection_result)
+                        
+                    except Exception as e:
+                        logger.debug(f"Detection failed for {individual_target}:{port}: {e}")
                     
-                except Exception as e:
-                    logger.debug(f"Detection failed for {target}:{port}: {e}")
-                
-                progress.advance(task, 1)
+                    progress.advance(task, 1)
         
         # Display results
         display_detection_results(results)
@@ -1257,10 +1280,145 @@ def analyze_threats(ctx, input: str, output: Optional[str], format: str, analysi
                 console.print(f"[green]Threat analysis results saved to {output_path}[/green]")
                 
             elif format == "html":
+                # Helper function to generate detected servers analysis HTML
+                def _generate_detected_servers_analysis(threat_analyses, mcp_servers_list=None):
+                    """Generate detected servers analysis HTML directly from detection results."""
+                    # Use the detection results directly instead of trying to map through threat analysis
+                    if not detection_results:
+                        return "<p>No MCP servers detected during the scan.</p>"
+                    
+                    html = ""
+                    server_count = 0
+                    
+                    for result in detection_results:
+                        # Skip results without MCP server data
+                        if not hasattr(result, 'mcp_server') or not result.mcp_server:
+                            continue
+                            
+                        # Only include servers above confidence threshold
+                        if result.confidence < confidence_threshold:
+                            continue
+                            
+                        server = result.mcp_server
+                        server_count += 1
+                        
+                        # Extract data directly from the detection result's mcp_server
+                        server_name = getattr(server, 'server_id', f'server-{server_count}')
+                        address = getattr(server, 'host', 'Unknown')
+                        port = getattr(server, 'port', 'Unknown')
+                        
+                        # Handle transport type (could be enum or string)
+                        transport_type = getattr(server, 'transport_type', 'unknown')
+                        logger.debug(f"🔍 Transport debug for {server_name}: raw={transport_type}, type={type(transport_type)}")
+                        if hasattr(transport_type, 'value'):
+                            transport_type = transport_type.value.upper()
+                            logger.debug(f"🔍 Transport enum converted to: {transport_type}")
+                        else:
+                            transport_type = str(transport_type).upper()
+                            logger.debug(f"🔍 Transport string converted to: {transport_type}")
+                        
+                        # Get endpoint URL and extract URI
+                        endpoint_url = getattr(server, 'endpoint_url', '') or getattr(server, 'server_url', '')
+                        if endpoint_url:
+                            uri_found = endpoint_url
+                        else:
+                            uri_found = "/unknown"
+                        
+                        # Handle server type (could be enum or string)
+                        server_type_raw = getattr(server, 'server_type', 'unknown')
+                        if hasattr(server_type_raw, 'value'):
+                            server_type = server_type_raw.value.replace('_', ' ').title()
+                        else:
+                            server_type = str(server_type_raw).replace('_', ' ').title()
+                        
+                        # Get tools directly from server
+                        tools = getattr(server, 'tools', [])
+                        
+                        # Generate server HTML
+                        html += f"""
+            <div class="server-item">
+                <div class="server-header">
+                    <div class="server-name">{server_name}</div>
+                    <div class="server-type">{server_type}</div>
+                </div>
+                
+                <div class="server-details">
+                    <div class="server-detail">
+                        <strong>Address:</strong> {address}
+                    </div>
+                    <div class="server-detail">
+                        <strong>Port:</strong> {port}
+                    </div>
+                    <div class="server-detail">
+                        <strong>URI Found:</strong> {uri_found}
+                    </div>
+                    <div class="server-detail">
+                        <strong>Transport:</strong> {transport_type}
+                    </div>
+                </div>
+                
+                <div class="tools-section">
+                    <div class="tools-header">Tools</div>"""
+                        
+                        if tools and len(tools) > 0:
+                            html += """
+                    <table class="tools-table">
+                        <thead>
+                            <tr>
+                                <th>Tool Name</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>"""
+                            
+                            for tool in tools:
+                                tool_name = tool.name if hasattr(tool, 'name') else str(tool)
+                                tool_desc = tool.description if hasattr(tool, 'description') else "Tool functionality"
+                                html += f"""
+                            <tr>
+                                <td>{tool_name}</td>
+                                <td>{tool_desc}</td>
+                            </tr>"""
+                            
+                            html += """
+                        </tbody>
+                    </table>"""
+                        else:
+                            html += """
+                    <div class="no-tools">No tools detected or tools not accessible via MCP introspection</div>"""
+                        
+                        html += """
+                </div>
+            </div>"""
+                    
+                    if server_count == 0:
+                        return "<p>No MCP servers found above the confidence threshold.</p>"
+                    
+                    return html
+
                 # Direct AI analysis to HTML conversion
-                def convert_ai_analysis_to_html_vars(threat_analyses):
+                def convert_ai_analysis_to_html_vars(threat_analyses, mcp_servers_list=None):
                     """Convert AI threat analysis results directly to HTML template variables."""
                     from datetime import datetime
+                    
+                    # Extract scan target from MCP servers
+                    def extract_scan_target():
+                        if mcp_servers_list:
+                            hosts = set()
+                            for server in mcp_servers_list:
+                                if hasattr(server, 'host') and server.host:
+                                    hosts.add(server.host)
+                            
+                            if hosts:
+                                if len(hosts) == 1:
+                                    return list(hosts)[0]
+                                else:
+                                    sorted_hosts = sorted(hosts)
+                                    if len(sorted_hosts) <= 3:
+                                        return ", ".join(sorted_hosts)
+                                    else:
+                                        return f"{', '.join(sorted_hosts[:2])} and {len(sorted_hosts)-2} others"
+                        return "localhost"  # Fallback
                     
                     # Calculate threat level counts
                     critical_count = sum(1 for analysis in threat_analyses.values() 
@@ -1374,7 +1532,7 @@ def analyze_threats(ctx, input: str, output: Optional[str], format: str, analysi
                     
                     return {
                         # Basic metadata
-                        "scan_target": "localhost",
+                        "scan_target": extract_scan_target(),
                         "scan_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC"),
                         "overall_threat_level": overall_threat,
                         
@@ -1429,12 +1587,15 @@ def analyze_threats(ctx, input: str, output: Optional[str], format: str, analysi
                         </ul>
                         """,
                         
+                        # Server listings - generate detected servers analysis
+                        "detected_servers_analysis": _generate_detected_servers_analysis(threat_analyses, mcp_servers),
+                        
                         # Template metadata
                         "template_name": "threat_analysis",
                         "render_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC")
                     }
                 
-                template_vars = convert_ai_analysis_to_html_vars(threat_analyses)
+                template_vars = convert_ai_analysis_to_html_vars(threat_analyses, mcp_servers)
                 
                 # Remove template_name to avoid parameter conflict
                 template_vars.pop('template_name', None)
@@ -1849,7 +2010,9 @@ def display_comprehensive_results(result):
     if result.best_mcp_server:
         console.print("[bold cyan]🎯 Best MCP Server Found[/bold cyan]")
         server = result.best_mcp_server
-        console.print(f"Name: {server.name}")
+        # Use server_id if available, otherwise create a display name from host and type
+        server_name = getattr(server, 'server_id', None) or f"{server.host}_{server.server_type.value}" if hasattr(server, 'server_type') else server.host
+        console.print(f"Name: {server_name}")
         console.print(f"Host: {server.host}")
         if hasattr(server, 'port') and server.port:
             console.print(f"Port: {server.port}")
