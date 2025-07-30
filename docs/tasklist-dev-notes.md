@@ -59,7 +59,7 @@ Make sure that UML is reflective of the actual code we peoduced.
 - [x] **Task 1.2.1**: Complete System Architecture Overview - COMPLETED
   - Generate comprehensive class relationship diagram
   - Document module dependencies and layered architecture
-  - Create `docs/architecture/system-overview.md`
+  - Create `docs/dev_notes/architecture/system-overview.md`
   - Priority: High | Estimated: 4 hours
 
 - [x] **Task 1.2.2**: Data Flow Architecture Documentation - COMPLETED
@@ -306,21 +306,21 @@ Make sure that UML is reflective of the actual code we peoduced.
   - Document full scan → detect → analyze-threats workflow
   - Include data transformation points and format conversions
   - Show error handling and recovery mechanisms
-  - Output: `docs/workflows/end-to-end-sequence.md`
+  - Output: `docs/dev_notes/workflows/end-to-end-sequence.md`
   - Priority: High | Estimated: 4 hours
 
 - [ ] **Task 5.1.2**: Data Flow Architecture
   - Document data structures and transformation pipeline
   - Analyze serialization/deserialization points
   - Include data validation and consistency checks
-  - Output: `docs/workflows/data-flow-architecture.md`
+  - Output: `docs/dev_notes/workflows/data-flow-architecture.md`
   - Priority: High | Estimated: 3 hours
 
 - [ ] **Task 5.1.3**: Error Handling and Recovery
   - Document error propagation and handling strategies
   - Analyze recovery mechanisms and fallback procedures
   - Include logging and debugging workflows
-  - Output: `docs/workflows/error-handling.md`
+  - Output: `docs/dev_notes/workflows/error-handling.md`
   - Priority: Medium | Estimated: 3 hours
 
 ### 5.2 Integration Points Analysis
@@ -328,21 +328,21 @@ Make sure that UML is reflective of the actual code we peoduced.
   - Document command-line interface design and parameter flow
   - Analyze configuration management and setting inheritance
   - Include progress reporting and user feedback systems
-  - Output: `docs/integration/cli-architecture.md`
+  - Output: `docs/dev_notes/integration/cli-architecture.md`
   - Priority: Medium | Estimated: 3 hours
 
 - [ ] **Task 5.2.2**: Reporting System Integration
   - Document multi-format reporting pipeline
   - Analyze report aggregation and cross-command data merging
   - Include template system and customization options
-  - Output: `docs/integration/reporting-system.md`
+  - Output: `docs/dev_notes/integration/reporting-system.md`
   - Priority: Medium | Estimated: 3 hours
 
 - [ ] **Task 5.2.3**: Configuration Management
   - Document settings hierarchy and configuration inheritance
   - Analyze environment-specific configurations
   - Include security and credential management
-  - Output: `docs/integration/configuration-management.md`
+  - Output: `docs/dev_notes/integration/configuration-management.md`
   - Priority: Low | Estimated: 2 hours
 
 ## Phase 6: Performance and Scalability Documentation
@@ -352,14 +352,14 @@ Make sure that UML is reflective of the actual code we peoduced.
   - Document performance metrics and benchmarking results
   - Analyze scalability bottlenecks and optimization opportunities
   - Include memory usage patterns and CPU utilization
-  - Output: `docs/performance/performance-analysis.md`
+  - Output: `docs/dev_notes/performance/performance-analysis.md`
   - Priority: Medium | Estimated: 3 hours
 
 - [ ] **Task 6.1.2**: Scalability Architecture
   - Document horizontal and vertical scaling strategies
   - Analyze distributed processing capabilities
   - Include load balancing and resource management
-  - Output: `docs/performance/scalability-architecture.md`
+  - Output: `docs/dev_notes/performance/scalability-architecture.md`
   - Priority: Low | Estimated: 3 hours
 
 ### 6.2 Optimization Strategies
@@ -367,14 +367,14 @@ Make sure that UML is reflective of the actual code we peoduced.
   - Document caching strategies and memory optimization
   - Analyze object pooling and resource reuse patterns
   - Include garbage collection and memory leak prevention
-  - Output: `docs/performance/caching-strategies.md`
+  - Output: `docs/dev_notes/performance/caching-strategies.md`
   - Priority: Low | Estimated: 2 hours
 
 - [ ] **Task 6.2.2**: Concurrency and Parallelization
   - Document threading models and async/await patterns
   - Analyze parallel processing strategies and synchronization
   - Include deadlock prevention and resource contention
-  - Output: `docs/performance/concurrency-patterns.md`
+  - Output: `docs/dev_notes/performance/concurrency-patterns.md`
   - Priority: Low | Estimated: 3 hours
 
 ## Phase 7: Security and Compliance Documentation
@@ -384,14 +384,14 @@ Make sure that UML is reflective of the actual code we peoduced.
   - Document security-by-design principles in architecture
   - Analyze threat modeling for the tool itself
   - Include secure coding practices and vulnerability prevention
-  - Output: `docs/security/security-architecture.md`
+  - Output: `docs/dev_notes/security/security-architecture.md`
   - Priority: Medium | Estimated: 3 hours
 
 - [ ] **Task 7.1.2**: Credential and Secret Management
   - Document secure handling of API keys and credentials
   - Analyze encryption and secure storage mechanisms
   - Include access control and privilege management
-  - Output: `docs/security/credential-management.md`
+  - Output: `docs/dev_notes/security/credential-management.md`
   - Priority: Medium | Estimated: 2 hours
 
 ## Phase 8: Maintenance and Extension Documentation
@@ -401,14 +401,14 @@ Make sure that UML is reflective of the actual code we peoduced.
   - Document plugin system and extension points
   - Analyze custom detector and assessor development
   - Include API documentation for extensibility
-  - Output: `docs/development/extension-architecture.md`
+  - Output: `docs/dev_notes/development/extension-architecture.md`
   - Priority: Low | Estimated: 3 hours
 
 - [ ] **Task 8.1.2**: Testing and Quality Assurance
   - Document testing strategies and coverage requirements
   - Analyze test automation and continuous integration
   - Include code quality metrics and standards
-  - Output: `docs/development/testing-guidelines.md`
+  - Output: `docs/dev_notes/development/testing-guidelines.md`
   - Priority: Low | Estimated: 2 hours
 
 ## Summary
