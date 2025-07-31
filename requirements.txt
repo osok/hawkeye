@@ -1,0 +1,52 @@
+# Core dependencies
+pydantic>=2.0.0
+pydantic-settings>=2.0.0
+click>=8.0.0
+rich>=13.0.0
+
+# MCP (Model Context Protocol) dependencies
+mcp>=1.0.0
+aiofiles>=0.8.0
+async-timeout>=4.0.0
+
+# Network and scanning
+aiohttp>=3.8.0
+asyncio-throttle>=1.0.0
+python-nmap>=0.7.1
+requests>=2.31.0
+websockets>=11.0.0
+
+# Data processing and validation
+validators>=0.20.0
+ipaddress>=1.0.23
+toml>=0.10.2
+pyyaml>=6.0.0
+
+# Reporting and output
+jinja2>=3.1.0
+lxml>=4.9.0
+tabulate>=0.9.0
+
+# Logging and monitoring
+structlog>=23.0.0
+colorlog>=6.7.0
+
+# Development dependencies (for testing and code quality)
+pytest>=7.0.0
+pytest-cov>=4.0.0
+pytest-asyncio>=0.21.0
+black>=23.0.0
+ruff>=0.1.0
+mypy>=1.5.0
+
+# AI providers (optional dependencies)
+openai>=1.0.0
+anthropic>=0.7.0
+
+# Security and cryptography
+cryptography>=41.0.0
+python-dateutil>=2.8.0
+
+# System utilities
+psutil>=5.9.0
+docker>=6.1.0 
