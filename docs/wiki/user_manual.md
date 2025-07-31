@@ -1,7 +1,7 @@
 # 🦅 HawkEye User Manual
 ## Hidden Application Weaknesses & Key Entry-point Yielding Evaluator
 
-### Version 1.0
+### Version 2.0 - Updated with AI-Powered Threat Analysis
 
 ---
 
@@ -25,21 +25,37 @@
 
 HawkEye is a specialized security reconnaissance tool designed to identify and assess Model Context Protocol (MCP) server deployments within network infrastructure. This manual provides comprehensive guidance for security professionals, system administrators, and compliance teams.
 
+### Version 2.0 Highlights
+
+This major update introduces **AI-powered dynamic threat analysis** capabilities that revolutionize MCP security assessment:
+
+- **🤖 Multi-Provider AI Integration** - OpenAI GPT-4, Anthropic Claude, and Local LLM support
+- **🔍 Dynamic Analysis** - Real-time threat assessment for any MCP tool, not just hardcoded scenarios  
+- **⚡ Advanced Detection** - 7 detection methods including Python-based MCP introspection
+- **📊 Professional Reporting** - Executive dashboards, compliance mapping, and detailed visualizations
+- **🛡️ Enterprise Features** - Cost optimization, intelligent caching, and scalable analysis
+- **🌐 CIDR Support** - Network-wide scanning and analysis capabilities
+
 ### What HawkEye Does
 
-- **Discovers MCP Servers**: Identifies Node.js/NPX-based MCP implementations
-- **Assesses Security Posture**: Evaluates configurations and identifies vulnerabilities
-- **Generates Reports**: Provides actionable intelligence in multiple formats
-- **Maintains Compliance**: Operates within ethical and legal boundaries
+- **Discovers MCP Servers**: Identifies Node.js/NPX-based MCP implementations using 7 detection methods
+- **AI-Powered Analysis**: Dynamic threat assessment using OpenAI, Anthropic, or Local LLMs
+- **Assesses Security Posture**: Evaluates configurations, capabilities, and identifies vulnerabilities
+- **Generates Attack Vectors**: AI-driven attack chain detection and exploitation scenarios
+- **Risk Prioritization**: CVSS-based scoring with business impact assessment
+- **Comprehensive Reporting**: Multi-format reports (HTML, JSON, CSV, XML) with visualizations
+- **Maintains Compliance**: Operates within ethical and legal boundaries with audit trails
 
 ### Who Should Use HawkEye
 
-- Security analysts and penetration testers
-- System administrators managing MCP deployments
-- Compliance officers conducting security audits
-- DevOps teams implementing security controls
-- AI/ML engineers assessing MCP tool security
-- Threat researchers studying MCP attack vectors
+- **Security analysts and penetration testers** - AI-powered dynamic threat analysis
+- **System administrators managing MCP deployments** - Comprehensive risk assessment
+- **Compliance officers conducting security audits** - Automated compliance reporting
+- **DevOps teams implementing security controls** - Continuous security monitoring
+- **AI/ML engineers assessing MCP tool security** - Deep capability analysis
+- **Threat researchers studying MCP attack vectors** - Advanced attack chain detection
+- **Security consultants** - Professional-grade reporting and analysis
+- **Enterprise security teams** - Scalable multi-target assessment
 
 ---
 
@@ -47,11 +63,22 @@ HawkEye is a specialized security reconnaissance tool designed to identify and a
 
 ### System Requirements
 
+#### Minimum Requirements
 - **Operating System**: Linux, macOS, or Windows
 - **Python**: Version 3.8 or higher
-- **Memory**: Minimum 512MB RAM (2GB recommended for large scans)
-- **Network**: Access to target infrastructure
+- **Memory**: 512MB RAM (2GB recommended for large scans, 4GB for AI analysis)
+- **Storage**: 200MB for installation, additional space for logs and results
+- **Network**: Access to target infrastructure and internet for AI provider APIs
 - **Permissions**: Standard user privileges (no root required)
+
+#### Recommended Requirements for AI Analysis
+- **Operating System**: Linux (Ubuntu 20.04+ or CentOS 8+)
+- **Python**: Version 3.9 or higher
+- **Memory**: 8GB RAM (for AI analysis with large datasets)
+- **Storage**: 2GB available space
+- **CPU**: Multi-core processor for optimal parallel processing
+- **Network**: Stable internet connection for AI provider APIs
+- **API Keys**: OpenAI, Anthropic, or Local LLM endpoint access
 
 ### Installation Steps
 
@@ -86,6 +113,29 @@ pip install -r requirements.txt
 python application.py --help
 ```
 
+#### 5. Configure AI Providers (Optional for AI Analysis)
+
+```bash
+# Copy the environment template
+cp env.example .env
+
+# Edit .env with your API keys
+# AI Provider Configuration
+OPENAI_API_KEY=sk-proj-your-openai-key-here
+ANTHROPIC_API_KEY=sk-ant-api03-your-anthropic-key-here
+
+# Optional: Custom model configurations
+OPENAI_MODEL=gpt-4
+ANTHROPIC_MODEL=claude-3-sonnet-20240229
+```
+
+#### 6. Verify AI Configuration (Optional)
+
+```bash
+# Test AI configuration
+python demo_ai_threat_analysis.py
+```
+
 ### Docker Installation (Alternative)
 
 ```bash
@@ -100,36 +150,80 @@ docker run -it hawkeye scan --target 192.168.1.0/24
 
 ## Getting Started
 
-### First Scan
+### First Detection
 
-Start with a simple scan of a single IP address:
+Start with comprehensive MCP detection of a single IP address:
 
 ```bash
-python application.py scan --target 192.168.1.100
+# Basic comprehensive detection
+python application.py detect comprehensive --target 192.168.1.100
+
+# With AI-powered threat analysis (recommended)
+python application.py detect comprehensive --target 192.168.1.100 -o detection.json
+python application.py analyze-threats -i detection.json -f html -o report.html
+```
+
+### Local System Analysis
+
+For analyzing your local system:
+
+```bash
+# Detect local MCP servers
+python application.py detect local -o local_results.json
+
+# Analyze with AI
+python application.py analyze-threats -i local_results.json -f html -o local_threats.html
 ```
 
 ### Understanding Output
 
-HawkEye provides real-time feedback during scanning:
+HawkEye provides real-time feedback during detection and analysis:
 
+#### Detection Output
 ```
-🦅 HawkEye v1.0 - MCP Security Reconnaissance
-[INFO] Starting scan of target: 192.168.1.100
-[INFO] Scanning ports: 3000, 8000, 8080, 9000
-[PROGRESS] ████████████████████ 100% (4/4 ports)
+🦅 HawkEye v2.0 - MCP Security Reconnaissance
+[INFO] Starting comprehensive detection of target: 192.168.1.100
+[INFO] Detection methods: Process enumeration, config discovery, MCP introspection
+[PROGRESS] ████████████████████ 100% (4/4 detection phases)
 [FOUND] 192.168.1.100:3000 - MCP Server (Node.js)
+[INTROSPECTION] Successfully connected to MCP server, discovered 12 tools
 [RISK] Medium risk: Default configuration detected
-[INFO] Scan completed in 12.3 seconds
-[INFO] Results saved to: hawkeye_scan_YYYYMMDD_HHMMSS.json
+[INFO] Detection completed in 45.2 seconds
+[INFO] Results saved to: detection_results.json
+```
+
+#### AI Analysis Output
+```
+🤖 AI Threat Analysis - Processing detection results
+[INFO] Analyzing 3 MCP servers with 12 total tools
+[AI] OpenAI GPT-4: Analyzing tool capabilities...
+[AI] Generated 8 attack vectors, 4 mitigation strategies
+[COST] Analysis cost: $0.24 (within budget)
+[INFO] AI analysis completed in 23.7 seconds
+[INFO] Threat report saved to: threat_analysis.html
 ```
 
 ### Basic Workflow
 
 1. **Plan Your Scan**: Define target scope and objectives
-2. **Execute Scan**: Run HawkEye with appropriate parameters
-3. **Analyze Results**: Review findings and risk assessments
-4. **Generate Reports**: Create documentation for stakeholders
-5. **Take Action**: Implement remediation recommendations
+2. **Execute Detection**: Run HawkEye detection with appropriate parameters
+3. **AI Threat Analysis**: Process results through AI-powered analysis (optional but recommended)
+4. **Analyze Results**: Review findings, risk assessments, and AI-generated insights
+5. **Generate Reports**: Create comprehensive documentation for stakeholders
+6. **Take Action**: Implement remediation recommendations
+
+### Complete AI-Enhanced Workflow
+
+```bash
+# Step 1: Detect MCP servers (supports CIDR ranges)
+python application.py detect comprehensive -t 192.168.1.0/24 -o detection.json
+
+# Step 2: Analyze threats using AI
+python application.py analyze-threats -i detection.json -f html -o threat_report.html
+
+# Step 3: Review the comprehensive threat analysis report
+# The HTML report includes attack vectors, risk assessments, and mitigation strategies
+```
 
 ---
 

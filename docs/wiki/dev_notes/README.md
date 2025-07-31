@@ -25,35 +25,35 @@ Understanding the fundamental design patterns used throughout the application is
 
 ### Design Pattern Documentation
 
-- **[Abstract Base Class Pattern](../design-patterns/abstract-base-class-pattern.md)**
+- **[Abstract Base Class Pattern](design-patterns/abstract-base-class-pattern.md)**
   - Analysis of MCPDetector, BaseScanner, RiskAssessor, BaseReporter
   - UML class diagrams and implementation examples
 
-- **[Strategy Pattern](../design-patterns/strategy-pattern.md)**
+- **[Strategy Pattern](design-patterns/strategy-pattern.md)**
   - Detection strategies and algorithm families
   - Context switching and runtime behavior modification
 
-- **[Factory Pattern](../design-patterns/factory-pattern.md)**
+- **[Factory Pattern](design-patterns/factory-pattern.md)**
   - Pipeline creation, transport factory, reporter factory
   - Abstract factory and factory method implementations
 
-- **[Command Pattern](../design-patterns/command-pattern.md)**
+- **[Command Pattern](design-patterns/command-pattern.md)**
   - CLI command structure and Click framework usage
   - Command hierarchy and parameter handling
 
-- **[Template Method Pattern](../design-patterns/template-method-pattern.md)**
+- **[Template Method Pattern](design-patterns/template-method-pattern.md)**
   - Algorithm skeleton definition and customization points
   - Base class abstract methods and concrete implementations
 
-- **[Chain of Responsibility Pattern](../design-patterns/chain-of-responsibility-pattern.md)**
+- **[Chain of Responsibility Pattern](design-patterns/chain-of-responsibility-pattern.md)**
   - Detection pipeline and assessment chain
   - Handler chain and request processing flow
 
-- **[Builder Pattern](../design-patterns/builder-pattern.md)**
+- **[Builder Pattern](design-patterns/builder-pattern.md)**
   - Complex object construction patterns
   - ReportData, PipelineConfig, and step-by-step construction
 
-- **[Adapter Pattern](../design-patterns/adapter-pattern.md)**
+- **[Adapter Pattern](design-patterns/adapter-pattern.md)**
   - Transport layers and compatibility layers
   - MCP version adaptation and interface translation
 
