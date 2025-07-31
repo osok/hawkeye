@@ -29,7 +29,7 @@ HawkEye combines advanced network scanning capabilities with specialized MCP det
 - **Optional**: OpenAI/Anthropic API keys for AI-powered threat analysis
 
 ### Installation
-📖 **[Complete Installation Guide →](docs/installation.md)**
+📖 **[Complete Installation Guide →](https://github.com/osok/hawkeye/wiki/Installation)**
 
 ```bash
 # Clone and setup
