@@ -77,19 +77,19 @@ python application.py analyze-threats -i local.json --cost-limit 5.0
 
 ## 📖 Documentation
 
-### 📚 **[Complete Documentation Wiki](docs/wiki/README.md)**
+### 📚 **[Complete Documentation Wiki](https://github.com/osok/hawkeye/wiki)**
 Centralized documentation hub with all user guides, technical references, and developer resources.
 
 ### Essential Guides
-- 📘 **[Installation Guide](docs/wiki/installation.md)** - Complete setup with AI provider configuration
-- 🛠️ **[Workflow Guide](docs/wiki/workflow_guide.md)** - 15 step-by-step scenarios for all use cases  
-- 📋 **[User Manual](docs/wiki/user_manual.md)** - Comprehensive usage guide with AI analysis features
-- 🔒 **[Security Guidelines](docs/wiki/security_guidelines.md)** - Security best practices and compliance
+- 📘 **[Installation Guide](https://github.com/osok/hawkeye/wiki/Installation)** - Complete setup with AI provider configuration
+- 🛠️ **[Workflow Guide](https://github.com/osok/hawkeye/wiki/Workflow-Guide)** - 15 step-by-step scenarios for all use cases  
+- 📋 **[User Manual](https://github.com/osok/hawkeye/wiki/User-Manual)** - Comprehensive usage guide with AI analysis features
+- 🔒 **[Security Guidelines](https://github.com/osok/hawkeye/wiki/Security-Guidelines)** - Security best practices and compliance
 
 ### Technical Documentation
 - 🤖 **[AI Threat Analysis README](AI_THREAT_ANALYSIS_README.md)** - AI system architecture and capabilities
-- 🔧 **[API Documentation](docs/wiki/api/README.md)** - Developer reference and MCP introspection APIs
-- 👨‍💻 **[Developer Documentation](docs/wiki/dev_notes/README.md)** - Complete physical design, patterns, and implementation details
+- 🔧 **[API Documentation](https://github.com/osok/hawkeye/wiki/API-Documentation)** - Developer reference and MCP introspection APIs
+- 👨‍💻 **[Developer Documentation](https://github.com/osok/hawkeye/wiki/Developer-Documentation)** - Complete physical design, patterns, and implementation details
 
 ## 🌟 Key Features
 

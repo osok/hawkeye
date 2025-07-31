@@ -1,0 +1,3 @@
+#!/bin/sh
+
+git subtree push --prefix=docs/wiki-content git@github.com:osok/hawkeye.git main --squash
