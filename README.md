@@ -74,8 +74,8 @@ python application.py analyze-threats -i single_target.json --cost-limit 5.0
 python application.py detect local -o local.json
 python application.py analyze-threats -i local.json --cost-limit 5.0
 ```
-
 ## 📖 Documentation
+
 
 ### 📚 **[Complete Documentation Wiki](https://github.com/osok/hawkeye/wiki)**
 Centralized documentation hub with all user guides, technical references, and developer resources.
@@ -90,6 +90,7 @@ Centralized documentation hub with all user guides, technical references, and de
 - 🤖 **[AI Threat Analysis README](AI_THREAT_ANALYSIS_README.md)** - AI system architecture and capabilities
 - 🔧 **[API Documentation](https://github.com/osok/hawkeye/wiki/API-Documentation)** - Developer reference and MCP introspection APIs
 - 👨‍💻 **[Developer Documentation](https://github.com/osok/hawkeye/wiki/Developer-Documentation)** - Complete physical design, patterns, and implementation details
+
 
 ## 🌟 Key Features
 
