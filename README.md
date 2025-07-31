@@ -87,6 +87,7 @@ python application.py analyze-threats -i local.json --cost-limit 5.0
 - 🤖 **[AI Threat Analysis README](AI_THREAT_ANALYSIS_README.md)** - AI system architecture and capabilities
 - 🔧 **[API Documentation](docs/api/README.md)** - Developer reference and MCP introspection APIs
 - 🏗️ **[Architecture Documentation](docs/Design.md)** - System design and architecture decisions
+- 👨‍💻 **[Developer Documentation](docs/dev_notes/README.md)** - Complete physical design, patterns, and implementation details
 
 ### Implementation Status  
 - ✅ **[MCP Introspection](docs/task_list-inspect-mcp.md)** - Python-based introspection system (99% Complete)
